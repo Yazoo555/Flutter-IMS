@@ -1,0 +1,538 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../main.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_logo.dart';
+import '../widgets/labeled_text_field.dart';
+import '../widgets/primary_button.dart';
+
+enum _ForgotStep { enterEmail, resetPassword, success }
+
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  _ForgotStep _step = _ForgotStep.enterEmail;
+
+  // Step 1 — Email
+  final _emailFormKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+
+  // Step 2 — OTP + New Password
+  final _resetFormKey = GlobalKey<FormState>();
+  final _otpController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _otpController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: AppTheme.errorColor),
+    );
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppTheme.primary,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Email validation method with length restriction
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your email';
+    }
+
+    final email = value.trim();
+
+    // Check email length (max 35 characters)
+    if (email.length > 35) {
+      return 'Email must not exceed 35 characters (current: ${email.length})';
+    }
+
+    // Check email format
+    if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      return 'Please enter a valid email';
+    }
+
+    return null;
+  }
+
+  // Password validation method
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a new password';
+    }
+
+    // Check minimum length (8 characters)
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters (current: ${value.length})';
+    }
+
+    // Check maximum length (10 characters)
+    if (value.length > 10) {
+      return 'Password must not exceed 10 characters (current: ${value.length})';
+    }
+
+    // Check for letters and numbers
+    if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
+      return 'Password must contain both letters and numbers';
+    }
+
+    return null;
+  }
+
+  // ─── Step 1: Send OTP to email ────────────────────────────────────────────
+  Future<void> _handleContinue() async {
+    if (!_emailFormKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final email = _emailController.text.trim();
+      final response = await supabase.rpc(
+        'send_reset_otp',
+        params: {'user_email': email},
+      );
+
+      if (response == true) {
+        _showSuccess('OTP sent to your email address');
+        if (mounted) {
+          setState(() => _step = _ForgotStep.resetPassword);
+        }
+      } else {
+        _showError('No account found with this email address.');
+      }
+    } on PostgrestException catch (e) {
+      debugPrint('Send OTP error: $e');
+      _showError('Failed to send OTP. Please try again.');
+    } catch (e) {
+      debugPrint('Send OTP error: $e');
+      _showError('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ─── Step 2: Reset password with OTP ──────────────────────────────────────
+  Future<void> _handleResetPassword() async {
+    if (!_resetFormKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final email = _emailController.text.trim();
+      final otp = _otpController.text.trim();
+      final newPassword = _newPasswordController.text;
+
+      final response = await supabase.rpc(
+        'reset_password_with_otp',
+        params: {
+          'user_email': email,
+          'user_otp': otp,
+          'new_password': newPassword,
+        },
+      );
+
+      if (response == true) {
+        _showSuccess('Password reset successfully!');
+        if (mounted) {
+          setState(() => _step = _ForgotStep.success);
+        }
+      } else {
+        _showError('Invalid or expired OTP. Please try again.');
+        // Clear OTP field for retry
+        _otpController.clear();
+      }
+    } on PostgrestException catch (e) {
+      debugPrint('Reset password error: $e');
+      _showError('Failed to reset password. Please try again.');
+    } catch (e) {
+      debugPrint('Reset password error: $e');
+      _showError('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ─── Build ────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.04, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: _buildCurrentStep(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStep() {
+    switch (_step) {
+      case _ForgotStep.enterEmail:
+        return _buildEmailStep();
+      case _ForgotStep.resetPassword:
+        return _buildResetStep();
+      case _ForgotStep.success:
+        return _buildSuccessStep();
+    }
+  }
+
+  // ─── Step 1: Enter Email ──────────────────────────────────────────────────
+
+  Widget _buildEmailStep() {
+    return Form(
+      key: _emailFormKey,
+      child: Column(
+        key: const ValueKey('email'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          _buildHeader(),
+          const SizedBox(height: 52),
+          _buildStepBadge(1, 2),
+          const SizedBox(height: 20),
+          const Text('Forgot Password?', style: AppTheme.heading1),
+          const SizedBox(height: 10),
+          const Text(
+            'Enter your registered email address and we\'ll send you a one-time password (OTP) to reset your password.',
+            style: AppTheme.bodyMedium,
+          ),
+          const SizedBox(height: 36),
+          LabeledTextField(
+            label: 'EMAIL ADDRESS',
+            hintText: 'you@example.com',
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            maxLength: 35,
+            prefixIcon: const Icon(
+              Icons.mail_outline_rounded,
+              color: AppTheme.textHint,
+              size: 20,
+            ),
+            validator: _validateEmail,
+          ),
+          const SizedBox(height: 28),
+          PrimaryButton(
+            label: 'Send OTP',
+            onPressed: _handleContinue,
+            showArrow: true,
+            isLoading: _isLoading,
+          ),
+          const SizedBox(height: 36),
+          const Divider(color: AppTheme.divider, height: 1),
+          const SizedBox(height: 24),
+          Center(
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: RichText(
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                  children: [
+                    TextSpan(text: 'Remembered it? '),
+                    TextSpan(text: 'Log In', style: AppTheme.linkText),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  // ─── Step 2: OTP + New Password ───────────────────────────────────────────
+
+  Widget _buildResetStep() {
+    return Form(
+      key: _resetFormKey,
+      child: Column(
+        key: const ValueKey('reset'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          _buildHeader(),
+          const SizedBox(height: 52),
+          _buildStepBadge(2, 2),
+          const SizedBox(height: 20),
+          const Text('Reset Password', style: AppTheme.heading1),
+          const SizedBox(height: 10),
+          const Text(
+            'Enter the OTP sent to your email and create a new password.',
+            style: AppTheme.bodyMedium,
+          ),
+          const SizedBox(height: 36),
+          LabeledTextField(
+            label: 'OTP CODE',
+            hintText: 'Enter 6-digit code',
+            controller: _otpController,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.next, // Now this will work
+            maxLength: 6,
+            prefixIcon: const Icon(
+              Icons.pin_rounded,
+              color: AppTheme.textHint,
+              size: 20,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter the OTP';
+              }
+              if (value.length != 6) {
+                return 'OTP must be 6 digits';
+              }
+              if (!RegExp(r'^\d+$').hasMatch(value)) {
+                return 'OTP must contain only numbers';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          LabeledTextField(
+            label: 'NEW PASSWORD',
+            hintText: 'Enter new password (8-10 characters)',
+            controller: _newPasswordController,
+            isPassword: true,
+            maxLength: 10,
+            prefixIcon: const Icon(
+              Icons.lock_outline_rounded,
+              color: AppTheme.textHint,
+              size: 20,
+            ),
+            validator: _validatePassword,
+          ),
+          const SizedBox(height: 20),
+          LabeledTextField(
+            label: 'CONFIRM PASSWORD',
+            hintText: 'Re-enter new password',
+            controller: _confirmPasswordController,
+            isPassword: true,
+            maxLength: 10,
+            prefixIcon: const Icon(
+              Icons.lock_outline_rounded,
+              color: AppTheme.textHint,
+              size: 20,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please confirm your password';
+              }
+              if (value != _newPasswordController.text) {
+                return 'Passwords do not match';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLighter,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppTheme.primaryLight),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  size: 16,
+                  color: AppTheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Password must be 8-10 characters long and contain both letters and numbers',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+          PrimaryButton(
+            label: 'Reset Password',
+            onPressed: _handleResetPassword,
+            showArrow: true,
+            isLoading: _isLoading,
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  // ─── Step 3: Success ──────────────────────────────────────────────────────
+
+  Widget _buildSuccessStep() {
+    return Column(
+      key: const ValueKey('success'),
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const SizedBox(height: 20),
+        _buildHeader(),
+        const SizedBox(height: 80),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryLighter,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.primaryLight, width: 1),
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 38,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Password Reset!',
+                style: AppTheme.heading2,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Your password has been updated successfully. You can now log in with your new password.',
+                style: AppTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              PrimaryButton(
+                label: 'Back to Login',
+                onPressed: () =>
+                    Navigator.popUntil(context, (route) => route.isFirst),
+                showArrow: true,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  // ─── Shared Widgets ───────────────────────────────────────────────────────
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        const AppLogo(),
+        const Spacer(),
+        if (_step != _ForgotStep.success)
+          GestureDetector(
+            onTap: () {
+              if (_step == _ForgotStep.enterEmail) {
+                Navigator.pop(context);
+              } else {
+                setState(() {
+                  _step = _ForgotStep.values[_step.index - 1];
+                });
+              }
+            },
+            child: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.textSecondary,
+              size: 20,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStepBadge(int current, int total) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryLight,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.linear_scale_rounded,
+                size: 14,
+                color: AppTheme.primary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Step $current of $total',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: current / total,
+              backgroundColor: AppTheme.primaryLight,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+              minHeight: 4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
