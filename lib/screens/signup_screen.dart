@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/responsive_layout.dart'; // ← new
 import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -20,7 +21,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  // bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -54,78 +54,49 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  // Username validation method
   String? _validateUsername(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter a username';
     }
-
     final username = value.trim();
-
-    if (username.length < 3) {
-      return 'Username must be at least 3 characters';
-    }
-
-    if (username.length > 35) {
-      return 'Username must not exceed 35 characters';
-    }
-
+    if (username.length < 3) return 'Username must be at least 3 characters';
+    if (username.length > 35) return 'Username must not exceed 35 characters';
     if (!RegExp(r'^[a-zA-Z0-9\s_]+$').hasMatch(username)) {
       return 'Username can only contain letters, numbers, spaces, and underscores';
     }
-
     return null;
   }
 
-  // Email validation method with length restriction
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your email';
     }
-
     final email = value.trim();
-
-    // Check email length (max 35 characters)
     if (email.length > 35) {
       return 'Email must not exceed 35 characters (current: ${email.length})';
     }
-
-    // Check email format
     if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       return 'Please enter a valid email';
     }
-
     return null;
   }
 
-  // Password validation method
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter a password';
-    }
-
-    // Check minimum length (8 characters)
+    if (value == null || value.isEmpty) return 'Please enter a password';
     if (value.length < 8) {
       return 'Password must be at least 8 characters (current: ${value.length})';
     }
-
-    // Check maximum length (10 characters)
     if (value.length > 10) {
       return 'Password must not exceed 10 characters (current: ${value.length})';
     }
-
-    // Check for letters and numbers
     if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
       return 'Password must contain both letters and numbers';
     }
-
     return null;
   }
 
   Future<void> _handleSignUp() async {
-    // Validate form
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -133,7 +104,6 @@ class _SignupScreenState extends State<SignupScreen> {
       final password = _passwordController.text;
       final username = _usernameController.text.trim();
 
-      // Attempt to sign up
       final response = await supabase.auth.signUp(
         email: email,
         password: password,
@@ -143,7 +113,6 @@ class _SignupScreenState extends State<SignupScreen> {
         },
       );
 
-      // Check if user was created
       if (response.user == null) {
         _showError('Failed to create account. Please try again.');
         return;
@@ -151,7 +120,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (!mounted) return;
 
-      // Check if email confirmation is required
       final needsEmailVerification = response.user?.emailConfirmedAt == null;
 
       if (needsEmailVerification) {
@@ -165,9 +133,7 @@ class _SignupScreenState extends State<SignupScreen> {
       } else {
         _showSuccess('Account created successfully!');
         Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          }
+          if (mounted) Navigator.popUntil(context, (route) => route.isFirst);
         });
       }
     } on AuthException catch (e) {
@@ -195,53 +161,107 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // ─── Build ────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              key: const ValueKey('signup_form'),
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
+        child: AuthResponsiveLayout(
+          formContent: _buildFormPanel(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormPanel(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.isDesktop ? 48 : 24,
+      ),
+      child: FormConstrainedBox(
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            key: const ValueKey('signup_form'),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: context.isDesktop ? 48 : 20),
+
+              // Header row: logo (mobile only) + close button
+              Row(
+                children: [
+                  if (!context.isDesktop) const AppLogo(),
+                  if (!context.isDesktop) const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: const Icon(
+                        Icons.close,
+                        color: AppTheme.textSecondary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: context.isDesktop ? 16 : 44),
+              const Text('Create Account', style: AppTheme.heading1),
+              const SizedBox(height: 10),
+              const Text(
+                'Fill in your details to get started.',
+                style: AppTheme.bodyMedium,
+              ),
+              const SizedBox(height: 36),
+
+              // ── On desktop, Username + Email side-by-side ──────────────
+              if (context.isDesktop)
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const AppLogo(),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.close,
-                          color: AppTheme.textSecondary,
-                          size: 22,
+                    Expanded(
+                      child: LabeledTextField(
+                        label: 'USERNAME',
+                        hintText: 'Enter your username',
+                        controller: _usernameController,
+                        maxLength: 35,
+                        prefixIcon: const Icon(
+                          Icons.person_outline_rounded,
+                          color: AppTheme.textHint,
+                          size: 20,
                         ),
+                        validator: _validateUsername,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: LabeledTextField(
+                        label: 'EMAIL ADDRESS',
+                        hintText: 'you@example.com',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        maxLength: 35,
+                        prefixIcon: const Icon(
+                          Icons.mail_outline_rounded,
+                          color: AppTheme.textHint,
+                          size: 20,
+                        ),
+                        validator: _validateEmail,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 44),
-                const Text('Create Account', style: AppTheme.heading1),
-                const SizedBox(height: 10),
-                const Text(
-                  'Fill in your details to get started.',
-                  style: AppTheme.bodyMedium,
-                ),
-                const SizedBox(height: 36),
-
-                // Username Field
+                )
+              else ...[
+                // ── Mobile: stacked ───────────────────────────────────────
                 LabeledTextField(
                   label: 'USERNAME',
                   hintText: 'Enter your username',
                   controller: _usernameController,
-                  maxLength: 35, // Restrict input to 35 characters
+                  maxLength: 35,
                   prefixIcon: const Icon(
                     Icons.person_outline_rounded,
                     color: AppTheme.textHint,
@@ -250,14 +270,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   validator: _validateUsername,
                 ),
                 const SizedBox(height: 20),
-
-                // Email Field
                 LabeledTextField(
                   label: 'EMAIL ADDRESS',
                   hintText: 'you@example.com',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  maxLength: 35, // Restrict input to 35 characters
+                  maxLength: 35,
                   prefixIcon: const Icon(
                     Icons.mail_outline_rounded,
                     color: AppTheme.textHint,
@@ -265,95 +283,88 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   validator: _validateEmail,
                 ),
-                const SizedBox(height: 20),
-
-                // Password Field with maxLength
-                LabeledTextField(
-                  label: 'PASSWORD',
-                  hintText: 'Create a password',
-                  controller: _passwordController,
-                  isPassword: true,
-                  maxLength: 10, // Restrict input to 10 characters
-                  prefixIcon: const Icon(
-                    Icons.lock_outline_rounded,
-                    color: AppTheme.textHint,
-                    size: 20,
-                  ),
-                  validator: _validatePassword,
-                ),
-
-                // Password Requirements Hint (One-liner)
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLighter,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.primaryLight),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        size: 16,
-                        color: AppTheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Password must be 8-10 characters long and contain both letters and numbers',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Sign Up Button
-                PrimaryButton(
-                  label: 'Sign Up',
-                  onPressed: _handleSignUp,
-                  isLoading: _isLoading,
-                  showArrow: true,
-                ),
-
-                const SizedBox(height: 36),
-
-                // Divider
-                const Divider(color: AppTheme.divider, height: 1),
-                const SizedBox(height: 24),
-
-                // Login Link
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Already have an account? ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Text('Log In', style: AppTheme.linkText),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
               ],
-            ),
+
+              const SizedBox(height: 20),
+
+              LabeledTextField(
+                label: 'PASSWORD',
+                hintText: 'Create a password',
+                controller: _passwordController,
+                isPassword: true,
+                maxLength: 10,
+                prefixIcon: const Icon(
+                  Icons.lock_outline_rounded,
+                  color: AppTheme.textHint,
+                  size: 20,
+                ),
+                validator: _validatePassword,
+              ),
+
+              const SizedBox(height: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLighter,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.primaryLight),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      size: 16,
+                      color: AppTheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Password must be 8-10 characters long and contain both letters and numbers',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              PrimaryButton(
+                label: 'Sign Up',
+                onPressed: _handleSignUp,
+                isLoading: _isLoading,
+                showArrow: true,
+              ),
+
+              const SizedBox(height: 36),
+              const Divider(color: AppTheme.divider, height: 1),
+              const SizedBox(height: 24),
+
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Already have an account? ',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Text('Log In', style: AppTheme.linkText),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: context.isDesktop ? 48 : 32),
+            ],
           ),
         ),
       ),

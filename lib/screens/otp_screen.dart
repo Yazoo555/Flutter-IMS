@@ -6,14 +6,11 @@ import '../main.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/primary_button.dart';
+import '../utils/responsive_layout.dart'; // ← new
 import 'home_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String email;
-
-  /// Pass [OtpType.signup] after registration,
-  /// [OtpType.email] after login,
-  /// [OtpType.recovery] after forgot-password flow.
   final OtpType otpType;
 
   const OtpScreen({super.key, required this.email, required this.otpType});
@@ -123,9 +120,7 @@ class _OtpScreenState extends State<OtpScreen> {
       );
 
       if (!mounted) return;
-
       _showSnack('Verification successful!');
-
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -149,10 +144,8 @@ class _OtpScreenState extends State<OtpScreen> {
 
     try {
       if (widget.otpType == OtpType.recovery) {
-        // Resend a password-recovery OTP
         await supabase.auth.resetPasswordForEmail(widget.email);
       } else {
-        // Resend signup confirmation or email OTP
         await supabase.auth.signInWithOtp(
           email: widget.email,
           shouldCreateUser: widget.otpType == OtpType.signup,
@@ -186,193 +179,227 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-
-              // Logo + back
-              Row(
-                children: [
-                  const AppLogo(),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      color: AppTheme.textSecondary,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              // OTP Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLighter,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryLight, width: 1),
-                ),
-                child: Column(
-                  children: [
-                    // Icon
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.shield_outlined,
-                        color: AppTheme.primary,
-                        size: 30,
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-                    const Text('Verification', style: AppTheme.heading2),
-                    const SizedBox(height: 10),
-
-                    RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: AppTheme.bodyMedium,
-                        children: [
-                          const TextSpan(
-                            text: 'Enter the 6-digit code sent to\n',
-                          ),
-                          TextSpan(
-                            text: _maskEmail(widget.email),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // OTP boxes
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final boxWidth = (constraints.maxWidth - (5 * 8)) / 6;
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(_otpLength, (i) {
-                            return Container(
-                              width: boxWidth,
-                              height: boxWidth * 1.2,
-                              margin: EdgeInsets.only(right: i < 5 ? 8 : 0),
-                              child: TextFormField(
-                                controller: _controllers[i],
-                                focusNode: _focusNodes[i],
-                                textAlign: TextAlign.center,
-                                keyboardType: TextInputType.number,
-                                maxLength: 1,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.primary,
-                                ),
-                                decoration: InputDecoration(
-                                  counterText: '',
-                                  filled: true,
-                                  fillColor: AppTheme.otpBackground,
-                                  contentPadding: EdgeInsets.zero,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                      color: AppTheme.primary,
-                                      width: 2,
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (v) => _onDigitChanged(i, v),
-                                onTap: () {
-                                  _controllers[i].selection =
-                                      TextSelection.fromPosition(
-                                        TextPosition(
-                                          offset: _controllers[i].text.length,
-                                        ),
-                                      );
-                                },
-                              ),
-                            );
-                          }),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    PrimaryButton(
-                      label: 'Verify',
-                      onPressed: _handleVerify,
-                      showArrow: true,
-                      isLoading: _isLoading,
-                    ),
-
-                    const SizedBox(height: 18),
-
-                    // Resend
-                    GestureDetector(
-                      onTap: _canResend ? _handleResend : null,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.refresh_rounded,
-                            size: 16,
-                            color: _canResend
-                                ? AppTheme.primary
-                                : AppTheme.textHint,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _canResend
-                                ? 'Resend Code'
-                                : 'Resend in ${_resendTimer}s',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: _canResend
-                                  ? AppTheme.primary
-                                  : AppTheme.textHint,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-            ],
-          ),
+        child: AuthResponsiveLayout(
+          formContent: _buildFormPanel(context),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFormPanel(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.isDesktop ? 48 : 24,
+      ),
+      child: FormConstrainedBox(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: context.isDesktop ? 48 : 20),
+
+            // Header row
+            Row(
+              children: [
+                if (!context.isDesktop) const AppLogo(),
+                if (!context.isDesktop) const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: context.isDesktop ? 40 : 32),
+
+            // OTP Card — centered on desktop, full-width on mobile
+            _buildOtpCard(context),
+
+            SizedBox(height: context.isDesktop ? 48 : 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtpCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        context.isDesktop ? 40 : 24,
+        context.isDesktop ? 40 : 32,
+        context.isDesktop ? 40 : 24,
+        context.isDesktop ? 40 : 32,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryLighter,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.primaryLight, width: 1),
+        // Subtle shadow on desktop to lift the card
+        boxShadow: context.isDesktop
+            ? [
+                BoxShadow(
+                  color: AppTheme.primary.withOpacity(0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        children: [
+          // Icon
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.shield_outlined,
+              color: AppTheme.primary,
+              size: 30,
+            ),
+          ),
+
+          const SizedBox(height: 20),
+          const Text('Verification', style: AppTheme.heading2),
+          const SizedBox(height: 10),
+
+          RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              style: AppTheme.bodyMedium,
+              children: [
+                const TextSpan(text: 'Enter the 6-digit code sent to\n'),
+                TextSpan(
+                  text: _maskEmail(widget.email),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // OTP boxes — fixed max-width so they don't stretch on wide desktop
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: context.isDesktop ? 380 : double.infinity,
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final boxWidth = (constraints.maxWidth - (5 * 8)) / 6;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_otpLength, (i) {
+                    return Container(
+                      width: boxWidth,
+                      height: boxWidth * 1.2,
+                      margin: EdgeInsets.only(right: i < 5 ? 8 : 0),
+                      child: TextFormField(
+                        controller: _controllers[i],
+                        focusNode: _focusNodes[i],
+                        textAlign: TextAlign.center,
+                        keyboardType: TextInputType.number,
+                        maxLength: 1,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          filled: true,
+                          fillColor: AppTheme.otpBackground,
+                          contentPadding: EdgeInsets.zero,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: AppTheme.primary,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        onChanged: (v) => _onDigitChanged(i, v),
+                        onTap: () {
+                          _controllers[i].selection =
+                              TextSelection.fromPosition(
+                            TextPosition(
+                                offset: _controllers[i].text.length),
+                          );
+                        },
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
+          // Verify button — constrained width on desktop
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: context.isDesktop ? 320 : double.infinity,
+            ),
+            child: PrimaryButton(
+              label: 'Verify',
+              onPressed: _handleVerify,
+              showArrow: true,
+              isLoading: _isLoading,
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Resend
+          GestureDetector(
+            onTap: _canResend ? _handleResend : null,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.refresh_rounded,
+                  size: 16,
+                  color: _canResend ? AppTheme.primary : AppTheme.textHint,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _canResend
+                      ? 'Resend Code'
+                      : 'Resend in ${_resendTimer}s',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        _canResend ? AppTheme.primary : AppTheme.textHint,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/labeled_text_field.dart';
 import '../widgets/primary_button.dart';
+import '../utils/responsive_layout.dart'; // ← new
 
 enum _ForgotStep { enterEmail, resetPassword, success }
 
@@ -18,11 +19,9 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   _ForgotStep _step = _ForgotStep.enterEmail;
 
-  // Step 1 — Email
   final _emailFormKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
 
-  // Step 2 — OTP + New Password
   final _resetFormKey = GlobalKey<FormState>();
   final _otpController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -58,55 +57,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  // Email validation method with length restriction
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your email';
     }
-
     final email = value.trim();
-
-    // Check email length (max 35 characters)
     if (email.length > 35) {
       return 'Email must not exceed 35 characters (current: ${email.length})';
     }
-
-    // Check email format
     if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       return 'Please enter a valid email';
     }
-
     return null;
   }
 
-  // Password validation method
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a new password';
     }
-
-    // Check minimum length (8 characters)
     if (value.length < 8) {
       return 'Password must be at least 8 characters (current: ${value.length})';
     }
-
-    // Check maximum length (10 characters)
     if (value.length > 10) {
       return 'Password must not exceed 10 characters (current: ${value.length})';
     }
-
-    // Check for letters and numbers
     if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
       return 'Password must contain both letters and numbers';
     }
-
     return null;
   }
 
-  // ─── Step 1: Send OTP to email ────────────────────────────────────────────
   Future<void> _handleContinue() async {
     if (!_emailFormKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -118,9 +100,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (response == true) {
         _showSuccess('OTP sent to your email address');
-        if (mounted) {
-          setState(() => _step = _ForgotStep.resetPassword);
-        }
+        if (mounted) setState(() => _step = _ForgotStep.resetPassword);
       } else {
         _showError('No account found with this email address.');
       }
@@ -135,10 +115,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  // ─── Step 2: Reset password with OTP ──────────────────────────────────────
   Future<void> _handleResetPassword() async {
     if (!_resetFormKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
 
     try {
@@ -157,12 +135,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (response == true) {
         _showSuccess('Password reset successfully!');
-        if (mounted) {
-          setState(() => _step = _ForgotStep.success);
-        }
+        if (mounted) setState(() => _step = _ForgotStep.success);
       } else {
         _showError('Invalid or expired OTP. Please try again.');
-        // Clear OTP field for retry
         _otpController.clear();
       }
     } on PostgrestException catch (e) {
@@ -183,56 +158,66 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.04, 0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: _buildCurrentStep(),
-          ),
+        child: AuthResponsiveLayout(
+          formContent: _buildFormPanel(context),
         ),
       ),
     );
   }
 
-  Widget _buildCurrentStep() {
+  Widget _buildFormPanel(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: context.isDesktop ? 48 : 24,
+      ),
+      child: FormConstrainedBox(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          child: _buildCurrentStep(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStep(BuildContext context) {
     switch (_step) {
       case _ForgotStep.enterEmail:
-        return _buildEmailStep();
+        return _buildEmailStep(context);
       case _ForgotStep.resetPassword:
-        return _buildResetStep();
+        return _buildResetStep(context);
       case _ForgotStep.success:
-        return _buildSuccessStep();
+        return _buildSuccessStep(context);
     }
   }
 
   // ─── Step 1: Enter Email ──────────────────────────────────────────────────
 
-  Widget _buildEmailStep() {
+  Widget _buildEmailStep(BuildContext context) {
     return Form(
       key: _emailFormKey,
       child: Column(
         key: const ValueKey('email'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
-          _buildHeader(),
-          const SizedBox(height: 52),
+          SizedBox(height: context.isDesktop ? 48 : 20),
+          _buildHeader(context),
+          SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(1, 2),
           const SizedBox(height: 20),
           const Text('Forgot Password?', style: AppTheme.heading1),
           const SizedBox(height: 10),
           const Text(
-            'Enter your registered email address and we\'ll send you a one-time password (OTP) to reset your password.',
+            "Enter your registered email address and we'll send you a one-time password (OTP) to reset your password.",
             style: AppTheme.bodyMedium,
           ),
           const SizedBox(height: 36),
@@ -256,41 +241,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             showArrow: true,
             isLoading: _isLoading,
           ),
-          const SizedBox(height: 36),
-          const Divider(color: AppTheme.divider, height: 1),
           const SizedBox(height: 24),
           Center(
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: RichText(
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-                  children: [
-                    TextSpan(text: 'Remembered it? '),
-                    TextSpan(text: 'Log In', style: AppTheme.linkText),
-                  ],
-                ),
-              ),
+              child: const Text('Back to Login', style: AppTheme.linkText),
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: context.isDesktop ? 48 : 32),
         ],
       ),
     );
   }
 
-  // ─── Step 2: OTP + New Password ───────────────────────────────────────────
+  // ─── Step 2: Reset Password ───────────────────────────────────────────────
 
-  Widget _buildResetStep() {
+  Widget _buildResetStep(BuildContext context) {
     return Form(
       key: _resetFormKey,
       child: Column(
         key: const ValueKey('reset'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
-          _buildHeader(),
-          const SizedBox(height: 52),
+          SizedBox(height: context.isDesktop ? 48 : 20),
+          _buildHeader(context),
+          SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(2, 2),
           const SizedBox(height: 20),
           const Text('Reset Password', style: AppTheme.heading1),
@@ -300,12 +275,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             style: AppTheme.bodyMedium,
           ),
           const SizedBox(height: 36),
+
           LabeledTextField(
             label: 'OTP CODE',
             hintText: 'Enter 6-digit code',
             controller: _otpController,
             keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.next, // Now this will work
+            textInputAction: TextInputAction.next,
             maxLength: 6,
             prefixIcon: const Icon(
               Icons.pin_rounded,
@@ -316,51 +292,100 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               if (value == null || value.isEmpty) {
                 return 'Please enter the OTP';
               }
-              if (value.length != 6) {
-                return 'OTP must be 6 digits';
-              }
+              if (value.length != 6) return 'OTP must be 6 digits';
               if (!RegExp(r'^\d+$').hasMatch(value)) {
                 return 'OTP must contain only numbers';
               }
               return null;
             },
           ),
+
           const SizedBox(height: 20),
-          LabeledTextField(
-            label: 'NEW PASSWORD',
-            hintText: 'Enter new password (8-10 characters)',
-            controller: _newPasswordController,
-            isPassword: true,
-            maxLength: 10,
-            prefixIcon: const Icon(
-              Icons.lock_outline_rounded,
-              color: AppTheme.textHint,
-              size: 20,
+
+          // On desktop, show new password + confirm side-by-side
+          if (context.isDesktop)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: LabeledTextField(
+                    label: 'NEW PASSWORD',
+                    hintText: 'Enter new password',
+                    controller: _newPasswordController,
+                    isPassword: true,
+                    maxLength: 10,
+                    prefixIcon: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppTheme.textHint,
+                      size: 20,
+                    ),
+                    validator: _validatePassword,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: LabeledTextField(
+                    label: 'CONFIRM PASSWORD',
+                    hintText: 'Re-enter new password',
+                    controller: _confirmPasswordController,
+                    isPassword: true,
+                    maxLength: 10,
+                    prefixIcon: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppTheme.textHint,
+                      size: 20,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            )
+          else ...[
+            LabeledTextField(
+              label: 'NEW PASSWORD',
+              hintText: 'Enter new password (8-10 characters)',
+              controller: _newPasswordController,
+              isPassword: true,
+              maxLength: 10,
+              prefixIcon: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppTheme.textHint,
+                size: 20,
+              ),
+              validator: _validatePassword,
             ),
-            validator: _validatePassword,
-          ),
-          const SizedBox(height: 20),
-          LabeledTextField(
-            label: 'CONFIRM PASSWORD',
-            hintText: 'Re-enter new password',
-            controller: _confirmPasswordController,
-            isPassword: true,
-            maxLength: 10,
-            prefixIcon: const Icon(
-              Icons.lock_outline_rounded,
-              color: AppTheme.textHint,
-              size: 20,
+            const SizedBox(height: 20),
+            LabeledTextField(
+              label: 'CONFIRM PASSWORD',
+              hintText: 'Re-enter new password',
+              controller: _confirmPasswordController,
+              isPassword: true,
+              maxLength: 10,
+              prefixIcon: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppTheme.textHint,
+                size: 20,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please confirm your password';
+                }
+                if (value != _newPasswordController.text) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              },
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please confirm your password';
-              }
-              if (value != _newPasswordController.text) {
-                return 'Passwords do not match';
-              }
-              return null;
-            },
-          ),
+          ],
+
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -371,11 +396,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             child: Row(
               children: [
-                const Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: AppTheme.primary,
-                ),
+                const Icon(Icons.info_outline_rounded,
+                    size: 16, color: AppTheme.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -390,6 +412,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: 28),
           PrimaryButton(
             label: 'Reset Password',
@@ -397,7 +420,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             showArrow: true,
             isLoading: _isLoading,
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: context.isDesktop ? 48 : 32),
         ],
       ),
     );
@@ -405,14 +428,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   // ─── Step 3: Success ──────────────────────────────────────────────────────
 
-  Widget _buildSuccessStep() {
+  Widget _buildSuccessStep(BuildContext context) {
     return Column(
       key: const ValueKey('success'),
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const SizedBox(height: 20),
-        _buildHeader(),
-        const SizedBox(height: 80),
+        SizedBox(height: context.isDesktop ? 48 : 20),
+        _buildHeader(context),
+        SizedBox(height: context.isDesktop ? 60 : 80),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
@@ -420,6 +443,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: AppTheme.primaryLighter,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppTheme.primaryLight, width: 1),
+            boxShadow: context.isDesktop
+                ? [
+                    BoxShadow(
+                      color: AppTheme.primary.withOpacity(0.08),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             children: [
@@ -449,27 +481,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              PrimaryButton(
-                label: 'Back to Login',
-                onPressed: () =>
-                    Navigator.popUntil(context, (route) => route.isFirst),
-                showArrow: true,
+              // Constrain button width on desktop
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: context.isDesktop ? 280 : double.infinity,
+                ),
+                child: PrimaryButton(
+                  label: 'Back to Login',
+                  onPressed: () =>
+                      Navigator.popUntil(context, (route) => route.isFirst),
+                  showArrow: true,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: context.isDesktop ? 48 : 32),
       ],
     );
   }
 
   // ─── Shared Widgets ───────────────────────────────────────────────────────
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       children: [
-        const AppLogo(),
-        const Spacer(),
+        if (!context.isDesktop) const AppLogo(),
+        if (!context.isDesktop) const Spacer(),
         if (_step != _ForgotStep.success)
           GestureDetector(
             onTap: () {
@@ -527,7 +565,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: LinearProgressIndicator(
               value: current / total,
               backgroundColor: AppTheme.primaryLight,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppTheme.primary),
               minHeight: 4,
             ),
           ),
