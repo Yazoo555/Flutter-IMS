@@ -135,7 +135,7 @@ class _DefaultBrandPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Real-time stock tracking, smart alerts,\nand seamless team collaboration.',
+'Accurate stock monitoring, low-stock alerts,\nand smooth inventory operations.',
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white.withOpacity(0.75),
@@ -148,7 +148,7 @@ class _DefaultBrandPanel extends StatelessWidget {
                 ...[
                   (Icons.bar_chart_rounded, 'Live inventory analytics'),
                   (Icons.notifications_active_outlined, 'Low-stock alerts'),
-                  (Icons.group_outlined, 'Multi-user collaboration'),
+                  // (Icons.group_outlined, 'Multi-user coMultillaboration'),
                 ].map(
                   (item) => Padding(
                     padding: const EdgeInsets.only(bottom: 14),
@@ -162,7 +162,8 @@ class _DefaultBrandPanel extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child:
-                              Icon(item.$1, color: Colors.white, size: 18),
+                              Icon(item.$1, color: Colors.white, size: 18),                  // (Icons.group_outlined, 'Multi-user coMultillaboration'),
+
                         ),
                         const SizedBox(width: 14),
                         Text(
@@ -182,7 +183,7 @@ class _DefaultBrandPanel extends StatelessWidget {
 
                 // Footer
                 Text(
-                  '© ${DateTime.now().year} StockWise. All rights reserved.',
+                  '© ${DateTime.now().year} IMS. All rights reserved.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.white.withOpacity(0.45),
