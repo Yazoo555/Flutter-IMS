@@ -192,23 +192,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // Header row: logo (mobile only) + close button
               Row(
-                children: [
-                  if (!context.isDesktop) const AppLogo(),
-                  if (!context.isDesktop) const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(
-                        Icons.close,
-                        color: AppTheme.textSecondary,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
+  children: [
+    if (!context.isDesktop) const AppLogo(),
+    if (!context.isDesktop) const Spacer(),
+  ],
+),  
               SizedBox(height: context.isDesktop ? 16 : 44),
               const Text('Create Account', style: AppTheme.heading1),
               const SizedBox(height: 10),
