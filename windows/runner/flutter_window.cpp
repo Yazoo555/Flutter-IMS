@@ -5,9 +5,13 @@
 #include "flutter/generated_plugin_registrant.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
-    : project_(project) {}
+    : project_(project), minimum_size_{800, 600} {}
 
 FlutterWindow::~FlutterWindow() {}
+
+void FlutterWindow::SetMinimumSize(const Size& size) {
+  minimum_size_ = size;
+}
 
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
@@ -51,6 +55,14 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  // Handle WM_GETMINMAXINFO to set minimum window size during resizing
+  if (message == WM_GETMINMAXINFO) {
+    MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lparam);
+    mmi->ptMinTrackSize.x = minimum_size_.width;
+    mmi->ptMinTrackSize.y = minimum_size_.height;
+    return 0;
+  }
+
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

@@ -15,6 +15,9 @@ class FlutterWindow : public Win32Window {
   explicit FlutterWindow(const flutter::DartProject& project);
   virtual ~FlutterWindow();
 
+  // Sets the minimum window size
+  void SetMinimumSize(const Size& size);
+
  protected:
   // Win32Window:
   bool OnCreate() override;
@@ -28,6 +31,9 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+
+  // Minimum window size
+  Size minimum_size_;
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_
