@@ -4,6 +4,10 @@ import '../main.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import 'login_screen.dart';
+import 'dashboard_screen.dart';
+import 'inventory_screen.dart';
+import 'reports_screen.dart';
+import 'logistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
     _NavItem(icon: Icons.inventory_2_rounded, label: 'Inventory'),
     _NavItem(icon: Icons.bar_chart_rounded, label: 'Reports'),
-    _NavItem(icon: Icons.settings_rounded, label: 'Settings'),
+    _NavItem(icon: Icons.local_shipping_rounded, label: 'Logistics'),
   ];
 
   Future<void> _handleLogout() async {
@@ -286,10 +290,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _currentIndex,
         children: const [
-          _DashboardTab(),
-          _InventoryTab(),
-          _ReportsTab(),
-          _SettingsTab(),
+          DashboardScreen(),
+          InventoryScreen(),
+          ReportsScreen(),
+          LogisticsScreen(),
         ],
       ),
 
@@ -366,105 +370,4 @@ class _NavItem {
   final IconData icon;
   final String label;
   const _NavItem({required this.icon, required this.label});
-}
-
-// ── Tab placeholders ──────────────────────────────────────────────────────────
-
-class _DashboardTab extends StatelessWidget {
-  const _DashboardTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return _PlaceholderTab(
-      icon: Icons.dashboard_rounded,
-      title: 'Dashboard',
-      subtitle: 'Overview of your inventory at a glance.',
-    );
-  }
-}
-
-class _InventoryTab extends StatelessWidget {
-  const _InventoryTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return _PlaceholderTab(
-      icon: Icons.inventory_2_rounded,
-      title: 'Inventory',
-      subtitle: 'Browse and manage your stock items.',
-    );
-  }
-}
-
-class _ReportsTab extends StatelessWidget {
-  const _ReportsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return _PlaceholderTab(
-      icon: Icons.bar_chart_rounded,
-      title: 'Reports',
-      subtitle: 'View sales and inventory reports.',
-    );
-  }
-}
-
-class _SettingsTab extends StatelessWidget {
-  const _SettingsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return _PlaceholderTab(
-      icon: Icons.settings_rounded,
-      title: 'Settings',
-      subtitle: 'Configure app preferences.',
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _PlaceholderTab({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, size: 36, color: AppTheme.primary),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 }
