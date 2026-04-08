@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../main.dart';
 import '../theme/app_theme.dart';
+import 'add_unit_screen.dart';
 
 // ── Model ─────────────────────────────────────────────────────────────────────
 
@@ -104,8 +105,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     return res.statusCode == 201;
   }
 
-  Future<bool> _updateUnit(
-      String id, String name, String abbreviation) async {
+  Future<bool> _updateUnit(String id, String name, String abbreviation) async {
     final res = await http.patch(
       Uri.parse('$_baseUrl?id=eq.$id'),
       headers: _headers,
@@ -122,148 +122,45 @@ class _UnitsScreenState extends State<UnitsScreen> {
     return res.statusCode == 200 || res.statusCode == 204;
   }
 
-  // ── Dialogs ────────────────────────────────────────────────────────────────
+  // ── Navigation Methods ─────────────────────────────────────────────────────
 
-  Future<void> _showUnitDialog({UnitModel? unit}) async {
-    final isEdit = unit != null;
-    final nameCtrl = TextEditingController(text: unit?.name ?? '');
-    final abbCtrl = TextEditingController(text: unit?.abbreviation ?? '');
-    final formKey = GlobalKey<FormState>();
-    bool saving = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppTheme.surface,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          titlePadding:
-              const EdgeInsets.fromLTRB(24, 24, 24, 0),
-          contentPadding:
-              const EdgeInsets.fromLTRB(24, 16, 24, 0),
-          actionsPadding:
-              const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          title: Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.straighten_rounded,
-                    color: AppTheme.primary, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                isEdit ? 'Edit Unit' : 'Add Unit',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          content: Form(
-            key: formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 8),
-                _DialogField(
-                  label: 'UNIT NAME',
-                  hint: 'e.g. Kilogram',
-                  controller: nameCtrl,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Name is required';
-                    }
-                    if (v.trim().length > 50) return 'Max 50 characters';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _DialogField(
-                  label: 'ABBREVIATION',
-                  hint: 'e.g. kg',
-                  controller: abbCtrl,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Abbreviation is required';
-                    }
-                    if (v.trim().length > 10) return 'Max 10 characters';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
-              ),
-              onPressed: saving
-                  ? null
-                  : () async {
-                      if (!formKey.currentState!.validate()) return;
-                      setDialogState(() => saving = true);
-                      final name = nameCtrl.text.trim();
-                      final abb = abbCtrl.text.trim();
-                      bool ok;
-                      if (isEdit) {
-                        ok = await _updateUnit(unit!.id, name, abb);
-                      } else {
-                        ok = await _createUnit(name, abb);
-                      }
-                      if (!mounted) return;
-                      Navigator.pop(ctx);
-                      if (ok) {
-                        _fetchUnits();
-                        _showSnack(
-                            isEdit ? 'Unit updated.' : 'Unit added.');
-                      } else {
-                        _showSnack('Failed. Please try again.',
-                            error: true);
-                      }
-                    },
-              child: saving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : Text(
-                      isEdit ? 'Save Changes' : 'Add Unit',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, color: Colors.white),
-                    ),
-            ),
-          ],
+  Future<void> _addUnit() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddUnitScreen(
+          onSave: (name, abbreviation) async {
+            return await _createUnit(name, abbreviation);
+          },
         ),
       ),
     );
 
-    nameCtrl.dispose();
-    abbCtrl.dispose();
+    if (result == true) {
+      await _fetchUnits();
+      _showSnack('Unit added.');
+    }
+  }
+
+  Future<void> _editUnit(UnitModel unit) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddUnitScreen(
+          unitId: unit.id,
+          initialName: unit.name,
+          initialAbbreviation: unit.abbreviation,
+          onSave: (name, abbreviation) async {
+            return await _updateUnit(unit.id, name, abbreviation);
+          },
+        ),
+      ),
+    );
+
+    if (result == true) {
+      await _fetchUnits();
+      _showSnack('Unit updated.');
+    }
   }
 
   Future<void> _confirmDelete(UnitModel unit) async {
@@ -316,7 +213,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     if (confirmed != true) return;
     final ok = await _deleteUnit(unit.id);
     if (ok) {
-      _fetchUnits();
+      await _fetchUnits();
       _showSnack('Unit deleted.');
     } else {
       _showSnack('Failed to delete. Please try again.', error: true);
@@ -354,30 +251,11 @@ class _UnitsScreenState extends State<UnitsScreen> {
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimary),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
-              ),
-              onPressed: () => _showUnitDialog(),
-              icon: const Icon(Icons.add_rounded, size: 18,
-                  color: Colors.white),
-              label: const Text(
-                'Add Unit',
-                style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Colors.white),
-              ),
-            ),
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addUnit,
+        backgroundColor: AppTheme.primary,
+        child: const Icon(Icons.add_rounded, color: Colors.white),
       ),
       body: _buildBody(),
     );
@@ -451,7 +329,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 20, vertical: 12),
               ),
-              onPressed: () => _showUnitDialog(),
+              onPressed: _addUnit,
               icon: const Icon(Icons.add_rounded,
                   size: 18, color: Colors.white),
               label: const Text('Add Unit',
@@ -472,7 +350,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
         separatorBuilder: (_, __) => const SizedBox(height: 8),
         itemBuilder: (_, i) => _UnitTile(
           unit: _units[i],
-          onEdit: () => _showUnitDialog(unit: _units[i]),
+          onEdit: () => _editUnit(_units[i]),
           onDelete: () => _confirmDelete(_units[i]),
         ),
       ),
@@ -568,81 +446,6 @@ class _UnitTile extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ── Dialog Text Field ─────────────────────────────────────────────────────────
-
-class _DialogField extends StatelessWidget {
-  final String label;
-  final String hint;
-  final TextEditingController controller;
-  final String? Function(String?)? validator;
-
-  const _DialogField({
-    required this.label,
-    required this.hint,
-    required this.controller,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textSecondary,
-            letterSpacing: 0.6,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          validator: validator,
-          style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textPrimary),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(
-                color: AppTheme.textHint, fontSize: 14),
-            filled: true,
-            fillColor: AppTheme.background,
-            contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 12),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide:
-                  const BorderSide(color: AppTheme.primary, width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide:
-                  const BorderSide(color: AppTheme.errorColor),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide:
-                  const BorderSide(color: AppTheme.errorColor, width: 1.5),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
