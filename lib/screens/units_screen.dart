@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import '../theme/app_theme.dart';
 import 'add_unit_screen.dart';
@@ -35,24 +34,9 @@ class UnitsScreen extends StatefulWidget {
 }
 
 class _UnitsScreenState extends State<UnitsScreen> {
-  static const _baseUrl =
-      'https://zinognrruckgcmrxgzro.supabase.co/rest/v1/units';
-  static const _anonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppbm9nbnJydWNrZ2NtcnhnenJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MDY4ODIsImV4cCI6MjA5MDE4Mjg4Mn0.l1fN3dKA_b3QAIIfQrAuSf_h_tRuoElR-9vPSew_aeA';
-
   List<UnitModel> _units = [];
   bool _isLoading = true;
   String? _error;
-
-  String get _accessToken =>
-      supabase.auth.currentSession?.accessToken ?? _anonKey;
-
-  Map<String, String> get _headers => {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_accessToken',
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-      };
 
   @override
   void initState() {
@@ -60,7 +44,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     _fetchUnits();
   }
 
-  // ── API calls ──────────────────────────────────────────────────────────────
+  // ─── Data ──────────────────────────────────────────────────────────────────
 
   Future<void> _fetchUnits() async {
     setState(() {
@@ -68,194 +52,179 @@ class _UnitsScreenState extends State<UnitsScreen> {
       _error = null;
     });
     try {
-      final uri = Uri.parse(
-          '$_baseUrl?select=id,name,abbreviation&order=name.asc');
-      final res = await http.get(uri, headers: _headers);
-      if (res.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(res.body);
-        setState(() {
-          _units = data.map((e) => UnitModel.fromJson(e)).toList();
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _error = 'Failed to load units (${res.statusCode})';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
+      final data = await supabase
+          .from('units')
+          .select('id, name, abbreviation')
+          .order('name', ascending: true);
+
+      if (!mounted) return;
       setState(() {
-        _error = 'Network error. Please try again.';
+        _units = (data as List)
+            .map((e) => UnitModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load units. Please try again.';
         _isLoading = false;
       });
     }
   }
 
-  Future<bool> _createUnit(String name, String abbreviation) async {
-    final userId = supabase.auth.currentUser?.id ?? '';
-    final res = await http.post(
-      Uri.parse(_baseUrl),
-      headers: _headers,
-      body: jsonEncode({
-        'name': name,
-        'abbreviation': abbreviation,
-        'created_by': userId,
-      }),
-    );
-    return res.statusCode == 201;
-  }
+  Future<void> _deleteUnit(UnitModel unit) async {
+    final confirmed = await _showDeleteDialog(unit.name, unit.abbreviation);
+    if (!confirmed) return;
 
-  Future<bool> _updateUnit(String id, String name, String abbreviation) async {
-    final res = await http.patch(
-      Uri.parse('$_baseUrl?id=eq.$id'),
-      headers: _headers,
-      body: jsonEncode({'name': name, 'abbreviation': abbreviation}),
-    );
-    return res.statusCode == 200 || res.statusCode == 204;
-  }
-
-  Future<bool> _deleteUnit(String id) async {
-    final res = await http.delete(
-      Uri.parse('$_baseUrl?id=eq.$id'),
-      headers: _headers,
-    );
-    return res.statusCode == 200 || res.statusCode == 204;
-  }
-
-  // ── Navigation Methods ─────────────────────────────────────────────────────
-
-  Future<void> _addUnit() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddUnitScreen(
-          onSave: (name, abbreviation) async {
-            return await _createUnit(name, abbreviation);
-          },
-        ),
-      ),
-    );
-
-    if (result == true) {
-      await _fetchUnits();
-      _showSnack('Unit added.');
+    try {
+      await supabase.from('units').delete().eq('id', unit.id);
+      if (!mounted) return;
+      _showSnack('${unit.name} deleted.');
+      _fetchUnits();
+    } on PostgrestException catch (e) {
+      if (!mounted) return;
+      final msg = e.code == '23503'
+          ? 'Cannot delete: items still use this unit.'
+          : e.message;
+      _showSnack(msg, error: true);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack('Delete failed. Please try again.', error: true);
     }
   }
 
-  Future<void> _editUnit(UnitModel unit) async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddUnitScreen(
-          unitId: unit.id,
-          initialName: unit.name,
-          initialAbbreviation: unit.abbreviation,
-          onSave: (name, abbreviation) async {
-            return await _updateUnit(unit.id, name, abbreviation);
-          },
-        ),
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  void _showSnack(String message, {bool error = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: error ? AppTheme.errorColor : AppTheme.primary,
       ),
     );
-
-    if (result == true) {
-      await _fetchUnits();
-      _showSnack('Unit updated.');
-    }
   }
 
-  Future<void> _confirmDelete(UnitModel unit) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Unit',
-          style: TextStyle(
-              fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-        ),
-        content: RichText(
-          text: TextSpan(
-            style: const TextStyle(
-                fontSize: 14, color: AppTheme.textSecondary),
-            children: [
-              const TextSpan(text: 'Are you sure you want to delete '),
-              TextSpan(
-                text: '${unit.name} (${unit.abbreviation})',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary),
+  Future<bool> _showDeleteDialog(String name, String abbreviation) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppTheme.surface,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            title: const Text(
+              'Delete Unit',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
               ),
-              const TextSpan(text: '? This action cannot be undone.'),
+            ),
+            content: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                    fontSize: 14, color: AppTheme.textSecondary),
+                children: [
+                  const TextSpan(text: 'Are you sure you want to delete '),
+                  TextSpan(
+                    text: '$name ($abbreviation)',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary),
+                  ),
+                  const TextSpan(text: '? This cannot be undone.'),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel',
+                    style: TextStyle(color: AppTheme.textSecondary)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: AppTheme.errorColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppTheme.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(
-                  color: AppTheme.errorColor,
-                  fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
+        ) ??
+        false;
+  }
 
-    if (confirmed != true) return;
-    final ok = await _deleteUnit(unit.id);
-    if (ok) {
-      await _fetchUnits();
-      _showSnack('Unit deleted.');
-    } else {
-      _showSnack('Failed to delete. Please try again.', error: true);
+  Future<void> _openAddUnit() async {
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddUnitScreen()),
+    );
+    if (created == true) {
+      _showSnack('Unit added.');
+      _fetchUnits();
     }
   }
 
-  void _showSnack(String msg, {bool error = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(msg),
-      backgroundColor: error ? AppTheme.errorColor : AppTheme.primary,
-    ));
+  Future<void> _openEditUnit(UnitModel unit) async {
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => AddUnitScreen(unit: unit)),
+    );
+    if (updated == true) {
+      _showSnack('Unit updated.');
+      _fetchUnits();
+    }
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        scrolledUnderElevation: 1,
-        shadowColor: AppTheme.border,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textPrimary, size: 20),
+              color: AppTheme.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Units',
           style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary),
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary,
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppTheme.textSecondary, size: 22),
+            onPressed: _fetchUnits,
+            tooltip: 'Refresh',
+          ),
+          const SizedBox(width: 4),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addUnit,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openAddUnit,
         backgroundColor: AppTheme.primary,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text(
+          'Add Unit',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
       ),
       body: _buildBody(),
     );
@@ -270,26 +239,33 @@ class _UnitsScreenState extends State<UnitsScreen> {
 
     if (_error != null) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                color: AppTheme.errorColor, size: 48),
-            const SizedBox(height: 12),
-            Text(_error!,
-                style: const TextStyle(color: AppTheme.textSecondary)),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: _fetchUnits,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppTheme.primary),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.textHint),
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14, color: AppTheme.textSecondary),
               ),
-              child: const Text('Retry',
-                  style: TextStyle(color: AppTheme.primary)),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _fetchUnits,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Retry',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -310,31 +286,20 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   size: 36, color: AppTheme.primary),
             ),
             const SizedBox(height: 16),
-            const Text('No Units Yet',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary)),
-            const SizedBox(height: 8),
-            const Text('Add your first measurement unit to get started.',
-                style: TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
+            const Text(
+              'No Units Yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
               ),
-              onPressed: _addUnit,
-              icon: const Icon(Icons.add_rounded,
-                  size: 18, color: Colors.white),
-              label: const Text('Add Unit',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, color: Colors.white)),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Tap "Add Unit" to create your first one.',
+              style:
+                  TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -345,13 +310,13 @@ class _UnitsScreenState extends State<UnitsScreen> {
       color: AppTheme.primary,
       onRefresh: _fetchUnits,
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         itemCount: _units.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _UnitTile(
           unit: _units[i],
-          onEdit: () => _editUnit(_units[i]),
-          onDelete: () => _confirmDelete(_units[i]),
+          onEdit: () => _openEditUnit(_units[i]),
+          onDelete: () => _deleteUnit(_units[i]),
         ),
       ),
     );
@@ -374,77 +339,77 @@ class _UnitTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.border),
       ),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryLighter,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: Text(
-              unit.abbreviation,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.primary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      child: Row(
+        children: [
+          // Abbreviation badge
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ),
-        ),
-        title: Text(
-          unit.name,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          'Abbreviation: ${unit.abbreviation}',
-          style: const TextStyle(
-              fontSize: 12, color: AppTheme.textSecondary),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded,
-                  size: 20, color: AppTheme.primary),
-              tooltip: 'Edit',
-              onPressed: onEdit,
-              style: IconButton.styleFrom(
-                backgroundColor: AppTheme.primaryLight,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                fixedSize: const Size(36, 36),
+            child: Center(
+              child: Text(
+                unit.abbreviation,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded,
-                  size: 20, color: AppTheme.errorColor),
-              tooltip: 'Delete',
-              onPressed: onDelete,
-              style: IconButton.styleFrom(
-                backgroundColor: AppTheme.errorColor.withOpacity(0.08),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                fixedSize: const Size(36, 36),
-              ),
+          ),
+          const SizedBox(width: 14),
+
+          // Name + abbreviation label
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  unit.name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Abbreviation: ${unit.abbreviation}',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppTheme.textSecondary),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+
+          // Actions
+          IconButton(
+            icon: const Icon(Icons.edit_outlined,
+                size: 20, color: AppTheme.textSecondary),
+            onPressed: onEdit,
+            tooltip: 'Edit',
+            splashRadius: 20,
+          ),
+          IconButton(
+            icon: Icon(Icons.delete_outline_rounded,
+                size: 20, color: AppTheme.errorColor),
+            onPressed: onDelete,
+            tooltip: 'Delete',
+            splashRadius: 20,
+          ),
+        ],
       ),
     );
   }
