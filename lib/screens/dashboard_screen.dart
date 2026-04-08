@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'units_screen.dart';
+import 'categories_screen.dart';
+
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -44,13 +46,16 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               // Placeholder cards — replace with real screens as you build them
-              _QuickAccessCard(
-                icon: Icons.category_rounded,
-                label: 'Categories',
-                description: 'Item classifications',
-                color: const Color(0xFF0EA5E9),
-                onTap: () {},
-              ),
+             _QuickAccessCard(
+  icon: Icons.category_rounded,
+  label: 'Categories',
+  description: 'Item classifications',
+  color: const Color(0xFF0EA5E9),
+  onTap: () => Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+  ),
+),
               _QuickAccessCard(
                 icon: Icons.people_alt_rounded,
                 label: 'Suppliers',
