@@ -2,12 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_logo.dart';
-import '../widgets/primary_button.dart';
-import '../utils/responsive_layout.dart'; // ← new
-import 'home_screen.dart';
+import '../../main.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_logo.dart';
+import '../../widgets/primary_button.dart';
+import '../../utils/responsive_layout.dart'; // ← new
+import '../dashboard/home_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String email;

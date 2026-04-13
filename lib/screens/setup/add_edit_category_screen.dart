@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
-import '../theme/app_theme.dart';
-import '../widgets/labeled_text_field.dart';
-import '../widgets/primary_button.dart';
+import '../../main.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/labeled_text_field.dart';
+import '../../widgets/primary_button.dart';
 import 'categories_screen.dart';
 
 class AddEditCategoryScreen extends StatefulWidget {

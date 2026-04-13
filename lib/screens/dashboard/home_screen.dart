@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_logo.dart';
-import 'login_screen.dart';
+import '../../main.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_logo.dart';
+import '../auth/login_screen.dart';
 import 'dashboard_screen.dart';
-import 'inventory_screen.dart';
-import 'reports_screen.dart';
-import 'logistics_screen.dart';
+import '../inventory/inventory_screen.dart';
+import '../reports/reports_screen.dart';
+import '../logistics/logistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

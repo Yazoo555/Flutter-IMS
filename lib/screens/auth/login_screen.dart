@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
-import '../theme/app_theme.dart';
-import '../widgets/app_logo.dart';
-import '../widgets/labeled_text_field.dart';
-import '../widgets/primary_button.dart';
-import '../utils/responsive_layout.dart'; // ← new
+import '../../main.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/app_logo.dart';
+import '../../widgets/labeled_text_field.dart';
+import '../../widgets/primary_button.dart';
+import '../../utils/responsive_layout.dart'; // ← new
 import 'otp_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';

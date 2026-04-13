@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 
-class ReportsScreen extends StatelessWidget {
-  const ReportsScreen({super.key});
+class LogisticsScreen extends StatelessWidget {
+  const LogisticsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,14 +18,14 @@ class ReportsScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
-              Icons.bar_chart_rounded,
+              Icons.local_shipping_rounded,
               size: 36,
               color: AppTheme.primary,
             ),
           ),
           const SizedBox(height: 16),
           const Text(
-            'Reports',
+            'Logistics',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -34,7 +34,7 @@ class ReportsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'View sales and inventory reports.',
+            'Track shipments and manage deliveries.',
             style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),

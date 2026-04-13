@@ -2,7 +2,7 @@
 // Reusable UI widgets shared across the Inventory feature screens.
 
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../../theme/app_theme.dart';
 import 'inventory_models.dart';
 
 // ── Filter Chip ───────────────────────────────────────────────────────────────
@@ -53,37 +53,40 @@ class InventoryFilterChip extends StatelessWidget {
 
 class ItemTile extends StatelessWidget {
   final InventoryItem item;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onAdjustStock;
   final VoidCallback onToggleActive;
 
   const ItemTile({
     super.key,
     required this.item,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
-    required this.onAdjustStock,
     required this.onToggleActive,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: item.isLowStock
-              ? const Color(0xFFF59E0B).withOpacity(0.5)
-              : AppTheme.border,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: item.isLowStock
+                ? const Color(0xFFF59E0B).withOpacity(0.5)
+                : AppTheme.border,
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          _buildMainRow(),
-          _buildBottomBar(),
-        ],
+        child: Column(
+          children: [
+            _buildMainRow(),
+            _buildBottomBar(),
+          ],
+        ),
       ),
     );
   }
@@ -159,18 +162,11 @@ class ItemTile extends StatelessWidget {
 
   Widget _buildSubtitle() {
     final hasSku = item.sku != null && item.sku!.isNotEmpty;
-    final hasCategory = item.category != null;
 
     return Row(
       children: [
         if (hasSku)
           Text('SKU: ${item.sku}',
-              style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
-        if (hasSku && hasCategory)
-          const Text(' · ',
-              style: TextStyle(fontSize: 11, color: AppTheme.textHint)),
-        if (hasCategory)
-          Text(item.category!.name,
               style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
       ],
     );
@@ -253,39 +249,14 @@ class ItemTile extends StatelessWidget {
           const SizedBox(width: 10),
           StatBadge(
             label: 'Buy',
-            value: '₹${item.purchasePrice.toStringAsFixed(2)}',
+            value: 'Rs. ${item.purchasePrice.toStringAsFixed(2)}',
             color: const Color(0xFF6366F1),
           ),
           const SizedBox(width: 10),
           StatBadge(
             label: 'Sell',
-            value: '₹${item.salesPrice.toStringAsFixed(2)}',
+            value: 'Rs. ${item.salesPrice.toStringAsFixed(2)}',
             color: const Color(0xFF10B981),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: onAdjustStock,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.swap_vert_rounded,
-                      size: 14, color: AppTheme.primary),
-                  SizedBox(width: 4),
-                  Text('Adjust',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary)),
-                ],
-              ),
-            ),
           ),
         ],
       ),

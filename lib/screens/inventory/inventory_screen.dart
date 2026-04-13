@@ -3,12 +3,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart';
-import '../theme/app_theme.dart';
+import '../../main.dart';
+import '../../theme/app_theme.dart';
 import 'inventory_models.dart';
 import 'inventory_widgets.dart';
 import 'add_edit_item_screen.dart';
-// import 'stock_adjust_screen.dart';
+import 'item_detail_screen.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -189,12 +189,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (updated == true) _fetchItems();
   }
 
-  Future<void> _openStockAdjust(InventoryItem item) async {
-    final adjusted = await Navigator.push<bool>(
+  Future<void> _openItemDetail(InventoryItem item) async {
+    final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => StockAdjustScreen(item: item)),
+      MaterialPageRoute(
+        builder: (_) => ItemDetailScreen(
+          item: item,
+          onDataChanged: _fetchItems,
+        ),
+      ),
     );
-    if (adjusted == true) _fetchItems();
+    if (result == true) _fetchItems();
   }
 
   // ─── Build ─────────────────────────────────────────────────────────────────
@@ -392,9 +397,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (_, i) => ItemTile(
           item: _filteredItems[i],
+          onTap: () => _openItemDetail(_filteredItems[i]),
           onEdit: () => _openEditItem(_filteredItems[i]),
           onDelete: () => _deleteItem(_filteredItems[i]),
-          onAdjustStock: () => _openStockAdjust(_filteredItems[i]),
           onToggleActive: () => _toggleActive(_filteredItems[i]),
         ),
       ),

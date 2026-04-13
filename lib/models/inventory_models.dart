@@ -116,3 +116,95 @@ class MovementType {
         Color(0xFFEF4444)),
   ];
 }
+
+class StockMovementReport {
+  final String id;
+  final String? itemId;
+  final String type;
+  final double quantity;
+  final String? referenceId;
+  final String? notes;
+  final DateTime createdAt;
+  final String? itemName;
+
+  const StockMovementReport({
+    required this.id,
+    this.itemId,
+    required this.type,
+    required this.quantity,
+    this.referenceId,
+    this.notes,
+    required this.createdAt,
+    this.itemName,
+  });
+
+  factory StockMovementReport.fromJson(Map<String, dynamic> json) =>
+      StockMovementReport(
+        id: json['id'] as String,
+        itemId: json['item_id'] as String?,
+        type: json['movement_type'] as String,
+        quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
+        referenceId: (json['reference_id'] ?? json['reference']) as String?,
+        notes: json['notes'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        itemName: json['items'] != null
+            ? json['items']['name'] as String?
+            : json['item_name'] as String?,
+      );
+}
+
+class DailyStockSummary {
+  final DateTime date;
+  final double totalPurchased;
+  final double totalSold;
+  final double totalReturned;
+  final double totalAdjusted;
+  final double openingStock;
+  final double closingStock;
+  final double netChange;
+
+  const DailyStockSummary({
+    required this.date,
+    required this.totalPurchased,
+    required this.totalSold,
+    required this.totalReturned,
+    required this.totalAdjusted,
+    required this.openingStock,
+    required this.closingStock,
+    required this.netChange,
+  });
+
+  factory DailyStockSummary.fromJson(Map<String, dynamic> json) =>
+      DailyStockSummary(
+        date: DateTime.parse(json['movement_date'] as String),
+        totalPurchased: (json['total_purchased'] as num?)?.toDouble() ?? 0,
+        totalSold: (json['total_sold'] as num?)?.toDouble() ?? 0,
+        totalReturned: (json['total_returned'] as num?)?.toDouble() ?? 0,
+        totalAdjusted: (json['total_adjusted'] as num?)?.toDouble() ?? 0,
+        openingStock: (json['opening_stock'] as num?)?.toDouble() ?? 0,
+        closingStock: (json['closing_stock'] as num?)?.toDouble() ?? 0,
+        netChange: (json['net_change'] as num?)?.toDouble() ?? 0,
+      );
+}
+
+class MonthlyStockReport {
+  final int month;
+  final double totalPurchases;
+  final double totalSales;
+  final double totalAdjustments;
+
+  const MonthlyStockReport({
+    required this.month,
+    required this.totalPurchases,
+    required this.totalSales,
+    required this.totalAdjustments,
+  });
+
+  factory MonthlyStockReport.fromJson(Map<String, dynamic> json) =>
+      MonthlyStockReport(
+        month: (json['month'] as num).toInt(),
+        totalPurchases: (json['total_purchases'] as num?)?.toDouble() ?? 0,
+        totalSales: (json['total_sales'] as num?)?.toDouble() ?? 0,
+        totalAdjustments: (json['total_adjustments'] as num?)?.toDouble() ?? 0,
+      );
+}

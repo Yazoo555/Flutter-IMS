@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
-import 'units_screen.dart';
-import 'categories_screen.dart';
+import '../../theme/app_theme.dart';
+import '../setup/units_screen.dart';
+import '../setup/categories_screen.dart';
 
 
 class DashboardScreen extends StatelessWidget {
