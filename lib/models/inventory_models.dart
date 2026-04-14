@@ -117,8 +117,44 @@ class MovementType {
   ];
 }
 
+class RecentMovement {
+  final DateTime createdAt;
+  final String itemName;
+  final String movementType;
+  final double quantity;
+  final double purchasePrice;
+  final double salesPrice;
+  final double transactionValue;
+  final String? reference;
+  final String? notes;
+
+  const RecentMovement({
+    required this.createdAt,
+    required this.itemName,
+    required this.movementType,
+    required this.quantity,
+    required this.purchasePrice,
+    required this.salesPrice,
+    required this.transactionValue,
+    this.reference,
+    this.notes,
+  });
+
+  factory RecentMovement.fromJson(Map<String, dynamic> json) => RecentMovement(
+        createdAt: DateTime.parse(json['created_at'] as String),
+        itemName: json['item_name'] as String? ?? 'Unknown Item',
+        movementType: json['movement_type'] as String? ?? '',
+        quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
+        purchasePrice: (json['purchase_price'] as num?)?.toDouble() ?? 0,
+        salesPrice: (json['sales_price'] as num?)?.toDouble() ?? 0,
+        transactionValue: (json['transaction_value'] as num?)?.toDouble() ?? 0,
+        reference: json['reference'] as String?,
+        notes: json['notes'] as String?,
+      );
+}
+
+// Legacy model kept for item_movements_report_screen (uses old stock_movements RPC)
 class StockMovementReport {
-  final String id;
   final String? itemId;
   final String type;
   final double quantity;
@@ -128,7 +164,6 @@ class StockMovementReport {
   final String? itemName;
 
   const StockMovementReport({
-    required this.id,
     this.itemId,
     required this.type,
     required this.quantity,
@@ -140,9 +175,8 @@ class StockMovementReport {
 
   factory StockMovementReport.fromJson(Map<String, dynamic> json) =>
       StockMovementReport(
-        id: json['id'] as String,
         itemId: json['item_id'] as String?,
-        type: json['movement_type'] as String,
+        type: (json['movement_type'] ?? json['type']) as String,
         quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
         referenceId: (json['reference_id'] ?? json['reference']) as String?,
         notes: json['notes'] as String?,
@@ -155,56 +189,76 @@ class StockMovementReport {
 
 class DailyStockSummary {
   final DateTime date;
-  final double totalPurchased;
-  final double totalSold;
-  final double totalReturned;
-  final double totalAdjusted;
-  final double openingStock;
-  final double closingStock;
-  final double netChange;
+  final double totalPurchasedQty;
+  final double totalSoldQty;
+  final double purchaseValue;
+  final double salesValue;
+  final double grossProfit;
+  final double closingStockQty;
+  final double closingStockValue;
 
   const DailyStockSummary({
     required this.date,
-    required this.totalPurchased,
-    required this.totalSold,
-    required this.totalReturned,
-    required this.totalAdjusted,
-    required this.openingStock,
-    required this.closingStock,
-    required this.netChange,
+    required this.totalPurchasedQty,
+    required this.totalSoldQty,
+    required this.purchaseValue,
+    required this.salesValue,
+    required this.grossProfit,
+    required this.closingStockQty,
+    required this.closingStockValue,
   });
 
   factory DailyStockSummary.fromJson(Map<String, dynamic> json) =>
       DailyStockSummary(
         date: DateTime.parse(json['movement_date'] as String),
-        totalPurchased: (json['total_purchased'] as num?)?.toDouble() ?? 0,
-        totalSold: (json['total_sold'] as num?)?.toDouble() ?? 0,
-        totalReturned: (json['total_returned'] as num?)?.toDouble() ?? 0,
-        totalAdjusted: (json['total_adjusted'] as num?)?.toDouble() ?? 0,
-        openingStock: (json['opening_stock'] as num?)?.toDouble() ?? 0,
-        closingStock: (json['closing_stock'] as num?)?.toDouble() ?? 0,
-        netChange: (json['net_change'] as num?)?.toDouble() ?? 0,
+        totalPurchasedQty:
+            (json['total_purchased_qty'] as num?)?.toDouble() ?? 0,
+        totalSoldQty: (json['total_sold_qty'] as num?)?.toDouble() ?? 0,
+        purchaseValue: (json['purchase_value'] as num?)?.toDouble() ?? 0,
+        salesValue: (json['sales_value'] as num?)?.toDouble() ?? 0,
+        grossProfit: (json['gross_profit'] as num?)?.toDouble() ?? 0,
+        closingStockQty: (json['closing_stock_qty'] as num?)?.toDouble() ?? 0,
+        closingStockValue:
+            (json['closing_stock_value'] as num?)?.toDouble() ?? 0,
       );
 }
 
 class MonthlyStockReport {
   final int month;
-  final double totalPurchases;
-  final double totalSales;
-  final double totalAdjustments;
+  final String monthName;
+  final double totalPurchasesQty;
+  final double totalSalesQty;
+  final double totalPurchaseValue;
+  final double totalSalesValue;
+  final double grossProfit;
+  final double grossMarginPercentage;
+  final int totalItemsSold;
 
   const MonthlyStockReport({
     required this.month,
-    required this.totalPurchases,
-    required this.totalSales,
-    required this.totalAdjustments,
+    required this.monthName,
+    required this.totalPurchasesQty,
+    required this.totalSalesQty,
+    required this.totalPurchaseValue,
+    required this.totalSalesValue,
+    required this.grossProfit,
+    required this.grossMarginPercentage,
+    required this.totalItemsSold,
   });
 
   factory MonthlyStockReport.fromJson(Map<String, dynamic> json) =>
       MonthlyStockReport(
         month: (json['month'] as num).toInt(),
-        totalPurchases: (json['total_purchases'] as num?)?.toDouble() ?? 0,
-        totalSales: (json['total_sales'] as num?)?.toDouble() ?? 0,
-        totalAdjustments: (json['total_adjustments'] as num?)?.toDouble() ?? 0,
+        monthName: (json['month_name'] as String?)?.trim() ?? '',
+        totalPurchasesQty:
+            (json['total_purchases_qty'] as num?)?.toDouble() ?? 0,
+        totalSalesQty: (json['total_sales_qty'] as num?)?.toDouble() ?? 0,
+        totalPurchaseValue:
+            (json['total_purchase_value'] as num?)?.toDouble() ?? 0,
+        totalSalesValue: (json['total_sales_value'] as num?)?.toDouble() ?? 0,
+        grossProfit: (json['gross_profit'] as num?)?.toDouble() ?? 0,
+        grossMarginPercentage:
+            (json['gross_margin_percentage'] as num?)?.toDouble() ?? 0,
+        totalItemsSold: (json['total_items_sold'] as num?)?.toInt() ?? 0,
       );
 }

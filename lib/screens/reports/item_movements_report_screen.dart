@@ -206,7 +206,7 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
                 children: [
                   Text(
                     '${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}',
-                    style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
                   ),
                   const Icon(Icons.date_range_rounded, color: AppTheme.textHint),
                 ],

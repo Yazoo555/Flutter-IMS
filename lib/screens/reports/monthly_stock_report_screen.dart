@@ -16,8 +16,11 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
   bool _isLoading = false;
   String? _error;
   List<MonthlyStockReport> _reports = [];
-  
+
   int _selectedYear = DateTime.now().year;
+
+  final _fmt = NumberFormat('#,##0', 'en_US');
+  final _pct = NumberFormat('0.00', 'en_US');
 
   @override
   void initState() {
@@ -38,7 +41,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
     });
 
     try {
-      final data = await supabase.rpc('get_monthly_stock_report', params: {
+      final data = await supabase.rpc('get_monthly_report_with_value', params: {
         'p_user_id': user.id,
         'p_year': _selectedYear,
       });
@@ -62,13 +65,6 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
     }
   }
 
-  String _getMonthName(int monthIndex) {
-    // monthIndex is 1-12 usually from DB, but map it correctly
-    if (monthIndex < 1 || monthIndex > 12) return 'Unknown';
-    final date = DateTime(2000, monthIndex, 1);
-    return DateFormat('MMMM').format(date);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,8 +86,9 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
   }
 
   Widget _buildControls() {
-    final List<int> years = List.generate(10, (index) => DateTime.now().year - index);
-    
+    final List<int> years =
+        List.generate(10, (index) => DateTime.now().year - index);
+
     return Container(
       color: AppTheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -99,9 +96,10 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text('Select Year:',
-              style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
+              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(color: AppTheme.border),
               borderRadius: BorderRadius.circular(12),
@@ -112,7 +110,8 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                 items: years.map((year) {
                   return DropdownMenuItem(
                     value: year,
-                    child: Text(year.toString(), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    child: Text(year.toString(),
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
                   );
                 }).toList(),
                 onChanged: (val) {
@@ -170,34 +169,51 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
       padding: const EdgeInsets.all(16),
       itemCount: _reports.length,
       itemBuilder: (context, index) {
-        final report = _reports[index];
+        final r = _reports[index];
+        return _buildMonthCard(r);
+      },
+    );
+  }
 
-        return Card(
-          elevation: 0,
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppTheme.border, width: 1),
-          ),
-          color: AppTheme.surface,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildMonthCard(MonthlyStockReport r) {
+    final isProfit = r.grossProfit >= 0;
+    final profitColor =
+        isProfit ? const Color(0xFF10B981) : AppTheme.errorColor;
+
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppTheme.border, width: 1),
+      ),
+      color: AppTheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Month header ───────────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      _getMonthName(report.month),
+                      r.monthName.isNotEmpty
+                          ? r.monthName
+                          : DateFormat('MMMM')
+                              .format(DateTime(r.month, r.month)),
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary,
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryLight,
                         borderRadius: BorderRadius.circular(20),
@@ -205,51 +221,185 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                       child: Text(
                         _selectedYear.toString(),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.primary,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(color: AppTheme.border, height: 1),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildStatCol('Purchases', report.totalPurchases, const Color(0xFF10B981)),
-                    _buildStatCol('Sales', report.totalSales, const Color(0xFF6366F1)),
-                    _buildStatCol('Adjusts', report.totalAdjustments, const Color(0xFFF59E0B)),
-                  ],
+                // Items sold badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${r.totalItemsSold} item${r.totalItemsSold == 1 ? '' : 's'} sold',
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6366F1)),
+                  ),
                 ),
               ],
             ),
-          ),
-        );
-      },
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppTheme.border),
+            const SizedBox(height: 12),
+
+            // ── Qty row ────────────────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildQtyCol('Purchased',
+                    r.totalPurchasesQty, const Color(0xFF10B981)),
+                _vDivider(),
+                _buildQtyCol(
+                    'Sold', r.totalSalesQty, const Color(0xFF6366F1)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: AppTheme.border),
+            const SizedBox(height: 12),
+
+            // ── Value row ──────────────────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: _valueTile(
+                    'Purchase Value',
+                    'Rs ${_fmt.format(r.totalPurchaseValue)}',
+                    const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _valueTile(
+                    'Sales Value',
+                    'Rs ${_fmt.format(r.totalSalesValue)}',
+                    const Color(0xFF6366F1),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // ── Profit row ─────────────────────────────────────────────────
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: profitColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: profitColor.withOpacity(0.25)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        isProfit
+                            ? Icons.trending_up_rounded
+                            : Icons.trending_down_rounded,
+                        color: profitColor,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Gross Profit',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary)),
+                          Text(
+                            'Rs ${_fmt.format(r.grossProfit)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: profitColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: profitColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_pct.format(r.grossMarginPercentage)}%',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: profitColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildStatCol(String label, double value, Color color) {
+  Widget _buildQtyCol(String label, double qty, Color color) {
     return Column(
       children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12, color: AppTheme.textSecondary)),
+        const SizedBox(height: 4),
         Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value.toString(),
+          qty % 1 == 0 ? qty.toInt().toString() : qty.toString(),
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+              fontSize: 14, fontWeight: FontWeight.bold, color: color),
         ),
+        Text('units',
+            style:
+                const TextStyle(fontSize: 11, color: AppTheme.textHint)),
       ],
+    );
+  }
+
+  Widget _vDivider() => Container(
+        height: 36,
+        width: 1,
+        color: AppTheme.border,
+      );
+
+  Widget _valueTile(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.07),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11, color: AppTheme.textSecondary)),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700, color: color),
+          ),
+        ],
+      ),
     );
   }
 }

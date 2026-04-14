@@ -16,8 +16,10 @@ class _RecentMovementsReportScreenState
     extends State<RecentMovementsReportScreen> {
   bool _isLoading = true;
   String? _error;
-  List<StockMovementReport> _movements = [];
+  List<RecentMovement> _movements = [];
   String _filter = 'recent'; // 'recent' or 'today'
+
+  final _fmt = NumberFormat('#,##0', 'en_US');
 
   @override
   void initState() {
@@ -33,25 +35,25 @@ class _RecentMovementsReportScreenState
 
     try {
       final now = DateTime.now();
-      final dateStr = DateFormat('yyyy-MM-dd').format(now);
-      
+      final todayStr = DateFormat('yyyy-MM-dd').format(now);
+      final tomorrowStr =
+          DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1)));
+
+      final query = supabase.from('recent_movements_with_value').select('*');
+
       final data = _filter == 'today'
-          ? await supabase
-              .from('stock_movements')
-              .select('*, items(name)')
-              .gte('created_at', dateStr)
-              .lt('created_at', DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1))))
+          ? await query
+              .gte('created_at', todayStr)
+              .lt('created_at', tomorrowStr)
               .order('created_at', ascending: false)
-          : await supabase
-              .from('stock_movements')
-              .select('*, items(name)')
+          : await query
               .order('created_at', ascending: false)
               .limit(20);
 
       if (!mounted) return;
 
       final movements = (data as List)
-          .map((e) => StockMovementReport.fromJson(e as Map<String, dynamic>))
+          .map((e) => RecentMovement.fromJson(e as Map<String, dynamic>))
           .toList();
 
       setState(() {
@@ -67,22 +69,38 @@ class _RecentMovementsReportScreenState
     }
   }
 
-  Color _getColorForMovement(String type) {
-    if (type == 'purchase') return const Color(0xFF10B981);
-    if (type == 'sale') return const Color(0xFF6366F1);
-    if (type == 'adjustment') return const Color(0xFFF59E0B);
-    if (type == 'return') return const Color(0xFF0EA5E9);
-    if (type == 'damage') return const Color(0xFFEF4444);
-    return AppTheme.textSecondary;
+  Color _colorForType(String type) {
+    switch (type) {
+      case 'purchase':
+        return const Color(0xFF10B981);
+      case 'sale':
+        return const Color(0xFF6366F1);
+      case 'adjustment':
+        return const Color(0xFFF59E0B);
+      case 'return':
+        return const Color(0xFF0EA5E9);
+      case 'damage':
+        return const Color(0xFFEF4444);
+      default:
+        return AppTheme.textSecondary;
+    }
   }
 
-  IconData _getIconForMovement(String type) {
-    if (type == 'purchase') return Icons.add_shopping_cart_rounded;
-    if (type == 'sale') return Icons.point_of_sale_rounded;
-    if (type == 'adjustment') return Icons.tune_rounded;
-    if (type == 'return') return Icons.keyboard_return_rounded;
-    if (type == 'damage') return Icons.warning_amber_rounded;
-    return Icons.swap_horiz_rounded;
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'purchase':
+        return Icons.add_shopping_cart_rounded;
+      case 'sale':
+        return Icons.point_of_sale_rounded;
+      case 'adjustment':
+        return Icons.tune_rounded;
+      case 'return':
+        return Icons.keyboard_return_rounded;
+      case 'damage':
+        return Icons.warning_amber_rounded;
+      default:
+        return Icons.swap_horiz_rounded;
+    }
   }
 
   @override
@@ -185,11 +203,12 @@ class _RecentMovementsReportScreenState
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _movements.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final move = _movements[index];
-        final isDeficit = move.type == 'sale' || move.type == 'damage';
-        final color = _getColorForMovement(move.type);
+        final isDeficit =
+            move.movementType == 'sale' || move.movementType == 'damage';
+        final color = _colorForType(move.movementType);
 
         return Card(
           elevation: 0,
@@ -200,57 +219,152 @@ class _RecentMovementsReportScreenState
           ),
           color: AppTheme.surface,
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(_getIconForMovement(move.type), color: color),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        move.itemName ?? 'Unknown Item',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${move.type.toUpperCase()} • ${DateFormat('MMM dd, yyyy HH:mm').format(move.createdAt)}',
-                        style: const TextStyle(
-                            fontSize: 13, color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // ── Header row ──────────────────────────────────────────────
+                Row(
                   children: [
-                    Text(
-                      '${isDeficit ? '-' : '+'}${move.quantity}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isDeficit ? AppTheme.errorColor : color,
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(_iconForType(move.movementType),
+                          color: color, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            move.itemName,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: AppTheme.textPrimary),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat('MMM dd, yyyy  HH:mm')
+                                .format(move.createdAt.toLocal()),
+                            style: const TextStyle(
+                                fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Type badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        move.movementType.toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: color),
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // ── Divider ──────────────────────────────────────────────────
+                const Divider(height: 1, color: AppTheme.border),
+                const SizedBox(height: 10),
+                // ── Value row ────────────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildMetric(
+                      'Qty',
+                      '${isDeficit ? '-' : '+'}${move.quantity % 1 == 0 ? move.quantity.toInt() : move.quantity}',
+                      isDeficit ? AppTheme.errorColor : color,
+                    ),
+                    _buildMetric(
+                      'Purchase Price',
+                      'Rs ${_fmt.format(move.purchasePrice)}',
+                      AppTheme.textPrimary,
+                    ),
+                    _buildMetric(
+                      'Sales Price',
+                      'Rs ${_fmt.format(move.salesPrice)}',
+                      AppTheme.textPrimary,
+                    ),
+                    _buildMetric(
+                      'Value',
+                      'Rs ${_fmt.format(move.transactionValue)}',
+                      isDeficit ? AppTheme.errorColor : const Color(0xFF10B981),
+                      bold: true,
+                    ),
+                  ],
+                ),
+                if (move.reference != null && move.reference!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.label_outline_rounded,
+                          size: 13, color: AppTheme.textHint),
+                      const SizedBox(width: 4),
+                      Text(
+                        move.reference!,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ],
+                if (move.notes != null && move.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.notes_rounded,
+                          size: 13, color: AppTheme.textHint),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          move.notes!,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppTheme.textSecondary),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMetric(String label, String value, Color valueColor,
+      {bool bold = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style:
+                const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 }

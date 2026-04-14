@@ -51,7 +51,7 @@ class ReportDashboardCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary,
                       ),
