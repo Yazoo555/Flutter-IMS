@@ -233,7 +233,7 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
           ),
           color: AppTheme.surface,
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -298,27 +298,48 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
                     _profitPill(s.grossProfit),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 const Divider(height: 1, color: AppTheme.border),
-                const SizedBox(height: 10),
-                // ── Value metrics ────────────────────────────────────────────
+                const SizedBox(height: 14),
+                // ── Value metrics (2×2 grid) ─────────────────────────────────
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _valueStat('Purchase Value',
+                    Expanded(
+                      child: _valueStat(
+                        'Purchase Value',
                         'Rs ${_fmt.format(s.purchaseValue)}',
-                        const Color(0xFF10B981)),
-                    _valueStat('Sales Value',
-                        'Rs ${_fmt.format(s.salesValue)}', const Color(0xFF6366F1)),
-                    _valueStat(
+                        const Color(0xFF10B981),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _valueStat(
+                        'Sales Value',
+                        'Rs ${_fmt.format(s.salesValue)}',
+                        const Color(0xFF6366F1),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _valueStat(
                         'Closing Stock',
                         '${s.closingStockQty % 1 == 0 ? s.closingStockQty.toInt() : s.closingStockQty} units',
-                        AppTheme.textSecondary),
-                    _valueStat(
+                        const Color(0xFFF59E0B), // Amber
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _valueStat(
                         'Stock Value',
                         'Rs ${_fmt.format(s.closingStockValue)}',
-                        AppTheme.textPrimary,
-                        bold: true),
+                        const Color(0xFF3B82F6), // Blue
+                        bold: true,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -375,22 +396,36 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
 
   Widget _valueStat(String label, String value, Color valueColor,
       {bool bold = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style:
-                const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: valueColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: valueColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.textSecondary,
+              letterSpacing: 0.2,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: bold ? FontWeight.w800 : FontWeight.w700,
+              color: valueColor,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

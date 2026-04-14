@@ -78,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           .from('recent_movements_with_value')
           .select('*')
           .order('created_at', ascending: false)
-          .limit(8);
+          .limit(5);
       if (!mounted) return;
       final movements = (data as List)
           .map((e) => RecentMovement.fromJson(e as Map<String, dynamic>))
