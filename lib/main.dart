@@ -24,18 +24,28 @@ Future<void> main() async {
 
 final supabase = Supabase.instance.client;
 
+/// Global theme-mode notifier — any widget can read or toggle it.
+final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+
 class InventoryApp extends StatelessWidget {
   const InventoryApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'IMS',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      home: supabase.auth.currentSession != null
-          ? const HomeScreen()
-          : const LoginScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'IMS',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+          home: supabase.auth.currentSession != null
+              ? const HomeScreen()
+              : const LoginScreen(),
+        );
+      },
     );
   }
 }

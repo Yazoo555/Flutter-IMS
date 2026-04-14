@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/app_logo.dart';
@@ -31,26 +30,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Log Out',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700),
         ),
-        content: const Text(
-          'Are you sure you want to log out?',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
+        content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -78,7 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String get _currentUserEmail => supabase.auth.currentUser?.email ?? 'User';
+  String get _currentUserEmail =>
+      supabase.auth.currentUser?.email ?? 'User';
 
   String get _currentUsername =>
       supabase.auth.currentUser?.userMetadata?['username'] ??
@@ -95,17 +85,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final surfaceColor = Theme.of(context).cardColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Adaptive colours that respect theme
+    final textPrimary =
+        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textSecondary =
+        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
+    final primaryLight =
+        isDark ? AppTheme.darkPrimaryLight : AppTheme.primaryLight;
+
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AppTheme.background,
+      backgroundColor:
+          isDark ? AppTheme.darkBackground : AppTheme.background,
 
-      // ── Drawer / Sidebar ──────────────────────────────────────────────
+      // ── Drawer ────────────────────────────────────────────────────────
       drawer: Drawer(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: surfaceColor,
         child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // ── User header ─────────────────────────────────────────────
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
@@ -113,15 +117,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar
                     Container(
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(50),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withAlpha(76),
                           width: 1.5,
                         ),
                       ),
@@ -150,10 +153,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 2),
                     Text(
                       _currentUserEmail,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.75),
-                      ),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.white.withAlpha(191)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -161,79 +162,122 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
-              // Nav items in drawer
-              ..._navItems.asMap().entries.map((entry) {
-                final i = entry.key;
-                final item = entry.value;
-                final isSelected = _currentIndex == i;
-                return ListTile(
-                  leading: Icon(
-                    item.icon,
-                    color: isSelected
-                        ? AppTheme.primary
-                        : AppTheme.textSecondary,
-                    size: 22,
-                  ),
-                  title: Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      color: isSelected
-                          ? AppTheme.primary
-                          : AppTheme.textPrimary,
+              // ── Dark Mode toggle ────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      themeModeNotifier.value =
+                          themeModeNotifier.value == ThemeMode.dark
+                              ? ThemeMode.light
+                              : ThemeMode.dark;
+                      // Rebuild drawer tile
+                      setState(() {});
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF6366F1).withAlpha(30)
+                                  : const Color(0xFFF59E0B).withAlpha(30),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Icon(
+                              isDark
+                                  ? Icons.dark_mode_rounded
+                                  : Icons.light_mode_rounded,
+                              size: 19,
+                              color: isDark
+                                  ? const Color(0xFF818CF8)
+                                  : const Color(0xFFF59E0B),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Dark Mode',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  isDark ? 'On' : 'Off',
+                                  style: TextStyle(
+                                      fontSize: 11, color: textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Use ValueListenableBuilder so the switch reacts
+                          // even without setState on the parent widget
+                          ValueListenableBuilder<ThemeMode>(
+                            valueListenable: themeModeNotifier,
+                            builder: (_, mode, __) => Switch(
+                              value: mode == ThemeMode.dark,
+                              activeThumbColor: AppTheme.primary,
+                              onChanged: (val) {
+                                themeModeNotifier.value =
+                                    val ? ThemeMode.dark : ThemeMode.light;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  selected: isSelected,
-                  selectedTileColor: AppTheme.primaryLighter,
+                ),
+              ),
+
+              const Spacer(),
+
+              Divider(color: borderColor, height: 1),
+              const SizedBox(height: 8),
+
+              // ── Log Out ─────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.logout_rounded,
+                    color: AppTheme.errorColor,
+                    size: 22,
+                  ),
+                  title: const Text(
+                    'Log Out',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.errorColor,
+                    ),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 4,
                     vertical: 2,
                   ),
                   onTap: () {
-                    setState(() => _currentIndex = i);
                     Navigator.pop(context);
+                    _handleLogout();
                   },
-                );
-              }),
-
-              const Spacer(),
-              const Divider(color: AppTheme.divider, height: 1),
-              const SizedBox(height: 8),
-
-              // Logout
-              ListTile(
-                leading: const Icon(
-                  Icons.logout_rounded,
-                  color: AppTheme.errorColor,
-                  size: 22,
                 ),
-                title: const Text(
-                  'Log Out',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.errorColor,
-                  ),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 2,
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _handleLogout();
-                },
               ),
               const SizedBox(height: 12),
             ],
@@ -243,21 +287,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // ── App Bar ───────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: AppTheme.surface,
+        backgroundColor: surfaceColor,
         elevation: 0,
         scrolledUnderElevation: 1,
-        shadowColor: AppTheme.border,
+        shadowColor: borderColor,
         leading: IconButton(
-          icon: const Icon(
-            Icons.menu_rounded,
-            color: AppTheme.textPrimary,
-            size: 24,
-          ),
+          icon: Icon(Icons.menu_rounded, color: textPrimary, size: 24),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: const AppLogo(),
         actions: [
-          // Avatar button on top right
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: GestureDetector(
@@ -266,9 +305,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
+                  color: primaryLight,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+                  border: Border.all(
+                      color: colorScheme.primary.withAlpha(76)),
                 ),
                 child: Center(
                   child: Text(
@@ -299,9 +339,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // ── Bottom Navigation Bar ─────────────────────────────────────────
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.surface,
-          border: Border(top: BorderSide(color: AppTheme.border, width: 1)),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          border: Border(top: BorderSide(color: borderColor, width: 1)),
         ),
         child: SafeArea(
           child: SizedBox(
@@ -321,12 +361,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
+                              horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppTheme.primaryLight
+                                ? primaryLight
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -335,7 +373,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 22,
                             color: isSelected
                                 ? AppTheme.primary
-                                : AppTheme.textHint,
+                                : (isDark
+                                    ? AppTheme.darkTextHint
+                                    : AppTheme.textHint),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -348,7 +388,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : FontWeight.w500,
                             color: isSelected
                                 ? AppTheme.primary
-                                : AppTheme.textHint,
+                                : (isDark
+                                    ? AppTheme.darkTextHint
+                                    : AppTheme.textHint),
                           ),
                         ),
                       ],
@@ -364,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Nav item model ────────────────────────────────────────────────────────────
+// ── Nav item model ─────────────────────────────────────────────────────────────
 
 class _NavItem {
   final IconData icon;
