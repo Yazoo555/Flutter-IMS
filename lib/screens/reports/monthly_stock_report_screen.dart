@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../main.dart'; // for supabase client
 import '../../models/inventory_models.dart';
 import 'package:intl/intl.dart';
+import '../../utils/report_pdf_helper.dart';
 
 class MonthlyStockReportScreen extends StatefulWidget {
   const MonthlyStockReportScreen({super.key});
@@ -75,6 +76,13 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: _reports.isEmpty ? null : () => ReportPdfHelper.generateMonthlyReportPdf(_reports, _selectedYear),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

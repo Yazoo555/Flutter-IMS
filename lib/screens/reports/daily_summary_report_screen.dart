@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../main.dart';
 import '../../models/inventory_models.dart';
 import 'package:intl/intl.dart';
+import '../../utils/report_pdf_helper.dart';
 
 class DailySummaryReportScreen extends StatefulWidget {
   const DailySummaryReportScreen({super.key});
@@ -111,6 +112,18 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: (_summaries.isEmpty || _selectedItemId == null)
+                ? null
+                : () {
+                    final itemName = _items.firstWhere((i) => i.id == _selectedItemId).name;
+                    ReportPdfHelper.generateDailySummaryPdf(_summaries, itemName, _daysBack);
+                  },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../main.dart'; // for supabase client
 import '../../models/inventory_models.dart';
 import 'package:intl/intl.dart';
+import '../../utils/report_pdf_helper.dart';
 
 class RecentMovementsReportScreen extends StatefulWidget {
   const RecentMovementsReportScreen({super.key});
@@ -113,6 +114,13 @@ class _RecentMovementsReportScreenState
         backgroundColor: AppTheme.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: _movements.isEmpty ? null : () => ReportPdfHelper.generateRecentMovementsPdf(_movements, _filter),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

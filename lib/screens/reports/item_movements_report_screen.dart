@@ -3,6 +3,7 @@ import '../../theme/app_theme.dart';
 import '../../main.dart'; // for supabase client
 import '../../models/inventory_models.dart';
 import 'package:intl/intl.dart';
+import '../../utils/report_pdf_helper.dart';
 
 class ItemMovementsReportScreen extends StatefulWidget {
   const ItemMovementsReportScreen({super.key});
@@ -142,6 +143,18 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
         backgroundColor: AppTheme.surface,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            onPressed: (_movements.isEmpty || _selectedItemId == null)
+                ? null
+                : () {
+                    final itemName = _items.firstWhere((i) => i.id == _selectedItemId).name;
+                    ReportPdfHelper.generateItemMovementsPdf(_movements, itemName, _startDate, _endDate);
+                  },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
