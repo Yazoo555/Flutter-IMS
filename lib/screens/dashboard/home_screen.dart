@@ -246,6 +246,73 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+              const SizedBox(height: 8),
+
+              // ── IMS AI ──────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withAlpha(30),
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: const Icon(
+                              Icons.auto_awesome_rounded,
+                              size: 19,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'IMS AI',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: textPrimary,
+                                  ),
+                                ),
+                                Text(
+                                  'AI Inventory Assistant',
+                                  style: TextStyle(
+                                      fontSize: 11, color: textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: textSecondary.withAlpha(100),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               const Spacer(),
 
               Divider(color: borderColor, height: 1),
@@ -299,18 +366,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const AppLogo(),
         actions: [
-          IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ChatScreen()),
-            ),
-            icon: const Icon(
-              Icons.auto_awesome_rounded,
-              color: AppTheme.primary,
-              size: 22,
-            ),
-            tooltip: 'AI Assistant',
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
 
