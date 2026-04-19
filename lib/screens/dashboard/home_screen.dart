@@ -7,6 +7,8 @@ import 'dashboard_screen.dart';
 import '../inventory/inventory_screen.dart';
 import '../reports/reports_screen.dart';
 import '../logistics/logistics_screen.dart';
+import '../chat/chat_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -297,8 +299,21 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         title: const AppLogo(),
         actions: [
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatScreen()),
+            ),
+            icon: const Icon(
+              Icons.auto_awesome_rounded,
+              color: AppTheme.primary,
+              size: 22,
+            ),
+            tooltip: 'AI Assistant',
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
+
             child: GestureDetector(
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
               child: Container(
