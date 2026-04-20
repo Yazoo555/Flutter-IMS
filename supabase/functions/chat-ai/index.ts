@@ -18,78 +18,276 @@ serve(async (req) => {
   try {
     const { message, history, user_id } = await req.json();
 
-    // Create Supabase client with service role to fetch live data
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch live data for this user
-    const [itemsRes, categoriesRes, lowStockRes, recentMovementsRes] = await Promise.all([
-      supabase.from("items").select("name, current_stock, low_stock_alert, purchase_price, sales_price, is_active").eq("user_id", user_id).eq("is_active", true).limit(50),
-      supabase.from("categories").select("name, description").eq("user_id", user_id).limit(20),
-      supabase.from("items").select("name, current_stock, low_stock_alert").eq("user_id", user_id).eq("is_active", true).not("low_stock_alert", "is", null).filter("current_stock", "lte", "low_stock_alert").limit(10),
-      supabase.from("stock_movements").select("movement_type, quantity, notes, created_at, items(name)").eq("user_id", user_id).order("created_at", { ascending: false }).limit(10),
+    // Fetch all data in parallel
+    const [
+      itemsRes,
+      categoriesRes,
+      unitsRes,
+      lowStockRes,
+      outOfStockRes,
+      recentMovementsRes,
+      stockInRes,
+      stockOutRes,
+      adjustmentsRes,
+      profileRes,
+      unreadNotificationsRes,
+      topValueItemsRes,
+      mostMovedRes,
+    ] = await Promise.all([
+      // All active items with full details
+      supabase
+        .from("items")
+        .select("name, sku, description, current_stock, opening_stock, low_stock_alert, purchase_price, sales_price, is_active, created_at, categories(name), units(name, abbreviation)")
+        .eq("user_id", user_id)
+        .eq("is_active", true)
+        .order("name")
+        .limit(100),
+
+      // All categories
+      supabase
+        .from("categories")
+        .select("name, description, is_default, created_at")
+        .eq("user_id", user_id)
+        .order("name"),
+
+      // All units
+      supabase
+        .from("units")
+        .select("name, abbreviation")
+        .order("name"),
+
+      // Low stock items (current <= alert threshold)
+      supabase
+        .from("items")
+        .select("name, current_stock, low_stock_alert, purchase_price, units(abbreviation)")
+        .eq("user_id", user_id)
+        .eq("is_active", true)
+        .not("low_stock_alert", "is", null)
+        .filter("current_stock", "lte", "low_stock_alert")
+        .order("current_stock"),
+
+      // Out of stock items (current_stock = 0)
+      supabase
+        .from("items")
+        .select("name, purchase_price, units(abbreviation)")
+        .eq("user_id", user_id)
+        .eq("is_active", true)
+        .eq("current_stock", 0),
+
+      // Recent 20 stock movements
+      supabase
+        .from("stock_movements")
+        .select("movement_type, quantity, stock_before, stock_after, notes, reference, created_at, movement_date, items(name)")
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+
+      // Total stock IN this month
+      supabase
+        .from("stock_movements")
+        .select("quantity")
+        .eq("user_id", user_id)
+        .eq("movement_type", "IN")
+        .eq("fiscal_month", new Date().getMonth() + 1)
+        .eq("fiscal_year", new Date().getFullYear()),
+
+      // Total stock OUT this month
+      supabase
+        .from("stock_movements")
+        .select("quantity")
+        .eq("user_id", user_id)
+        .eq("movement_type", "OUT")
+        .eq("fiscal_month", new Date().getMonth() + 1)
+        .eq("fiscal_year", new Date().getFullYear()),
+
+      // Adjustments this month
+      supabase
+        .from("stock_movements")
+        .select("quantity, notes, items(name)")
+        .eq("user_id", user_id)
+        .eq("movement_type", "ADJUSTMENT")
+        .eq("fiscal_month", new Date().getMonth() + 1)
+        .eq("fiscal_year", new Date().getFullYear()),
+
+      // User profile
+      supabase
+        .from("profiles")
+        .select("email, username, created_at")
+        .eq("id", user_id)
+        .single(),
+
+      // Unread notifications count
+      supabase
+        .from("notifications")
+        .select("title, body, sent_at")
+        .eq("user_id", user_id)
+        .eq("read", false)
+        .order("sent_at", { ascending: false })
+        .limit(5),
+
+      // Top 5 items by inventory value (current_stock * purchase_price)
+      supabase
+        .from("items")
+        .select("name, current_stock, purchase_price, sales_price, units(abbreviation)")
+        .eq("user_id", user_id)
+        .eq("is_active", true)
+        .order("purchase_price", { ascending: false })
+        .limit(5),
+
+      // Most moved items (by total movements count) — approximate via recent movements
+      supabase
+        .from("stock_movements")
+        .select("items(name), movement_type, quantity")
+        .eq("user_id", user_id)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
 
     const items = itemsRes.data ?? [];
     const categories = categoriesRes.data ?? [];
+    const units = unitsRes.data ?? [];
     const lowStockItems = lowStockRes.data ?? [];
+    const outOfStockItems = outOfStockRes.data ?? [];
     const recentMovements = recentMovementsRes.data ?? [];
+    const stockInThisMonth = (stockInRes.data ?? []).reduce((sum: number, r: any) => sum + Number(r.quantity), 0);
+    const stockOutThisMonth = (stockOutRes.data ?? []).reduce((sum: number, r: any) => sum + Number(r.quantity), 0);
+    const adjustments = adjustmentsRes.data ?? [];
+    const profile = profileRes.data;
+    const unreadNotifications = unreadNotificationsRes.data ?? [];
+    const topValueItems = topValueItemsRes.data ?? [];
+    const allRecentMoves = mostMovedRes.data ?? [];
 
-    const systemPrompt = `You are an intelligent AI assistant for an Inventory Management System (IMS). You have full knowledge of the user's database schema and live data.
+    // Calculate inventory value
+    const totalInventoryValue = items.reduce((sum: number, i: any) =>
+      sum + (Number(i.current_stock) * Number(i.purchase_price)), 0);
+    const totalSalesValue = items.reduce((sum: number, i: any) =>
+      sum + (Number(i.current_stock) * Number(i.sales_price)), 0);
+    const potentialProfit = totalSalesValue - totalInventoryValue;
 
-## DATABASE SCHEMA
+    // Find most moved items
+    const moveCount: Record<string, number> = {};
+    allRecentMoves.forEach((m: any) => {
+      const name = m.items?.name ?? "Unknown";
+      moveCount[name] = (moveCount[name] ?? 0) + 1;
+    });
+    const mostMoved = Object.entries(moveCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => `${name} (${count} movements)`);
 
-### categories
-- id, user_id, name, description, is_default, created_at, updated_at
-- Stores product categories created by each user
+    const systemPrompt = `You are an intelligent AI assistant embedded in an Inventory Management System (IMS). You have real-time access to the user's inventory data and can provide deep insights.
+
+## USER PROFILE
+- Name: ${profile?.username ?? "Unknown"}
+- Email: ${profile?.email ?? "Unknown"}
+- Member since: ${profile ? new Date(profile.created_at).toLocaleDateString() : "Unknown"}
+
+## DATABASE SCHEMA (for reference)
 
 ### items
-- id, user_id, category_id, unit_id
-- name, description, sku
-- opening_stock, current_stock, low_stock_alert
-- purchase_price, sales_price
-- is_active, created_at, updated_at
-- Each item belongs to a category and a unit of measurement
+- Tracks all inventory products
+- Fields: name, sku, description, current_stock, opening_stock, low_stock_alert, purchase_price, sales_price, is_active
+- Linked to: categories, units
+
+### categories  
+- Groups items into logical categories
+- Fields: name, description, is_default
 
 ### units
-- id, name, abbreviation, created_by, created_at, updated_at
-- Units of measurement (e.g. kg, pcs, liters)
+- Units of measurement for items
+- Fields: name, abbreviation (e.g. kg, pcs, ltr)
 
 ### stock_movements
-- id, item_id, user_id, movement_type (IN/OUT/ADJUSTMENT)
-- quantity, stock_before, stock_after
-- notes, reference, created_at
-- movement_date, movement_time, fiscal_year, fiscal_month
-- Records every stock change with full audit trail
-
-### profiles
-- id, email, username, created_at
-- User profile linked to auth.users
+- Full audit trail of every stock change
+- movement_type: IN (stock received), OUT (stock dispatched), ADJUSTMENT (manual correction)
+- Fields: quantity, stock_before, stock_after, notes, reference, movement_date, fiscal_year, fiscal_month
 
 ### notifications
-- id, user_id, title, body, data, read, sent_at
-- In-app notifications for the user
+- System alerts sent to the user (e.g. low stock alerts)
 
-## LIVE DATA (right now for this user)
+## LIVE INVENTORY SNAPSHOT
 
-### Active Items (${items.length} total):
-${items.length > 0 ? items.map(i => `- ${i.name}: stock=${i.current_stock}, alert_at=${i.low_stock_alert ?? "none"}, buy=₹${i.purchase_price}, sell=₹${i.sales_price}`).join("\n") : "No active items found."}
+### Summary
+- Total active items: ${items.length}
+- Total categories: ${categories.length}
+- Items out of stock: ${outOfStockItems.length}
+- Items below alert threshold: ${lowStockItems.length}
+- Unread notifications: ${unreadNotifications.length}
 
-### Categories (${categories.length} total):
-${categories.length > 0 ? categories.map(c => `- ${c.name}${c.description ? `: ${c.description}` : ""}`).join("\n") : "No categories found."}
+### Financial Overview
+- Total inventory cost value: ₹${totalInventoryValue.toFixed(2)}
+- Total inventory sales value: ₹${totalSalesValue.toFixed(2)}
+- Potential gross profit: ₹${potentialProfit.toFixed(2)}
 
-### Low Stock Alerts (${lowStockItems.length} items):
-${lowStockItems.length > 0 ? lowStockItems.map(i => `- ${i.name}: current=${i.current_stock}, threshold=${i.low_stock_alert}`).join("\n") : "No low stock items right now."}
+### This Month's Activity (${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})
+- Total stock received (IN): ${stockInThisMonth} units
+- Total stock dispatched (OUT): ${stockOutThisMonth} units
+- Adjustments made: ${adjustments.length}
+${adjustments.length > 0 ? adjustments.map((a: any) => `  • ${a.items?.name}: ${a.quantity} units — ${a.notes ?? "no notes"}`).join("\n") : ""}
 
-### Recent Stock Movements (last 10):
-${recentMovements.length > 0 ? recentMovements.map(m => `- ${(m.items as any)?.name ?? "Unknown"}: ${m.movement_type} ${m.quantity} — ${m.notes ?? "no notes"} (${new Date(m.created_at).toLocaleDateString()})`).join("\n") : "No recent movements."}
+### All Active Items (${items.length} total)
+${items.length > 0 ? items.map((i: any) =>
+  `- ${i.name}${i.sku ? ` [SKU: ${i.sku}]` : ""} | Category: ${i.categories?.name ?? "N/A"} | Stock: ${i.current_stock} ${i.units?.abbreviation ?? ""} | Alert at: ${i.low_stock_alert ?? "not set"} | Buy: ₹${i.purchase_price} | Sell: ₹${i.sales_price} | Margin: ₹${(Number(i.sales_price) - Number(i.purchase_price)).toFixed(2)}`
+).join("\n") : "No active items."}
 
-## YOUR ROLE
-- Answer questions about the user's inventory using the live data above
-- Help interpret stock levels, movements, and trends
-- Give actionable advice (reorder suggestions, pricing insights, etc.)
-- Be concise and helpful
-- If asked about something not in the live data, say you can only see the data snapshot from this session
-- Do NOT make up data that isn't shown above`;
+### Categories (${categories.length} total)
+${categories.length > 0 ? categories.map((c: any) =>
+  `- ${c.name}${c.is_default ? " [default]" : ""}${c.description ? `: ${c.description}` : ""}`
+).join("\n") : "No categories."}
+
+### Units of Measurement
+${units.length > 0 ? units.map((u: any) => `- ${u.name} (${u.abbreviation})`).join("\n") : "No units."}
+
+### Out of Stock Items (${outOfStockItems.length})
+${outOfStockItems.length > 0 ? outOfStockItems.map((i: any) =>
+  `- ${i.name} | Buy price: ₹${i.purchase_price} | Unit: ${i.units?.abbreviation ?? "N/A"}`
+).join("\n") : "No items are out of stock."}
+
+### Low Stock Alerts (${lowStockItems.length} items need attention)
+${lowStockItems.length > 0 ? lowStockItems.map((i: any) =>
+  `- ${i.name}: current=${i.current_stock} ${i.units?.abbreviation ?? ""}, reorder at=${i.low_stock_alert} | Buy price: ₹${i.purchase_price}`
+).join("\n") : "All items are sufficiently stocked."}
+
+### Top 5 Items by Purchase Price
+${topValueItems.length > 0 ? topValueItems.map((i: any) =>
+  `- ${i.name}: stock=${i.current_stock} ${i.units?.abbreviation ?? ""} | Value in stock: ₹${(Number(i.current_stock) * Number(i.purchase_price)).toFixed(2)} | Margin: ₹${(Number(i.sales_price) - Number(i.purchase_price)).toFixed(2)}`
+).join("\n") : "No data."}
+
+### Most Active Items (by recent movement count)
+${mostMoved.length > 0 ? mostMoved.map(m => `- ${m}`).join("\n") : "No movement data."}
+
+### Recent Stock Movements (last 20)
+${recentMovements.length > 0 ? recentMovements.map((m: any) =>
+  `- [${m.movement_type}] ${m.items?.name ?? "Unknown"}: ${m.quantity} units | Before: ${m.stock_before} → After: ${m.stock_after} | ${m.notes ?? "no notes"}${m.reference ? ` | Ref: ${m.reference}` : ""} | ${new Date(m.created_at).toLocaleDateString()}`
+).join("\n") : "No recent movements."}
+
+### Unread Notifications (${unreadNotifications.length})
+${unreadNotifications.length > 0 ? unreadNotifications.map((n: any) =>
+  `- ${n.title}: ${n.body} (${new Date(n.sent_at).toLocaleDateString()})`
+).join("\n") : "No unread notifications."}
+
+## YOUR CAPABILITIES
+You can answer questions like:
+- "Which items are running low?" → use low stock data
+- "What is my total inventory value?" → use financial overview
+- "Which items haven't moved recently?" → compare items vs movements
+- "What's my profit margin on X?" → calculate from buy/sell prices
+- "How much stock did I receive this month?" → use monthly activity
+- "Which items are out of stock?" → use out of stock list
+- "What are my most active items?" → use most moved list
+- "Do I have any unread alerts?" → use notifications
+- "What categories do I have?" → use categories list
+- "Give me a full inventory report" → summarize all sections
+
+## RULES
+- Always use the live data above — never make up numbers
+- Be concise but complete
+- Use ₹ for currency
+- If asked something outside available data, say so honestly
+- Give actionable suggestions where relevant (e.g. "consider reordering X")
+- Format responses clearly with bullet points or sections when listing data`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -106,6 +304,8 @@ ${recentMovements.length > 0 ? recentMovements.map(m => `- ${(m.items as any)?.n
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: messages,
+        temperature: 0.3,
+        max_tokens: 1024,
       }),
     });
 
