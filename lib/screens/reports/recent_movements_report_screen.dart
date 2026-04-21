@@ -107,13 +107,13 @@ class _RecentMovementsReportScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        title: const Text('Recent Movements',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Recent Movements',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.getTextPrimary(context))),
+        backgroundColor: AppTheme.getSurface(context),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: AppTheme.getTextPrimary(context)),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
@@ -134,7 +134,7 @@ class _RecentMovementsReportScreenState
   Widget _buildFilters() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: AppTheme.surface,
+      color: AppTheme.getSurface(context),
       child: Row(
         children: [
           _buildFilterChip('Recent (Top 20)', 'recent'),
@@ -156,16 +156,18 @@ class _RecentMovementsReportScreenState
           _fetchData();
         }
       },
-      selectedColor: AppTheme.primaryLight,
+      selectedColor: Theme.of(context).brightness == Brightness.dark
+          ? AppTheme.darkPrimaryLighter
+          : AppTheme.primaryLight,
       labelStyle: TextStyle(
-        color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+        color: isSelected ? AppTheme.primary : AppTheme.getTextSecondary(context),
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? AppTheme.primary : AppTheme.border,
+          color: isSelected ? AppTheme.primary : AppTheme.getBorder(context),
         ),
       ),
     );
@@ -184,12 +186,12 @@ class _RecentMovementsReportScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.textSecondary)),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context))),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchData,
@@ -202,9 +204,9 @@ class _RecentMovementsReportScreenState
     }
 
     if (_movements.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No movements found.',
-            style: TextStyle(color: AppTheme.textSecondary)),
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
     }
 
@@ -223,9 +225,9 @@ class _RecentMovementsReportScreenState
           margin: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppTheme.border, width: 1),
+            side: BorderSide(color: AppTheme.getBorder(context), width: 1),
           ),
-          color: AppTheme.surface,
+          color: AppTheme.getSurface(context),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
@@ -238,7 +240,7 @@ class _RecentMovementsReportScreenState
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(_iconForType(move.movementType),
@@ -251,17 +253,17 @@ class _RecentMovementsReportScreenState
                         children: [
                           Text(
                             move.itemName,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 15,
-                                color: AppTheme.textPrimary),
+                                color: AppTheme.getTextPrimary(context)),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             DateFormat('MMM dd, yyyy  HH:mm')
                                 .format(move.createdAt.toLocal()),
-                            style: const TextStyle(
-                                fontSize: 12, color: AppTheme.textSecondary),
+                            style: TextStyle(
+                                fontSize: 12, color: AppTheme.getTextSecondary(context)),
                           ),
                         ],
                       ),
@@ -271,7 +273,7 @@ class _RecentMovementsReportScreenState
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
+                        color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -286,7 +288,7 @@ class _RecentMovementsReportScreenState
                 ),
                 const SizedBox(height: 12),
                 // ── Divider ──────────────────────────────────────────────────
-                const Divider(height: 1, color: AppTheme.border),
+                Divider(height: 1, color: AppTheme.getBorder(context)),
                 const SizedBox(height: 10),
                 // ── Value row ────────────────────────────────────────────────
                 Row(
@@ -300,12 +302,12 @@ class _RecentMovementsReportScreenState
                     _buildMetric(
                       'Purchase Price',
                       'Rs ${_fmt.format(move.purchasePrice)}',
-                      AppTheme.textPrimary,
+                      AppTheme.getTextPrimary(context),
                     ),
                     _buildMetric(
                       'Sales Price',
                       'Rs ${_fmt.format(move.salesPrice)}',
-                      AppTheme.textPrimary,
+                      AppTheme.getTextPrimary(context),
                     ),
                     _buildMetric(
                       'Value',
@@ -319,13 +321,13 @@ class _RecentMovementsReportScreenState
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.label_outline_rounded,
-                          size: 13, color: AppTheme.textHint),
+                      Icon(Icons.label_outline_rounded,
+                          size: 13, color: AppTheme.getTextHint(context)),
                       const SizedBox(width: 4),
                       Text(
                         move.reference!,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppTheme.textSecondary),
+                        style: TextStyle(
+                            fontSize: 12, color: AppTheme.getTextSecondary(context)),
                       ),
                     ],
                   ),
@@ -334,14 +336,14 @@ class _RecentMovementsReportScreenState
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.notes_rounded,
-                          size: 13, color: AppTheme.textHint),
+                      Icon(Icons.notes_rounded,
+                          size: 13, color: AppTheme.getTextHint(context)),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           move.notes!,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppTheme.textSecondary),
+                          style: TextStyle(
+                              fontSize: 12, color: AppTheme.getTextSecondary(context)),
                         ),
                       ),
                     ],
@@ -362,7 +364,7 @@ class _RecentMovementsReportScreenState
       children: [
         Text(label,
             style:
-                const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                TextStyle(fontSize: 11, color: AppTheme.getTextSecondary(context))),
         const SizedBox(height: 2),
         Text(
           value,

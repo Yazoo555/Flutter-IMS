@@ -69,13 +69,13 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        title: const Text('Monthly Report',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Monthly Report',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.getTextPrimary(context))),
+        backgroundColor: AppTheme.getSurface(context),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: AppTheme.getTextPrimary(context)),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
@@ -98,18 +98,18 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
         List.generate(10, (index) => DateTime.now().year - index);
 
     return Container(
-      color: AppTheme.surface,
+      color: AppTheme.getSurface(context),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Select Year:',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+          Text('Select Year:',
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
           Container(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: AppTheme.getBorder(context)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButtonHideUnderline(
@@ -119,7 +119,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                   return DropdownMenuItem(
                     value: year,
                     child: Text(year.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.getTextPrimary(context))),
                   );
                 }).toList(),
                 onChanged: (val) {
@@ -149,12 +149,12 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.textSecondary)),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context))),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchReport,
@@ -166,12 +166,10 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
       );
     }
 
-    if (_reports.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No monthly data found for this year.',
-            style: TextStyle(color: AppTheme.textSecondary)),
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
-    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -193,9 +191,9 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppTheme.border, width: 1),
+        side: BorderSide(color: AppTheme.getBorder(context), width: 1),
       ),
-      color: AppTheme.surface,
+      color: AppTheme.getSurface(context),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -212,10 +210,10 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                           ? r.monthName
                           : DateFormat('MMMM')
                               .format(DateTime(r.month, r.month)),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: AppTheme.getTextPrimary(context),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -223,7 +221,9 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? AppTheme.darkPrimaryLighter 
+                          : AppTheme.primaryLight,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -242,7 +242,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1).withOpacity(0.1),
+                    color: const Color(0xFF6366F1).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -256,7 +256,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            const Divider(height: 1, color: AppTheme.border),
+            Divider(height: 1, color: AppTheme.getBorder(context)),
             const SizedBox(height: 12),
 
             // ── Qty row ────────────────────────────────────────────────────
@@ -271,7 +271,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            const Divider(height: 1, color: AppTheme.border),
+            Divider(height: 1, color: AppTheme.getBorder(context)),
             const SizedBox(height: 12),
 
             // ── Value row ──────────────────────────────────────────────────
@@ -301,7 +301,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: profitColor.withOpacity(0.08),
+                color: profitColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.08),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: profitColor.withOpacity(0.25)),
               ),
@@ -321,10 +321,10 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Gross Profit',
+                          Text('Gross Profit',
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: AppTheme.textSecondary)),
+                                  color: AppTheme.getTextSecondary(context))),
                           Text(
                             'Rs ${_fmt.format(r.grossProfit)}',
                             style: TextStyle(
@@ -341,7 +341,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: profitColor.withOpacity(0.15),
+                      color: profitColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.15),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -366,8 +366,8 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
     return Column(
       children: [
         Text(label,
-            style: const TextStyle(
-                fontSize: 12, color: AppTheme.textSecondary)),
+            style: TextStyle(
+                fontSize: 12, color: AppTheme.getTextSecondary(context))),
         const SizedBox(height: 4),
         Text(
           qty % 1 == 0 ? qty.toInt().toString() : qty.toString(),
@@ -376,7 +376,7 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
         ),
         Text('units',
             style:
-                const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+                TextStyle(fontSize: 11, color: AppTheme.getTextHint(context))),
       ],
     );
   }
@@ -384,22 +384,22 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
   Widget _vDivider() => Container(
         height: 36,
         width: 1,
-        color: AppTheme.border,
+        color: AppTheme.getBorder(context),
       );
 
   Widget _valueTile(String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.07),
+        color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.07),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: AppTheme.textSecondary)),
+              style: TextStyle(
+                  fontSize: 11, color: AppTheme.getTextSecondary(context))),
           const SizedBox(height: 4),
           Text(
             value,

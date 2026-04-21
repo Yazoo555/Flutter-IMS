@@ -59,10 +59,9 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final borderColor = AppTheme.getBorder(context);
 
     return Dialog(
       backgroundColor: surfaceColor,
@@ -101,7 +100,7 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
                   hintText: 'Search items...',
                   prefixIcon: const Icon(Icons.search_rounded, size: 20),
                   filled: true,
-                  fillColor: isDark ? AppTheme.darkInputBackground : AppTheme.inputBackground,
+                  fillColor: AppTheme.getInputBg(context),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: borderColor),
@@ -143,11 +142,11 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
                                         },
                                   title: Text(item['name'] ?? '',
                                       style: TextStyle(
-                                          color: isExcluded ? Colors.grey : textPrimary,
+                                          color: isExcluded ? AppTheme.getTextHint(context) : textPrimary,
                                           fontWeight: FontWeight.w600)),
                                   subtitle: Text(
                                       'SKU: ${item['sku'] ?? 'N/A'} • Stock: ${item['current_stock']}',
-                                      style: const TextStyle(fontSize: 12)),
+                                      style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context))),
                                   activeColor: AppTheme.primary,
                                 );
                               },
@@ -160,7 +159,7 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
               child: Row(
                 children: [
                   Text('${_selectedIds.length} selected',
-                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                      style: TextStyle(fontWeight: FontWeight.w600, color: textPrimary)),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: _selectedIds.isEmpty

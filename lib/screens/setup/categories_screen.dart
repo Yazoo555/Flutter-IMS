@@ -130,7 +130,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: AppTheme.getSurface(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text(
@@ -138,22 +138,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             content: Text(
               'Are you sure you want to delete "$name"? This cannot be undone.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: AppTheme.getTextSecondary(context),
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context)),
                 ),
               ),
               TextButton(
@@ -197,27 +197,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getBg(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.getTextSecondary(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Categories',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppTheme.textSecondary, size: 22),
+            icon: Icon(Icons.refresh_rounded,
+                color: AppTheme.getTextSecondary(context), size: 22),
             onPressed: _fetchCategories,
             tooltip: 'Refresh',
           ),
@@ -255,14 +255,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: AppTheme.getTextSecondary(context)),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -290,25 +290,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: const Color(0xFF0EA5E9).withOpacity(0.12),
+                color: const Color(0xFF0EA5E9).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(Icons.category_rounded,
                   size: 36, color: Color(0xFF0EA5E9)),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Categories Yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap "Add Category" to create your first one.',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -353,9 +353,9 @@ class _CategoryTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: Row(
         children: [
@@ -364,7 +364,7 @@ class _CategoryTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: tileColor.withOpacity(0.12),
+              color: tileColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.category_rounded,
@@ -382,11 +382,11 @@ class _CategoryTile extends StatelessWidget {
                     Flexible(
                       child: Text(
                         category.name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
-                        ),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.getTextPrimary(context),
+                          ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -396,7 +396,7 @@ class _CategoryTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppTheme.primary.withOpacity(0.1),
+                          color: AppTheme.primary.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
@@ -416,8 +416,8 @@ class _CategoryTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     category.description!,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: AppTheme.getTextSecondary(context)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -429,8 +429,8 @@ class _CategoryTile extends StatelessWidget {
           // Actions
           if (!category.isDefault) ...[
             IconButton(
-              icon: const Icon(Icons.edit_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(Icons.edit_outlined,
+                  size: 20, color: AppTheme.getTextSecondary(context)),
               onPressed: onEdit,
               tooltip: 'Edit',
               splashRadius: 20,
@@ -445,8 +445,8 @@ class _CategoryTile extends StatelessWidget {
           ] else ...[
             // Default category — only allow editing
             IconButton(
-              icon: const Icon(Icons.edit_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(Icons.edit_outlined,
+                  size: 20, color: AppTheme.getTextSecondary(context)),
               onPressed: onEdit,
               tooltip: 'Edit',
               splashRadius: 20,

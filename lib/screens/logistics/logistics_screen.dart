@@ -156,27 +156,21 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     );
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: Container(
           decoration: BoxDecoration(
-            color: surfaceColor,
-            border: Border(bottom: BorderSide(color: borderColor)),
+            color: AppTheme.getSurface(context),
+            border: Border(bottom: BorderSide(color: AppTheme.getBorder(context))),
           ),
           child: TabBar(
             controller: _tabController,
             labelColor: AppTheme.primary,
-            unselectedLabelColor: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
+            unselectedLabelColor: AppTheme.getTextHint(context),
             indicatorColor: AppTheme.primary,
             indicatorSize: TabBarIndicatorSize.tab,
             labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
@@ -190,8 +184,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildSuppliersTab(isDark),
-          _buildTasksTab(isDark),
+          _buildSuppliersTab(context),
+          _buildTasksTab(context),
         ],
       ),
       floatingActionButton: _buildFAB(),
@@ -218,29 +212,29 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   // ─── Tab 1: Suppliers ──────────────────────────────────────────────────────
 
-  Widget _buildSuppliersTab(bool isDark) {
+  Widget _buildSuppliersTab(BuildContext context) {
     return Column(
       children: [
-        _buildSupplierSearchBar(isDark),
-        Expanded(child: _buildSupplierList(isDark)),
+        _buildSupplierSearchBar(context),
+        Expanded(child: _buildSupplierList(context)),
       ],
     );
   }
 
-  Widget _buildSupplierSearchBar(bool isDark) {
+  Widget _buildSupplierSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         children: [
-          _buildSearchBar(_supplierSearchController, 'Search suppliers...', isDark),
+          _buildSearchBar(_supplierSearchController, 'Search suppliers...', context),
           const SizedBox(height: 10),
-          _buildSupplierFilterChips(isDark),
+          _buildSupplierFilterChips(context),
         ],
       ),
     );
   }
 
-  Widget _buildSupplierFilterChips(bool isDark) {
+  Widget _buildSupplierFilterChips(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -252,7 +246,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
               setState(() => _supplierFilterStatus = 'all');
               _applySupplierFilter();
             },
-            isDark: isDark,
           ),
           const SizedBox(width: 8),
           _FilterChip(
@@ -262,7 +255,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
               setState(() => _supplierFilterStatus = 'active');
               _applySupplierFilter();
             },
-            isDark: isDark,
           ),
           const SizedBox(width: 8),
           _FilterChip(
@@ -272,22 +264,21 @@ class _LogisticsScreenState extends State<LogisticsScreen>
               setState(() => _supplierFilterStatus = 'inactive');
               _applySupplierFilter();
             },
-            isDark: isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSupplierList(bool isDark) {
+  Widget _buildSupplierList(BuildContext context) {
     if (_isLoadingSuppliers) {
       return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     }
     if (_supplierError != null) {
-      return _buildErrorState(_supplierError!, _fetchSuppliers, isDark);
+      return _buildErrorState(_supplierError!, _fetchSuppliers, context);
     }
     if (_filteredSuppliers.isEmpty) {
-      return _buildEmptyState('No suppliers found.', Icons.business_rounded, isDark);
+      return _buildEmptyState('No suppliers found.', Icons.business_rounded, context);
     }
     return RefreshIndicator(
       onRefresh: _fetchSuppliers,
@@ -298,7 +289,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
         separatorBuilder: (context, index) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _SupplierTile(
           supplier: _filteredSuppliers[i],
-          isDark: isDark,
           onTap: () => _openSupplierDetail(_filteredSuppliers[i]),
           onEdit: () => _openEditSupplier(_filteredSuppliers[i]),
           onDelete: () => _deleteSupplier(_filteredSuppliers[i]),
@@ -309,29 +299,29 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   // ─── Tab 2: Tasks ──────────────────────────────────────────────────────────
 
-  Widget _buildTasksTab(bool isDark) {
+  Widget _buildTasksTab(BuildContext context) {
     return Column(
       children: [
-        _buildTaskSearchBar(isDark),
-        Expanded(child: _buildTaskList(isDark)),
+        _buildTaskSearchBar(context),
+        Expanded(child: _buildTaskList(context)),
       ],
     );
   }
 
-  Widget _buildTaskSearchBar(bool isDark) {
+  Widget _buildTaskSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         children: [
-          _buildSearchBar(_taskSearchController, 'Search tasks, suppliers...', isDark),
+          _buildSearchBar(_taskSearchController, 'Search tasks, suppliers...', context),
           const SizedBox(height: 10),
-          _buildTaskFilterChips(isDark),
+          _buildTaskFilterChips(context),
         ],
       ),
     );
   }
 
-  Widget _buildTaskFilterChips(bool isDark) {
+  Widget _buildTaskFilterChips(BuildContext context) {
     final statuses = [
       ('all', 'All'),
       ('pending', 'Pending'),
@@ -353,7 +343,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
                 setState(() => _taskFilterStatus = s.$1);
                 _fetchTasks();
               },
-              isDark: isDark,
             ),
           );
         }).toList(),
@@ -361,15 +350,15 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     );
   }
 
-  Widget _buildTaskList(bool isDark) {
+  Widget _buildTaskList(BuildContext context) {
     if (_isLoadingTasks) {
       return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     }
     if (_taskError != null) {
-      return _buildErrorState(_taskError!, _fetchTasks, isDark);
+      return _buildErrorState(_taskError!, _fetchTasks, context);
     }
     if (_filteredTasks.isEmpty) {
-      return _buildEmptyState('No tasks found.', Icons.task_alt_rounded, isDark);
+      return _buildEmptyState('No tasks found.', Icons.task_alt_rounded, context);
     }
     return RefreshIndicator(
       onRefresh: _fetchTasks,
@@ -380,7 +369,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
         separatorBuilder: (context, index) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _TaskTile(
           task: _filteredTasks[i],
-          isDark: isDark,
           onTap: () => _openTaskDetail(_filteredTasks[i]),
           onEdit: () => _openEditTask(_filteredTasks[i]),
           onDelete: () => _deleteTask(_filteredTasks[i]),
@@ -391,20 +379,20 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   // ─── Common Widgets ────────────────────────────────────────────────────────
 
-  Widget _buildSearchBar(TextEditingController controller, String hint, bool isDark) {
+  Widget _buildSearchBar(TextEditingController controller, String hint, BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : AppTheme.surface,
+        color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.border),
+        border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: TextField(
         controller: controller,
-        style: TextStyle(fontSize: 14, color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary),
+        style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(fontSize: 14, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
-          prefixIcon: Icon(Icons.search_rounded, size: 20, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          hintStyle: TextStyle(fontSize: 14, color: AppTheme.getTextHint(context)),
+          prefixIcon: Icon(Icons.search_rounded, size: 20, color: AppTheme.getTextHint(context)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
@@ -412,29 +400,33 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     );
   }
 
-  Widget _buildErrorState(String error, VoidCallback onRetry, bool isDark) {
+  Widget _buildErrorState(String error, VoidCallback onRetry, BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.error_outline_rounded, size: 48, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          Icon(Icons.error_outline_rounded, size: 48, color: AppTheme.getTextHint(context)),
           const SizedBox(height: 12),
-          Text(error, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary)),
+          Text(error, style: TextStyle(color: AppTheme.getTextSecondary(context))),
           const SizedBox(height: 16),
-          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+          ElevatedButton(
+            onPressed: onRetry,
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white),
+            child: const Text('Retry'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(String msg, IconData icon, bool isDark) {
+  Widget _buildEmptyState(String msg, IconData icon, BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 48, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          Icon(icon, size: 48, color: AppTheme.getTextHint(context)),
           const SizedBox(height: 12),
-          Text(msg, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary)),
+          Text(msg, style: TextStyle(color: AppTheme.getTextSecondary(context))),
         ],
       ),
     );
@@ -481,7 +473,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Select Supplier'),
+          backgroundColor: AppTheme.getSurface(context),
+          title: Text('Select Supplier', style: TextStyle(color: AppTheme.getTextPrimary(context))),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView.builder(
@@ -492,8 +485,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
                 return ListTile(
                   leading: const Icon(Icons.business_rounded,
                       color: AppTheme.primary),
-                  title: Text(s.name),
-                  subtitle: Text(s.email),
+                  title: Text(s.name, style: TextStyle(color: AppTheme.getTextPrimary(context))),
+                  subtitle: Text(s.email, style: TextStyle(color: AppTheme.getTextSecondary(context))),
                   onTap: () => Navigator.pop(ctx, s),
                 );
               },
@@ -560,10 +553,11 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     return await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
+        backgroundColor: AppTheme.getSurface(context),
+        title: Text(title, style: TextStyle(color: AppTheme.getTextPrimary(context))),
+        content: Text(content, style: TextStyle(color: AppTheme.getTextSecondary(context))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(color: AppTheme.getTextSecondary(context)))),
           TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor))),
         ],
       ),
@@ -577,8 +571,7 @@ class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final bool isDark;
-  const _FilterChip({required this.label, required this.selected, required this.onTap, required this.isDark});
+  const _FilterChip({required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -586,36 +579,41 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) => onTap(),
-      selectedColor: AppTheme.primary.withAlpha(50),
+      selectedColor: Theme.of(context).brightness == Brightness.dark
+          ? AppTheme.darkPrimaryLighter
+          : AppTheme.primaryLight,
       checkmarkColor: AppTheme.primary,
-      labelStyle: TextStyle(color: selected ? AppTheme.primary : (isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary), fontSize: 12),
-      backgroundColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: selected ? AppTheme.primary : (isDark ? AppTheme.darkBorder : AppTheme.border))),
+      labelStyle: TextStyle(color: selected ? AppTheme.primary : AppTheme.getTextSecondary(context), fontSize: 12),
+      backgroundColor: AppTheme.getSurface(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: selected ? AppTheme.primary : AppTheme.getBorder(context))),
     );
   }
 }
 
 class _SupplierTile extends StatelessWidget {
   final Supplier supplier;
-  final bool isDark;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const _SupplierTile({required this.supplier, required this.isDark, required this.onTap, required this.onEdit, required this.onDelete});
+  const _SupplierTile({required this.supplier, required this.onTap, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      tileColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? AppTheme.darkBorder : AppTheme.border)),
-      leading: CircleAvatar(backgroundColor: AppTheme.primary.withAlpha(30), child: const Icon(Icons.business_rounded, color: AppTheme.primary, size: 20)),
-      title: Text(supplier.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-      subtitle: Text(supplier.phone, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary, fontSize: 13)),
+      tileColor: AppTheme.getSurface(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppTheme.getBorder(context))),
+      leading: CircleAvatar(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppTheme.darkPrimaryLighter
+              : AppTheme.primaryLight,
+          child: const Icon(Icons.business_rounded, color: AppTheme.primary, size: 20)),
+      title: Text(supplier.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.getTextPrimary(context))),
+      subtitle: Text(supplier.phone, style: TextStyle(color: AppTheme.getTextSecondary(context), fontSize: 13)),
       trailing: PopupMenuButton(
         itemBuilder: (_) => [
-          const PopupMenuItem(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+          PopupMenuItem(value: 'edit', child: Text('Edit', style: TextStyle(color: AppTheme.getTextPrimary(context)))),
+          PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppTheme.errorColor))),
         ],
         onSelected: (val) {
           if (val == 'edit') onEdit();
@@ -628,11 +626,10 @@ class _SupplierTile extends StatelessWidget {
 
 class _TaskTile extends StatelessWidget {
   final LogisticsTask task;
-  final bool isDark;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  const _TaskTile({required this.task, required this.isDark, required this.onTap, required this.onEdit, required this.onDelete});
+  const _TaskTile({required this.task, required this.onTap, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -646,10 +643,13 @@ class _TaskTile extends StatelessWidget {
 
     return ListTile(
       onTap: onTap,
-      tileColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? AppTheme.darkBorder : AppTheme.border)),
-      leading: CircleAvatar(backgroundColor: statusColor.withAlpha(30), child: Icon(Icons.task_alt_rounded, color: statusColor, size: 20)),
-      title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+      tileColor: AppTheme.getSurface(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: AppTheme.getBorder(context))),
+      leading: CircleAvatar(
+        backgroundColor: statusColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1), 
+        child: Icon(Icons.task_alt_rounded, color: statusColor, size: 20)
+      ),
+      title: Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.getTextPrimary(context))),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -659,8 +659,8 @@ class _TaskTile extends StatelessWidget {
       ),
       trailing: PopupMenuButton(
         itemBuilder: (_) => [
-          const PopupMenuItem(value: 'edit', child: Text('Edit')),
-          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+          PopupMenuItem(value: 'edit', child: Text('Edit', style: TextStyle(color: AppTheme.getTextPrimary(context)))),
+          PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppTheme.errorColor))),
         ],
         onSelected: (val) {
           if (val == 'edit') onEdit();

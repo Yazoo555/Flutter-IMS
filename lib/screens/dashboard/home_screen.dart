@@ -88,22 +88,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final surfaceColor = Theme.of(context).cardColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Adaptive colours that respect theme
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-    final primaryLight =
-        isDark ? AppTheme.darkPrimaryLight : AppTheme.primaryLight;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final borderColor = AppTheme.getBorder(context);
+    final primaryLight = Theme.of(context).brightness == Brightness.dark
+        ? AppTheme.darkPrimaryLight
+        : AppTheme.primaryLight;
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor:
-          isDark ? AppTheme.darkBackground : AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
 
       // ── Drawer ────────────────────────────────────────────────────────
       drawer: Drawer(
@@ -123,10 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(50),
+                        color: Colors.white.withAlpha(40),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withAlpha(76),
+                          color: Colors.white.withAlpha(60),
                           width: 1.5,
                         ),
                       ),
@@ -156,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       _currentUserEmail,
                       style:
-                          TextStyle(fontSize: 12, color: Colors.white.withAlpha(191)),
+                          TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.7)),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -190,17 +185,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF6366F1).withAlpha(30)
-                                  : const Color(0xFFF59E0B).withAlpha(30),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? const Color(0xFF6366F1).withOpacity(0.15)
+                                  : const Color(0xFFF59E0B).withOpacity(0.15),
                               borderRadius: BorderRadius.circular(9),
                             ),
                             child: Icon(
-                              isDark
+                              Theme.of(context).brightness == Brightness.dark
                                   ? Icons.dark_mode_rounded
                                   : Icons.light_mode_rounded,
                               size: 19,
-                              color: isDark
+                              color: Theme.of(context).brightness == Brightness.dark
                                   ? const Color(0xFF818CF8)
                                   : const Color(0xFFF59E0B),
                             ),
@@ -219,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 Text(
-                                  isDark ? 'On' : 'Off',
+                                  Theme.of(context).brightness == Brightness.dark ? 'On' : 'Off',
                                   style: TextStyle(
                                       fontSize: 11, color: textSecondary),
                                 ),
@@ -271,7 +266,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppTheme.primary.withAlpha(30),
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppTheme.darkPrimaryLighter
+                                  : AppTheme.primaryLight,
                               borderRadius: BorderRadius.circular(9),
                             ),
                             child: const Icon(
@@ -378,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: primaryLight,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: colorScheme.primary.withAlpha(76)),
+                      color: AppTheme.primary.withAlpha(60)),
                 ),
                 child: Center(
                   child: Text(
@@ -438,15 +435,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Icon(
-                            item.icon,
-                            size: 22,
-                            color: isSelected
-                                ? AppTheme.primary
-                                : (isDark
-                                    ? AppTheme.darkTextHint
-                                    : AppTheme.textHint),
-                          ),
+                            child: Icon(
+                              item.icon,
+                              size: 22,
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.getTextHint(context),
+                            ),
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -458,9 +453,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : FontWeight.w500,
                             color: isSelected
                                 ? AppTheme.primary
-                                : (isDark
-                                    ? AppTheme.darkTextHint
-                                    : AppTheme.textHint),
+                                : AppTheme.getTextHint(context),
                           ),
                         ),
                       ],

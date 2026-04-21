@@ -141,31 +141,40 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text('Delete Item',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary)),
+            backgroundColor: AppTheme.getSurface(context),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(
+              'Delete Item',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.getTextPrimary(context),
+              ),
+            ),
             content: Text(
               'Are you sure you want to delete "$name"? This cannot be undone.',
-              style:
-                  const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.getTextSecondary(context),
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary)),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(color: AppTheme.getTextSecondary(context)),
+                ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text('Delete',
-                    style: TextStyle(
-                        color: AppTheme.errorColor,
-                        fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Delete',
+                  style: TextStyle(
+                    color: AppTheme.errorColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -202,12 +211,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (result == true) _fetchItems();
   }
 
-  // ─── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddItem,
         backgroundColor: AppTheme.primary,
@@ -229,7 +237,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   Widget _buildSearchFilterBar() {
     return Container(
-      color: AppTheme.background,
+      color: AppTheme.getBg(context),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         children: [
@@ -244,23 +252,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Widget _buildSearchField() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+        style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
         decoration: InputDecoration(
           hintText: 'Search items, SKU...',
           hintStyle:
-              const TextStyle(fontSize: 14, color: AppTheme.textHint),
-          prefixIcon: const Icon(Icons.search_rounded,
-              size: 20, color: AppTheme.textHint),
+              TextStyle(fontSize: 14, color: AppTheme.getTextHint(context)),
+          prefixIcon: Icon(Icons.search_rounded,
+              size: 20, color: AppTheme.getTextHint(context)),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded,
-                      size: 18, color: AppTheme.textHint),
+                  icon: Icon(Icons.clear_rounded,
+                      size: 18, color: AppTheme.getTextHint(context)),
                   onPressed: () {
                     _searchController.clear();
                     _applyFilter();
@@ -327,23 +335,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 14, color: AppTheme.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 14, color: AppTheme.getTextSecondary(context))),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _fetchItems,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Retry',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text('Retry'),
               ),
             ],
           ),
@@ -360,29 +368,31 @@ class _InventoryScreenState extends State<InventoryScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkPrimaryLight
+                    : AppTheme.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(Icons.inventory_2_rounded,
+              child: Icon(Icons.inventory_2_rounded,
                   size: 36, color: AppTheme.primary),
             ),
             const SizedBox(height: 16),
-            Text(
-              _items.isEmpty ? 'No Items Yet' : 'No Results Found',
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _items.isEmpty
-                  ? 'Tap "Add Item" to add your first inventory item.'
-                  : 'Try adjusting your search or filters.',
-              style: const TextStyle(
-                  fontSize: 14, color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
-            ),
+              Text(
+                _items.isEmpty ? 'No Items Yet' : 'No Results Found',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.getTextPrimary(context)),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _items.isEmpty
+                    ? 'Tap "Add Item" to add your first inventory item.'
+                    : 'Try adjusting your search or filters.',
+                style: TextStyle(
+                    fontSize: 14, color: AppTheme.getTextSecondary(context)),
+                textAlign: TextAlign.center,
+              ),
           ],
         ),
       );

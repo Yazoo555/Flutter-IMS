@@ -139,8 +139,7 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor:
-                isDark ? AppTheme.darkSurface : AppTheme.surface,
+            backgroundColor: AppTheme.getSurface(context),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16)),
             title: Text(
@@ -148,16 +147,14 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             content: Text(
               'Are you sure you want to delete "$name"?',
               style: TextStyle(
                 fontSize: 14,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
+                color: AppTheme.getTextSecondary(context),
               ),
             ),
             actions: [
@@ -166,15 +163,13 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
                 child: Text(
                   'Cancel',
                   style: TextStyle(
-                    color: isDark
-                        ? AppTheme.darkTextSecondary
-                        : AppTheme.textSecondary,
+                    color: AppTheme.getTextSecondary(context),
                   ),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
+                child: const Text(
                   'Delete',
                   style: TextStyle(
                     color: AppTheme.errorColor,
@@ -208,14 +203,11 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-    final bgColor = isDark ? AppTheme.darkBackground : AppTheme.background;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final borderColor = AppTheme.getBorder(context);
+    final bgColor = AppTheme.getBg(context);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -266,7 +258,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
           children: [
             // ── Supplier Info Card ──────────────────────────────────────────
             _buildSupplierInfoCard(
-              isDark: isDark,
               surfaceColor: surfaceColor,
               borderColor: borderColor,
               textPrimary: textPrimary,
@@ -295,8 +286,8 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? AppTheme.darkPrimaryLight
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppTheme.darkPrimaryLighter
                           : AppTheme.primaryLight,
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -316,7 +307,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 
             // ── Tasks List ──────────────────────────────────────────────────
             _buildTasksList(
-              isDark: isDark,
               surfaceColor: surfaceColor,
               borderColor: borderColor,
               textPrimary: textPrimary,
@@ -330,13 +320,12 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
   }
 
   Widget _buildSupplierInfoCard({
-    required bool isDark,
     required Color surfaceColor,
     required Color borderColor,
     required Color textPrimary,
     required Color textSecondary,
   }) {
-    final textHint = isDark ? AppTheme.darkTextHint : AppTheme.textHint;
+    final textHint = AppTheme.getTextHint(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -355,8 +344,8 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.darkPrimaryLight
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppTheme.darkPrimaryLighter
                         : AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -507,7 +496,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
   }
 
   Widget _buildTasksList({
-    required bool isDark,
     required Color surfaceColor,
     required Color borderColor,
     required Color textPrimary,
@@ -531,7 +519,7 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
             children: [
               Icon(Icons.error_outline_rounded,
                   size: 40,
-                  color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+                  color: AppTheme.getTextHint(context)),
               const SizedBox(height: 8),
               Text(
                 _taskError!,
@@ -559,8 +547,8 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.darkPrimaryLight
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppTheme.darkPrimaryLighter
                       : AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -596,11 +584,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: _TaskTile(
                   task: task,
-                  isDark: isDark,
-                  surfaceColor: surfaceColor,
-                  borderColor: borderColor,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
                   bgColor: bgColor,
                   statusColor: _statusColor(task.status),
                   statusIcon: _statusIcon(task.status),
@@ -616,11 +599,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 // ── Task Tile ─────────────────────────────────────────────────────────────────
 
 class _TaskTile extends StatelessWidget {
-  final LogisticsTask task;
-  final bool isDark;
-  final Color surfaceColor;
-  final Color borderColor;
-  final Color textPrimary;
   final Color textSecondary;
   final Color bgColor;
   final Color statusColor;
@@ -630,21 +608,15 @@ class _TaskTile extends StatelessWidget {
 
   const _TaskTile({
     required this.task,
-    required this.isDark,
-    required this.surfaceColor,
-    required this.borderColor,
-    required this.textPrimary,
-    required this.textSecondary,
     required this.bgColor,
-    required this.statusColor,
-    required this.statusIcon,
-    required this.onEdit,
-    required this.onDelete,
-  });
 
   @override
   Widget build(BuildContext context) {
-    final textHint = isDark ? AppTheme.darkTextHint : AppTheme.textHint;
+    final textHint = AppTheme.getTextHint(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final surfaceColor = AppTheme.getSurface(context);
+    final borderColor = AppTheme.getBorder(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -664,7 +636,7 @@ class _TaskTile extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: statusColor.withAlpha(25),
+                    color: statusColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(statusIcon, size: 20, color: statusColor),
@@ -700,7 +672,7 @@ class _TaskTile extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: statusColor.withAlpha(25),
+                              color: statusColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
@@ -773,7 +745,7 @@ class _TaskTile extends StatelessWidget {
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: bgColor.withAlpha(127),
+                color: bgColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.4 : 0.5),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(14),
                   bottomRight: Radius.circular(14),

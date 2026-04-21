@@ -46,20 +46,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final item = widget.item;
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getBg(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.getTextSecondary(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Item Details',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
           ),
         ),
         actions: [
@@ -78,7 +78,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.getSurface(context),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: item.isLowStock
@@ -92,13 +92,15 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: item.isActive ? AppTheme.primaryLight : AppTheme.border.withOpacity(0.3),
+                      color: item.isActive 
+                        ? (Theme.of(context).brightness == Brightness.dark ? AppTheme.darkPrimaryLighter : AppTheme.primaryLight)
+                        : AppTheme.getBorder(context).withOpacity(0.3),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(
                       Icons.inventory_2_rounded,
                       size: 28,
-                      color: item.isActive ? AppTheme.primary : AppTheme.textHint,
+                      color: item.isActive ? AppTheme.primary : AppTheme.getTextHint(context),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -111,14 +113,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: item.isActive ? AppTheme.textPrimary : AppTheme.textHint,
+                            color: item.isActive ? AppTheme.getTextPrimary(context) : AppTheme.getTextHint(context),
                           ),
                         ),
                         const SizedBox(height: 4),
                         Row(
                           children: [
                             if (!item.isActive) ...[
-                              _StatusBadge(label: 'Inactive', color: AppTheme.border.withOpacity(0.5), textColor: AppTheme.textHint),
+                              _StatusBadge(
+                                  label: 'Inactive',
+                                  color: AppTheme.getBorder(context)
+                                      .withOpacity(0.5),
+                                  textColor: AppTheme.getTextHint(context)),
                               const SizedBox(width: 8),
                             ],
                             if (item.isLowStock)
@@ -141,23 +147,23 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             _SectionTitle('Description'),
             Text(
               item.description?.isNotEmpty == true ? item.description! : 'No description provided.',
-              style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context)),
             ),
             const SizedBox(height: 24),
 
             _SectionTitle('Key Information'),
             Container(
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.getSurface(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: AppTheme.getBorder(context)),
               ),
               child: Column(
                 children: [
                   _InfoRow('SKU', item.sku?.isNotEmpty == true ? item.sku! : 'N/A'),
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Category', item.category?.name ?? 'Uncategorized'),
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Unit', '${item.unit?.name ?? 'N/A'} (${item.unit?.abbreviation ?? ''})'),
                 ],
               ),
@@ -167,16 +173,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             _SectionTitle('Stock Details'),
             Container(
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.getSurface(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: AppTheme.getBorder(context)),
               ),
               child: Column(
                 children: [
                   _InfoRow('Current Stock', '${item.currentStock.toStringAsFixed(item.currentStock % 1 == 0 ? 0 : 2)} ${item.unit?.abbreviation ?? ''}', highlight: true),
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Opening Stock', item.openingStock.toStringAsFixed(item.openingStock % 1 == 0 ? 0 : 2)),
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Low Stock Alert', item.lowStockAlert != null ? item.lowStockAlert!.toStringAsFixed(item.lowStockAlert! % 1 == 0 ? 0 : 2) : 'None'),
                 ],
               ),
@@ -186,14 +192,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             _SectionTitle('Pricing Details'),
             Container(
               decoration: BoxDecoration(
-                color: AppTheme.surface,
+                color: AppTheme.getSurface(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: AppTheme.getBorder(context)),
               ),
               child: Column(
                 children: [
                   _InfoRow('Purchase Price', 'Rs. ${item.purchasePrice.toStringAsFixed(2)}'),
-                  const Divider(height: 1, color: AppTheme.border),
+                  Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Sales Price', 'Rs. ${item.salesPrice.toStringAsFixed(2)}'),
                 ],
               ),
@@ -233,10 +239,10 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppTheme.textHint,
+          color: AppTheme.getTextHint(context),
           letterSpacing: 0.8,
         ),
       ),
@@ -258,13 +264,13 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+          Text(label, style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
           Text(
             value,
             style: TextStyle(
               fontSize: 14,
               fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
-              color: highlight ? AppTheme.primary : AppTheme.textPrimary,
+              color: highlight ? AppTheme.primary : AppTheme.getTextPrimary(context),
             ),
           ),
         ],

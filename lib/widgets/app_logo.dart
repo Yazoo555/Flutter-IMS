@@ -23,7 +23,7 @@ class AppLogo extends StatelessWidget {
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w800,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
             letterSpacing: 1.2,
           ),
         ),

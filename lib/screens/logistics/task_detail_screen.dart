@@ -63,14 +63,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final textPrimary = isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary = isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final borderColor = AppTheme.getBorder(context);
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -133,7 +132,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: border),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -145,9 +150,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.15),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: statusColor.withOpacity(0.2)),
+                  border: Border.all(color: statusColor.withOpacity(0.3)),
                 ),
                 child: Text(
                   _task.status.toUpperCase(),
@@ -191,7 +196,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.5), fontWeight: FontWeight.w600)),
+            Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.5), fontWeight: FontWeight.w600)),
             Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
           ],
         ),
@@ -211,7 +216,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppTheme.primary.withOpacity(0.1),
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkPrimaryLighter
+                : AppTheme.primaryLight,
             child: const Icon(Icons.business_rounded, color: AppTheme.primary, size: 20),
           ),
           const SizedBox(width: 16),
@@ -264,7 +271,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.05),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkPrimaryLighter
+                    : AppTheme.primaryLight,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

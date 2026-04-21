@@ -177,7 +177,7 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       body: SafeArea(
         child: AuthResponsiveLayout(
           formContent: _buildFormPanel(context),
@@ -204,9 +204,9 @@ class _OtpScreenState extends State<OtpScreen> {
                 if (!context.isDesktop) const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: AppTheme.textSecondary,
+                    color: AppTheme.getTextSecondary(context),
                     size: 20,
                   ),
                 ),
@@ -235,9 +235,16 @@ class _OtpScreenState extends State<OtpScreen> {
         context.isDesktop ? 40 : 32,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.primaryLighter,
+        color: Theme.of(context).brightness == Brightness.dark 
+          ? AppTheme.darkPrimaryLighter 
+          : AppTheme.primaryLight,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryLight, width: 1),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark 
+            ? AppTheme.darkPrimaryLighter 
+            : AppTheme.primaryLight, 
+          width: 1
+        ),
         // Subtle shadow on desktop to lift the card
         boxShadow: context.isDesktop
             ? [
@@ -256,7 +263,9 @@ class _OtpScreenState extends State<OtpScreen> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? AppTheme.darkPrimaryLight 
+                : AppTheme.primaryLight,
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
@@ -267,13 +276,13 @@ class _OtpScreenState extends State<OtpScreen> {
           ),
 
           const SizedBox(height: 20),
-          const Text('Verification', style: AppTheme.heading2),
+          Text('Verification', style: AppTheme.heading2(context)),
           const SizedBox(height: 10),
 
           RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-              style: AppTheme.bodyMedium,
+              style: AppTheme.bodyMedium(context),
               children: [
                 const TextSpan(text: 'Enter the 6-digit code sent to\n'),
                 TextSpan(
@@ -322,7 +331,9 @@ class _OtpScreenState extends State<OtpScreen> {
                         decoration: InputDecoration(
                           counterText: '',
                           filled: true,
-                          fillColor: AppTheme.otpBackground,
+                          fillColor: Theme.of(context).brightness == Brightness.dark 
+                            ? AppTheme.darkInputBackground 
+                            : AppTheme.otpBackground,
                           contentPadding: EdgeInsets.zero,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -382,7 +393,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 Icon(
                   Icons.refresh_rounded,
                   size: 16,
-                  color: _canResend ? AppTheme.primary : AppTheme.textHint,
+                  color: _canResend ? AppTheme.primary : AppTheme.getTextHint(context),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -393,7 +404,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color:
-                        _canResend ? AppTheme.primary : AppTheme.textHint,
+                        _canResend ? AppTheme.primary : AppTheme.getTextHint(context),
                   ),
                 ),
               ],

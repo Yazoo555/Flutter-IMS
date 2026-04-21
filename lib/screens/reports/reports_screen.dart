@@ -12,23 +12,23 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        title: const Text('Reports',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Reports',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: AppTheme.getTextPrimary(context))),
+        backgroundColor: AppTheme.getSurface(context),
         elevation: 0,
         centerTitle: false,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
-          const Text(
+          Text(
             'Analytics & Records',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
               letterSpacing: 0.5,
             ),
           ),

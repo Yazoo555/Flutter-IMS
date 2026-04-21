@@ -37,7 +37,7 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: AppTheme.labelSmall),
+        Text(widget.label, style: AppTheme.labelSmall(context)),
         const SizedBox(height: 8),
         TextFormField(
           controller: widget.controller,
@@ -46,9 +46,9 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
           textInputAction: widget.textInputAction, // Added textInputAction
           validator: widget.validator,
           maxLength: widget.maxLength,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
             fontWeight: FontWeight.w500,
           ),
           decoration: AppTheme.inputDecoration(
@@ -65,7 +65,7 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
                       _obscureText
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: AppTheme.textHint,
+                      color: AppTheme.getTextHint(context),
                       size: 20,
                     ),
                     onPressed: () {

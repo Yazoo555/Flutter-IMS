@@ -97,15 +97,11 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final inputFill =
-        isDark ? AppTheme.darkInputBackground : AppTheme.inputBackground;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final inputFill = AppTheme.getInputBg(context);
+    final borderColor = AppTheme.getBorder(context);
 
     return Dialog(
       backgroundColor: surfaceColor,
@@ -129,7 +125,7 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: isDark
+                          color: Theme.of(context).brightness == Brightness.dark
                               ? AppTheme.darkPrimaryLight
                               : AppTheme.primaryLight,
                           borderRadius: BorderRadius.circular(10),
@@ -180,8 +176,8 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     hint: 'e.g. Acme Supplies',
                     icon: Icons.store_rounded,
                     validator: (v) =>
+                    validator: (v) =>
                         (v == null || v.trim().isEmpty) ? 'Name is required' : null,
-                    isDark: isDark,
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -196,7 +192,6 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     controller: _contactNameController,
                     hint: 'e.g. John Doe',
                     icon: Icons.person_outline_rounded,
-                    isDark: isDark,
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -217,7 +212,6 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                       if (!v.contains('@')) return 'Enter a valid email';
                       return null;
                     },
-                    isDark: isDark,
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -236,7 +230,6 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? 'Phone is required'
                         : null,
-                    isDark: isDark,
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -340,13 +333,9 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
-    required bool isDark,
-    required Color inputFill,
-    required Color borderColor,
-    required Color textPrimary,
     required Color textSecondary,
   }) {
-    final hintColor = isDark ? AppTheme.darkTextHint : AppTheme.textHint;
+    final hintColor = AppTheme.getTextHint(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

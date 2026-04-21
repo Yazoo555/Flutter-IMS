@@ -105,11 +105,18 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primary,
-            ),
+          data: Theme.of(context).copyWith(
+            colorScheme: isDark
+                ? const ColorScheme.dark(
+                    primary: AppTheme.primary,
+                    surface: AppTheme.darkSurface,
+                  )
+                : ColorScheme.light(
+                    primary: AppTheme.primary,
+                    surface: AppTheme.getSurface(context),
+                  ),
           ),
           child: child!,
         );
@@ -136,13 +143,13 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        title: const Text('Item Movements',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Item Movements',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.getTextPrimary(context))),
+        backgroundColor: AppTheme.getSurface(context),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: AppTheme.getTextPrimary(context)),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
@@ -167,25 +174,25 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
 
   Widget _buildControls() {
     return Container(
-      color: AppTheme.surface,
+      color: AppTheme.getSurface(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Item',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+          Text('Select Item',
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: AppTheme.getBorder(context)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedItemId,
                 isExpanded: true,
-                hint: const Text('Select an item'),
+                hint: Text('Select an item', style: TextStyle(color: AppTheme.getTextHint(context))),
                 items: _items.map((item) {
                   return DropdownMenuItem(
                     value: item.id,
@@ -202,8 +209,8 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Date Range',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+          Text('Date Range',
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
           const SizedBox(height: 8),
           InkWell(
             onTap: () => _selectDateRange(context),
@@ -211,7 +218,7 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                border: Border.all(color: AppTheme.border),
+                border: Border.all(color: AppTheme.getBorder(context)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -219,9 +226,9 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
                 children: [
                   Text(
                     '${DateFormat('MMM dd, yyyy').format(_startDate)} - ${DateFormat('MMM dd, yyyy').format(_endDate)}',
-                    style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+                    style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
                   ),
-                  const Icon(Icons.date_range_rounded, color: AppTheme.textHint),
+                  Icon(Icons.date_range_rounded, color: AppTheme.getTextHint(context)),
                 ],
               ),
             ),
@@ -244,12 +251,12 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.textSecondary)),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context))),
             ],
           ),
         ),
@@ -257,16 +264,16 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
     }
 
     if (_selectedItemId == null) {
-      return const Center(
+      return Center(
         child: Text('Select an item to view movements.',
-            style: TextStyle(color: AppTheme.textSecondary)),
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
     }
 
     if (_movements.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No movements found for this item in selected date range.',
-            style: TextStyle(color: AppTheme.textSecondary)),
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
     }
 
@@ -276,9 +283,9 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
         child: ConstrainedBox(
           constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
           child: DataTable(
-            headingTextStyle: const TextStyle(
+            headingTextStyle: TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: AppTheme.getTextPrimary(context),
             ),
             columns: const [
               DataColumn(label: Text('Date')),
@@ -295,7 +302,7 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -308,7 +315,7 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
                   '${isDeficit ? '-' : '+'}${move.quantity}',
                   style: TextStyle(color: isDeficit ? AppTheme.errorColor : color, fontWeight: FontWeight.bold),
                 )),
-                DataCell(Text(move.notes ?? '-')),
+                DataCell(Text(move.notes ?? '-', style: TextStyle(color: AppTheme.getTextPrimary(context)))),
               ]);
             }).toList(),
           ),

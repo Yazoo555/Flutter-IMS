@@ -90,7 +90,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   }
 
   Future<void> _pickDate() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final picked = await showDatePicker(
       context: context,
       initialDate: _scheduledDate ?? DateTime.now(),
@@ -98,7 +97,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       lastDate: DateTime(2100),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: isDark
+          colorScheme: Theme.of(context).brightness == Brightness.dark
               ? const ColorScheme.dark(
                   primary: AppTheme.primary,
                   surface: AppTheme.darkSurface,
@@ -239,16 +238,12 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final inputFill =
-        isDark ? AppTheme.darkInputBackground : AppTheme.inputBackground;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-    final hintColor = isDark ? AppTheme.darkTextHint : AppTheme.textHint;
+    final surfaceColor = AppTheme.getSurface(context);
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
+    final inputFill = AppTheme.getInputBg(context);
+    final borderColor = AppTheme.getBorder(context);
+    final hintColor = AppTheme.getTextHint(context);
 
     return Dialog(
       backgroundColor: surfaceColor,
@@ -267,7 +262,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: isDark
+                      color: Theme.of(context).brightness == Brightness.dark
                           ? AppTheme.darkPrimaryLight
                           : AppTheme.primaryLight,
                       borderRadius: BorderRadius.circular(10),
@@ -416,7 +411,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      _buildItemsList(isDark, borderColor, textPrimary, textSecondary),
+                      _buildItemsList(borderColor, textPrimary, textSecondary),
                       
                       const SizedBox(height: 24),
                       
@@ -472,7 +467,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     );
   }
 
-  Widget _buildItemsList(bool isDark, Color borderColor, Color textPrimary, Color textSecondary) {
+  Widget _buildItemsList(Color borderColor, Color textPrimary, Color textSecondary) {
     if (_isLoadingItems) {
       return const Center(child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2)));
     }
@@ -480,13 +475,13 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: isDark ? AppTheme.darkBackground : AppTheme.background, borderRadius: BorderRadius.circular(10), border: Border.all(color: borderColor, style: BorderStyle.solid)),
+        decoration: BoxDecoration(color: AppTheme.getBg(context), borderRadius: BorderRadius.circular(10), border: Border.all(color: borderColor, style: BorderStyle.solid)),
         child: Center(child: Text('No items selected', style: TextStyle(fontSize: 12, color: textSecondary))),
       );
     }
 
     return Container(
-      decoration: BoxDecoration(color: isDark ? AppTheme.darkBackground : AppTheme.background, borderRadius: BorderRadius.circular(10), border: Border.all(color: borderColor)),
+      decoration: BoxDecoration(color: AppTheme.getBg(context), borderRadius: BorderRadius.circular(10), border: Border.all(color: borderColor)),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -517,7 +512,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                   child: Container(
                     height: 36,
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.darkSurface : AppTheme.surface,
+                      color: AppTheme.getSurface(context),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: borderColor),
                     ),

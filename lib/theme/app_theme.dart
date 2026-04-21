@@ -35,59 +35,60 @@ class AppTheme {
   static const Color darkPrimaryLighter = Color(0xFF162416);
 
   // ── Text Styles ────────────────────────────────────────────────────────────
-  static const TextStyle heading1 = TextStyle(
-    fontSize: 28,
-    fontWeight: FontWeight.w800,
-    color: textPrimary,
-    letterSpacing: -0.5,
-  );
+  static TextStyle heading1(BuildContext context) => TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w800,
+        color: getTextPrimary(context),
+        letterSpacing: -0.5,
+      );
 
-  static const TextStyle heading2 = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w800,
-    color: textPrimary,
-    letterSpacing: -0.3,
-  );
+  static TextStyle heading2(BuildContext context) => TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: getTextPrimary(context),
+        letterSpacing: -0.3,
+      );
 
-  static const TextStyle bodyMedium = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: textSecondary,
-    height: 1.5,
-  );
+  static TextStyle bodyMedium(BuildContext context) => TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: getTextSecondary(context),
+        height: 1.5,
+      );
 
-  static const TextStyle labelSmall = TextStyle(
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: textSecondary,
-    letterSpacing: 0.8,
-  );
+  static TextStyle labelSmall(BuildContext context) => TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: getTextSecondary(context),
+        letterSpacing: 0.8,
+      );
 
-  static const TextStyle linkText = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: primary,
-  );
+  static TextStyle linkText(BuildContext context) => const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: primary,
+      );
 
   // ── Input Decoration ───────────────────────────────────────────────────────
   static InputDecoration inputDecoration({
+    required BuildContext context,
     required String hintText,
     Widget? prefixIcon,
     Widget? suffixIcon,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(
-        color: textHint,
+      hintStyle: TextStyle(
+        color: getTextHint(context),
         fontSize: 14,
         fontWeight: FontWeight.w400,
       ),
       prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: inputBackground,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      fillColor: isDark ? darkInputBackground : inputBackground,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,
@@ -135,6 +136,9 @@ class AppTheme {
         brightness: brightness,
         primary: primary,
         surface: surf,
+        onSurface: txt,
+        background: bg,
+        onBackground: txt,
       ),
       scaffoldBackgroundColor: bg,
       cardColor: surf,
@@ -146,16 +150,46 @@ class AppTheme {
         foregroundColor: txt,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        iconTheme: IconThemeData(color: txt),
+        titleTextStyle: TextStyle(
+          color: txt,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
       ),
-      drawerTheme: DrawerThemeData(backgroundColor: surf),
-      bottomNavigationBarTheme:
-          BottomNavigationBarThemeData(backgroundColor: surf),
-      dialogTheme: DialogThemeData(backgroundColor: surf),
-      listTileTheme: ListTileThemeData(textColor: txt),
+      drawerTheme: DrawerThemeData(
+        backgroundColor: surf,
+        elevation: 0,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surf,
+        selectedItemColor: primary,
+        unselectedItemColor: isDark ? darkTextHint : textHint,
+        elevation: 0,
+      ),
+      tabBarTheme: TabBarTheme(
+        labelColor: primary,
+        unselectedLabelColor: isDark ? darkTextHint : textHint,
+        indicatorColor: primary,
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surf,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      listTileTheme: ListTileThemeData(
+        textColor: txt,
+        iconColor: isDark ? darkTextSecondary : textSecondary,
+      ),
+      dividerTheme: DividerThemeData(
+        color: brd,
+        thickness: 1,
+        space: 1,
+      ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) =>
-              states.contains(WidgetState.selected) ? primary : null,
+          (states) => states.contains(WidgetState.selected) ? primary : null,
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
@@ -163,6 +197,40 @@ class AppTheme {
               : null,
         ),
       ),
+      chipTheme: ChipThemeData(
+        backgroundColor: isDark ? darkSurface : surface,
+        selectedColor: primary.withAlpha(50),
+        secondarySelectedColor: primary.withAlpha(50),
+        labelStyle: TextStyle(
+          color: isDark ? darkTextPrimary : textPrimary,
+          fontSize: 12,
+        ),
+        secondaryLabelStyle: const TextStyle(
+          color: primary,
+          fontSize: 12,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: brd),
+        ),
+      ),
     );
   }
+
+  // ── Helper Getters ──────────────────────────────────────────────────────────
+  static Color getBg(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
+  static Color getSurface(BuildContext context) => Theme.of(context).cardColor;
+  static Color getBorder(BuildContext context) =>
+      Theme.of(context).dividerColor;
+  static Color getTextPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextPrimary
+          : textPrimary;
+  static Color getTextSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkTextSecondary
+          : textSecondary;
+  static Color getTextHint(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkTextHint : textHint;
 }

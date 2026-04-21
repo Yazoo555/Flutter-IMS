@@ -32,16 +32,16 @@ class InventoryFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? color : AppTheme.surface,
+          color: selected ? color : AppTheme.getSurface(context),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : AppTheme.border),
+          border: Border.all(color: selected ? color : AppTheme.getBorder(context)),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected ? Colors.white : AppTheme.getTextSecondary(context),
           ),
         ),
       ),
@@ -73,12 +73,12 @@ class ItemTile extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: AppTheme.getSurface(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: item.isLowStock
                 ? const Color(0xFFF59E0B).withOpacity(0.5)
-                : AppTheme.border,
+                : AppTheme.getBorder(context),
           ),
         ),
         child: Column(
@@ -111,14 +111,16 @@ class ItemTile extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: item.isActive
-            ? AppTheme.primaryLight
-            : AppTheme.border.withOpacity(0.3),
+            ? (Theme.of(context).brightness == Brightness.dark
+                ? AppTheme.darkPrimaryLighter
+                : AppTheme.primaryLight)
+            : AppTheme.getBorder(context).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         Icons.inventory_2_rounded,
         size: 24,
-        color: item.isActive ? AppTheme.primary : AppTheme.textHint,
+        color: item.isActive ? AppTheme.primary : AppTheme.getTextHint(context),
       ),
     );
   }
@@ -135,20 +137,23 @@ class ItemTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: item.isActive ? AppTheme.textPrimary : AppTheme.textHint,
+                  color: item.isActive ? AppTheme.getTextPrimary(context) : AppTheme.getTextHint(context),
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             if (!item.isActive) ...[
               const SizedBox(width: 6),
-              _StatusBadge(label: 'Inactive', color: AppTheme.border.withOpacity(0.5), textColor: AppTheme.textHint),
+              _StatusBadge(
+                  label: 'Inactive',
+                  color: AppTheme.getBorder(context).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.5),
+                  textColor: AppTheme.getTextHint(context)),
             ],
             if (item.isLowStock) ...[
               const SizedBox(width: 6),
               _StatusBadge(
                 label: 'Low Stock',
-                color: const Color(0xFFF59E0B).withOpacity(0.15),
+                color: const Color(0xFFF59E0B).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.15),
                 textColor: const Color(0xFFF59E0B),
               ),
             ],
@@ -167,16 +172,16 @@ class ItemTile extends StatelessWidget {
       children: [
         if (hasSku)
           Text('SKU: ${item.sku}',
-              style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+              style: TextStyle(fontSize: 11, color: AppTheme.getTextHint(context))),
       ],
     );
   }
 
   Widget _buildPopupMenu() {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert_rounded,
-          size: 20, color: AppTheme.textSecondary),
-      color: AppTheme.surface,
+      icon: Icon(Icons.more_vert_rounded,
+          size: 20, color: AppTheme.getTextSecondary(context)),
+      color: AppTheme.getSurface(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (val) {
         if (val == 'edit') onEdit();
@@ -184,13 +189,13 @@ class ItemTile extends StatelessWidget {
         if (val == 'delete') onDelete();
       },
       itemBuilder: (_) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'edit',
           child: Row(children: [
-            Icon(Icons.edit_outlined, size: 18, color: AppTheme.textSecondary),
-            SizedBox(width: 10),
+            Icon(Icons.edit_outlined, size: 18, color: AppTheme.getTextSecondary(context)),
+            const SizedBox(width: 10),
             Text('Edit',
-                style: TextStyle(fontSize: 14, color: AppTheme.textPrimary)),
+                style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context))),
           ]),
         ),
         PopupMenuItem(
@@ -201,12 +206,12 @@ class ItemTile extends StatelessWidget {
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               size: 18,
-              color: AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
             ),
             const SizedBox(width: 10),
             Text(
               item.isActive ? 'Deactivate' : 'Activate',
-              style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
             ),
           ]),
         ),
@@ -230,7 +235,7 @@ class ItemTile extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.background.withOpacity(0.5),
+        color: AppTheme.getBg(context).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.5),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(14),
           bottomRight: Radius.circular(14),
@@ -314,7 +319,7 @@ class StatBadge extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+            style: TextStyle(fontSize: 10, color: AppTheme.getTextHint(context))),
         Text(value,
             style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w700, color: color)),
@@ -336,10 +341,10 @@ class SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppTheme.textHint,
+          color: AppTheme.getTextHint(context),
           letterSpacing: 0.8,
         ),
       ),
@@ -375,35 +380,35 @@ class FormFieldWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary)),
+                color: AppTheme.getTextSecondary(context))),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
-          style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+          style: TextStyle(fontSize: 14, color: AppTheme.getTextPrimary(context)),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle:
-                const TextStyle(fontSize: 14, color: AppTheme.textHint),
+                TextStyle(fontSize: 14, color: AppTheme.getTextHint(context)),
             prefixText: prefix,
-            prefixStyle: const TextStyle(
-                fontSize: 14, color: AppTheme.textSecondary),
+            prefixStyle: TextStyle(
+                fontSize: 14, color: AppTheme.getTextSecondary(context)),
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: AppTheme.getSurface(context),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.getBorder(context)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.getBorder(context)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -451,33 +456,33 @@ class DropdownFieldWidget<T> extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary)),
+                color: AppTheme.getTextSecondary(context))),
         const SizedBox(height: 6),
         DropdownButtonFormField<T>(
           value: value,
           items: items,
           onChanged: onChanged,
           hint: Text(hint,
-              style: const TextStyle(
-                  fontSize: 14, color: AppTheme.textHint)),
-          style: const TextStyle(
-              fontSize: 14, color: AppTheme.textPrimary),
-          dropdownColor: AppTheme.surface,
+              style: TextStyle(
+                  fontSize: 14, color: AppTheme.getTextHint(context))),
+          style: TextStyle(
+              fontSize: 14, color: AppTheme.getTextPrimary(context)),
+          dropdownColor: AppTheme.getSurface(context),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: AppTheme.getSurface(context),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.getBorder(context)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: AppTheme.getBorder(context)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

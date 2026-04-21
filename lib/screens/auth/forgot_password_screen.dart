@@ -156,7 +156,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       body: SafeArea(
         child: AuthResponsiveLayout(
           formContent: _buildFormPanel(context),
@@ -214,11 +214,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(1, 2),
           const SizedBox(height: 20),
-          const Text('Forgot Password?', style: AppTheme.heading1),
+          Text('Forgot Password?', style: AppTheme.heading1(context)),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             "Enter your registered email address and we'll send you a one-time password (OTP) to reset your password.",
-            style: AppTheme.bodyMedium,
+            style: AppTheme.bodyMedium(context),
           ),
           const SizedBox(height: 36),
           LabeledTextField(
@@ -229,7 +229,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             maxLength: 35,
             prefixIcon: const Icon(
               Icons.mail_outline_rounded,
-              color: AppTheme.textHint,
+              color: AppTheme.getTextHint(context),
               size: 20,
             ),
             validator: _validateEmail,
@@ -245,7 +245,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Center(
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Text('Back to Login', style: AppTheme.linkText),
+              child: Text('Back to Login', style: AppTheme.linkText(context)),
             ),
           ),
           SizedBox(height: context.isDesktop ? 48 : 32),
@@ -268,11 +268,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(2, 2),
           const SizedBox(height: 20),
-          const Text('Reset Password', style: AppTheme.heading1),
+          Text('Reset Password', style: AppTheme.heading1(context)),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Enter the OTP sent to your email and create a new password.',
-            style: AppTheme.bodyMedium,
+            style: AppTheme.bodyMedium(context),
           ),
           const SizedBox(height: 36),
 
@@ -285,7 +285,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             maxLength: 6,
             prefixIcon: const Icon(
               Icons.pin_rounded,
-              color: AppTheme.textHint,
+              color: AppTheme.getTextHint(context),
               size: 20,
             ),
             validator: (value) {
@@ -316,7 +316,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     maxLength: 10,
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
-                      color: AppTheme.textHint,
+                      color: AppTheme.getTextHint(context),
                       size: 20,
                     ),
                     validator: _validatePassword,
@@ -332,7 +332,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     maxLength: 10,
                     prefixIcon: const Icon(
                       Icons.lock_outline_rounded,
-                      color: AppTheme.textHint,
+                      color: AppTheme.getTextHint(context),
                       size: 20,
                     ),
                     validator: (value) {
@@ -357,7 +357,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               maxLength: 10,
               prefixIcon: const Icon(
                 Icons.lock_outline_rounded,
-                color: AppTheme.textHint,
+                color: AppTheme.getTextHint(context),
                 size: 20,
               ),
               validator: _validatePassword,
@@ -371,7 +371,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               maxLength: 10,
               prefixIcon: const Icon(
                 Icons.lock_outline_rounded,
-                color: AppTheme.textHint,
+                color: AppTheme.getTextHint(context),
                 size: 20,
               ),
               validator: (value) {
@@ -390,9 +390,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryLighter,
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? AppTheme.darkPrimaryLighter 
+                : AppTheme.primaryLighter,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.primaryLight),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark 
+                  ? AppTheme.darkPrimaryLight 
+                  : AppTheme.primaryLight
+              ),
             ),
             child: Row(
               children: [
@@ -404,7 +410,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     'Password must be 8-10 characters long and contain both letters and numbers',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppTheme.textSecondary,
+                      color: AppTheme.getTextSecondary(context),
                       height: 1.4,
                     ),
                   ),
@@ -440,9 +446,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
           decoration: BoxDecoration(
-            color: AppTheme.primaryLighter,
+            color: Theme.of(context).brightness == Brightness.dark 
+              ? AppTheme.darkPrimaryLighter 
+              : AppTheme.primaryLighter,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.primaryLight, width: 1),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? AppTheme.darkPrimaryLight 
+                : AppTheme.primaryLight, 
+              width: 1
+            ),
             boxShadow: context.isDesktop
                 ? [
                     BoxShadow(
@@ -469,15 +482,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Password Reset!',
-                style: AppTheme.heading2,
+                style: AppTheme.heading2(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Your password has been updated successfully. You can now log in with your new password.',
-                style: AppTheme.bodyMedium,
+                style: AppTheme.bodyMedium(context),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -521,7 +534,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             },
             child: const Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
               size: 20,
             ),
           ),
@@ -532,12 +545,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget _buildStepBadge(int current, int total) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryLight,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark 
+                ? AppTheme.darkPrimaryLight 
+                : AppTheme.primaryLight,
+              borderRadius: BorderRadius.circular(20),
+            ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -564,7 +579,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: current / total,
-              backgroundColor: AppTheme.primaryLight,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark 
+                ? AppTheme.darkPrimaryLight 
+                : AppTheme.primaryLight,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppTheme.primary),
               minHeight: 4,

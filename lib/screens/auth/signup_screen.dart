@@ -166,7 +166,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       body: SafeArea(
         child: AuthResponsiveLayout(
           formContent: _buildFormPanel(context),
@@ -198,11 +198,11 @@ class _SignupScreenState extends State<SignupScreen> {
   ],
 ),  
               SizedBox(height: context.isDesktop ? 16 : 44),
-              const Text('Create Account', style: AppTheme.heading1),
+              Text('Create Account', style: AppTheme.heading1(context)),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Fill in your details to get started.',
-                style: AppTheme.bodyMedium,
+                style: AppTheme.bodyMedium(context),
               ),
               const SizedBox(height: 36),
 
@@ -219,7 +219,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         maxLength: 35,
                         prefixIcon: const Icon(
                           Icons.person_outline_rounded,
-                          color: AppTheme.textHint,
+                          color: AppTheme.getTextHint(context),
                           size: 20,
                         ),
                         validator: _validateUsername,
@@ -235,7 +235,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         maxLength: 35,
                         prefixIcon: const Icon(
                           Icons.mail_outline_rounded,
-                          color: AppTheme.textHint,
+                          color: AppTheme.getTextHint(context),
                           size: 20,
                         ),
                         validator: _validateEmail,
@@ -252,7 +252,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   maxLength: 35,
                   prefixIcon: const Icon(
                     Icons.person_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: AppTheme.getTextHint(context),
                     size: 20,
                   ),
                   validator: _validateUsername,
@@ -266,7 +266,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   maxLength: 35,
                   prefixIcon: const Icon(
                     Icons.mail_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: AppTheme.getTextHint(context),
                     size: 20,
                   ),
                   validator: _validateEmail,
@@ -283,7 +283,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 maxLength: 10,
                 prefixIcon: const Icon(
                   Icons.lock_outline_rounded,
-                  color: AppTheme.textHint,
+                  color: AppTheme.getTextHint(context),
                   size: 20,
                 ),
                 validator: _validatePassword,
@@ -294,9 +294,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLighter,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? AppTheme.darkPrimaryLighter 
+                    : AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.primaryLight),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? AppTheme.darkPrimaryLighter 
+                      : AppTheme.primaryLight
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -311,7 +317,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         'Password must be 8-10 characters long and contain both letters and numbers',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: AppTheme.getTextSecondary(context),
                           height: 1.4,
                         ),
                       ),
@@ -330,23 +336,23 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
 
               const SizedBox(height: 36),
-              const Divider(color: AppTheme.divider, height: 1),
+              Divider(color: AppTheme.getBorder(context), height: 1),
               const SizedBox(height: 24),
 
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Already have an account? ',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.getTextSecondary(context),
                       ),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Text('Log In', style: AppTheme.linkText),
+                      child: Text('Log In', style: AppTheme.linkText(context)),
                     ),
                   ],
                 ),

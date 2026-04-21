@@ -121,21 +121,21 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getBg(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.getTextSecondary(context), size: 20),
           onPressed: () => Navigator.pop(context, false),
         ),
         title: Text(
           _isEditing ? 'Edit Category' : 'Add Category',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
           ),
         ),
       ),
@@ -153,7 +153,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0EA5E9).withOpacity(0.08),
+                    color: Theme.of(context).brightness == Brightness.dark 
+                      ? const Color(0xFF0EA5E9).withOpacity(0.15) 
+                      : const Color(0xFF0EA5E9).withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                         color: const Color(0xFF0EA5E9).withOpacity(0.2)),
@@ -164,7 +166,7 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0EA5E9).withOpacity(0.15),
+                          color: const Color(0xFF0EA5E9).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.15),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(Icons.category_rounded,
@@ -179,10 +181,10 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                               _isEditing
                                   ? 'Update Category'
                                   : 'New Category',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
+                                color: AppTheme.getTextPrimary(context),
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -190,9 +192,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                               _isEditing
                                   ? 'Modify the details below.'
                                   : 'Group your inventory items by category.',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppTheme.textSecondary,
+                                color: AppTheme.getTextSecondary(context),
                               ),
                             ),
                           ],
@@ -210,9 +212,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   hintText: 'e.g. Electronics, Beverages',
                   controller: _nameController,
                   maxLength: 50,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.label_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: AppTheme.getTextHint(context),
                     size: 20,
                   ),
                   validator: _validateName,
@@ -225,9 +227,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   hintText: 'Brief description of this category',
                   controller: _descController,
                   maxLength: 200,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.notes_rounded,
-                    color: AppTheme.textHint,
+                    color: AppTheme.getTextHint(context),
                     size: 20,
                   ),
                   validator: _validateDescription,
@@ -249,12 +251,12 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context, false),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        color: AppTheme.getTextSecondary(context),
                       ),
                     ),
                   ),

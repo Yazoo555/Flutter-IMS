@@ -110,7 +110,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: AppTheme.getSurface(context),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16)),
             title: const Text(
@@ -118,20 +118,20 @@ class _UnitsScreenState extends State<UnitsScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             content: RichText(
               text: TextSpan(
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: AppTheme.getTextSecondary(context)),
                 children: [
                   const TextSpan(text: 'Are you sure you want to delete '),
                   TextSpan(
                     text: '$name ($abbreviation)',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary),
+                        color: AppTheme.getTextPrimary(context)),
                   ),
                   const TextSpan(text: '? This cannot be undone.'),
                 ],
@@ -140,8 +140,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary)),
+                child: Text('Cancel',
+                    style: TextStyle(color: AppTheme.getTextSecondary(context))),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -186,27 +186,27 @@ class _UnitsScreenState extends State<UnitsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getBg(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.getTextSecondary(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Units',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: AppTheme.getTextPrimary(context),
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppTheme.textSecondary, size: 22),
+            icon: Icon(Icons.refresh_rounded,
+                color: AppTheme.getTextSecondary(context), size: 22),
             onPressed: _fetchUnits,
             tooltip: 'Refresh',
           ),
@@ -244,14 +244,14 @@ class _UnitsScreenState extends State<UnitsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: AppTheme.getTextSecondary(context)),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -279,26 +279,28 @@ class _UnitsScreenState extends State<UnitsScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkPrimaryLighter
+                    : AppTheme.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(Icons.straighten_rounded,
                   size: 36, color: AppTheme.primary),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Units Yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap "Add Unit" to create your first one.',
               style:
-                  TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                  TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context)),
               textAlign: TextAlign.center,
             ),
           ],
@@ -341,9 +343,9 @@ class _UnitTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: Row(
         children: [
@@ -352,7 +354,9 @@ class _UnitTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppTheme.darkPrimaryLighter
+                  : AppTheme.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -377,18 +381,18 @@ class _UnitTile extends StatelessWidget {
               children: [
                 Text(
                   unit.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.getTextPrimary(context),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Abbreviation: ${unit.abbreviation}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      fontSize: 12, color: AppTheme.getTextSecondary(context)),
                 ),
               ],
             ),
@@ -396,8 +400,8 @@ class _UnitTile extends StatelessWidget {
 
           // Actions
           IconButton(
-            icon: const Icon(Icons.edit_outlined,
-                size: 20, color: AppTheme.textSecondary),
+            icon: Icon(Icons.edit_outlined,
+                size: 20, color: AppTheme.getTextSecondary(context)),
             onPressed: onEdit,
             tooltip: 'Edit',
             splashRadius: 20,

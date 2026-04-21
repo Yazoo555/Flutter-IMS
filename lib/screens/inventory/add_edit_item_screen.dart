@@ -169,9 +169,9 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +187,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         onPressed: _isSaving ? null : _save,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primary,
-          disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
+          disabledBackgroundColor:
+              AppTheme.primary.withOpacity(0.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           elevation: 0,
         ),
@@ -215,21 +216,21 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: AppTheme.getBg(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.getTextSecondary(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _isEditing ? 'Edit Item' : 'Add Item',
-          style: const TextStyle(
-              fontSize: 20,
+          style: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary),
+              color: AppTheme.getTextPrimary(context)),
         ),
       ),
       body: _isLoadingMeta

@@ -216,8 +216,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? AppTheme.darkBackground : AppTheme.background;
-    final surface = Theme.of(context).cardColor;
+    final bg = AppTheme.getBg(context);
+    final surface = AppTheme.getSurface(context);
     final primary = AppTheme.primary;
 
     return Scaffold(
@@ -278,8 +278,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   PreferredSizeWidget _buildAppBar(
       bool isDark, Color surface, Color primary) {
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+    final textPrimary = AppTheme.getTextPrimary(context);
 
     return AppBar(
       backgroundColor: surface,
@@ -337,9 +336,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     "LLaMA 3 · Online",
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark
-                          ? AppTheme.darkTextSecondary
-                          : AppTheme.textSecondary,
+                      color: AppTheme.getTextSecondary(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -352,13 +349,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       actions: [
         if (_messages.isNotEmpty)
           IconButton(
-            icon: Icon(Icons.delete_sweep_rounded,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
-                size: 22),
+            icon: const Icon(Icons.delete_sweep_rounded),
             onPressed: _confirmClearChat,
             tooltip: 'Clear chat',
+            color: AppTheme.getTextSecondary(context),
           ),
         const SizedBox(width: 4),
       ],
@@ -366,7 +360,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         preferredSize: const Size.fromHeight(1),
         child: Divider(
           height: 1,
-          color: isDark ? AppTheme.darkBorder : AppTheme.border,
+          color: AppTheme.getBorder(context),
         ),
       ),
     );
@@ -406,10 +400,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // ─── Welcome / Empty State ──────────────────────────────────────────────────
 
   Widget _buildWelcome(bool isDark) {
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+    final textPrimary = AppTheme.getTextPrimary(context);
+    final textSecondary = AppTheme.getTextSecondary(context);
     final primary = AppTheme.primary;
 
     return SingleChildScrollView(
@@ -506,7 +498,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         decoration: BoxDecoration(
-          color: primary.withOpacity(0.07),
+          color: primary.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.07),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: primary.withOpacity(0.15)),
         ),
@@ -519,16 +511,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                color: AppTheme.getTextPrimary(context),
               ),
             ),
             Text(
               sub,
               style: TextStyle(
                 fontSize: 10,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
+                color: AppTheme.getTextSecondary(context),
               ),
             ),
           ],
@@ -545,10 +535,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.white,
+          color: AppTheme.getSurface(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-              color: isDark ? AppTheme.darkBorder : AppTheme.border),
+              color: AppTheme.getBorder(context)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
@@ -563,7 +553,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               width: 34,
               height: 34,
               decoration: BoxDecoration(
-                color: primary.withOpacity(0.1),
+                color: primary.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(s.icon, color: primary, size: 18),
@@ -575,17 +565,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color:
-                      isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
+                  color: AppTheme.getTextPrimary(context),
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios_rounded,
               size: 13,
-              color: isDark
-                  ? AppTheme.darkTextSecondary
-                  : AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
             ),
           ],
         ),
@@ -634,8 +621,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withOpacity(0.07)
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withOpacity(0.12)
                 : Colors.black.withOpacity(0.05),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -643,7 +630,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             label,
             style: TextStyle(
               fontSize: 11,
-              color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -697,10 +684,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 color: isUser
                     ? primary
                     : isError
-                        ? (isDark
-                            ? const Color(0xFF3D1A1A)
-                            : const Color(0xFFFFF0F0))
-                        : (isDark ? AppTheme.darkSurface : Colors.white),
+                        ? Colors.red.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1)
+                        : AppTheme.getSurface(context),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -712,9 +697,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     : Border.all(
                         color: isError
                             ? Colors.red.withOpacity(0.3)
-                            : (isDark
-                                ? AppTheme.darkBorder
-                                : Colors.black.withOpacity(0.06)),
+                            : AppTheme.getBorder(context),
                         width: 1,
                       ),
                 boxShadow: [
@@ -738,8 +721,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           : isError
                               ? Colors.red
                               : (isDark
-                                  ? AppTheme.darkTextPrimary
-                                  : AppTheme.textPrimary),
+                                  ? AppTheme.getTextPrimary(context)
+                                  : AppTheme.getTextPrimary(context)),
                       fontSize: 14,
                       height: 1.5,
                     ),
@@ -754,8 +737,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           color: isUser
                               ? Colors.white.withOpacity(0.65)
                               : (isDark
-                                  ? AppTheme.darkTextSecondary
-                                  : AppTheme.textSecondary),
+                                  ? AppTheme.getTextSecondary(context)
+                                  : AppTheme.getTextSecondary(context)),
                           fontSize: 10,
                         ),
                       ),
@@ -765,8 +748,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           Icons.copy_rounded,
                           size: 10,
                           color: isDark
-                              ? AppTheme.darkTextSecondary
-                              : AppTheme.textSecondary,
+                              ? AppTheme.getTextSecondary(context)
+                              : AppTheme.getTextSecondary(context),
                         ),
                       ],
                     ],
@@ -806,7 +789,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : Colors.white,
+              color: AppTheme.getSurface(context),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(18),
                 topRight: Radius.circular(18),

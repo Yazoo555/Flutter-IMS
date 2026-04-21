@@ -105,13 +105,13 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: AppTheme.getBg(context),
       appBar: AppBar(
-        title: const Text('Daily Summary',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Daily Summary',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.getTextPrimary(context))),
+        backgroundColor: AppTheme.getSurface(context),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: AppTheme.getTextPrimary(context)),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
@@ -136,18 +136,18 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
 
   Widget _buildControls() {
     return Container(
-      color: AppTheme.surface,
+      color: AppTheme.getSurface(context),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Item',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+          Text('Select Item',
+              style: TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppTheme.border),
+              border: Border.all(color: AppTheme.getBorder(context)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: DropdownButtonHideUnderline(
@@ -174,9 +174,9 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Days History:',
+              Text('Days History:',
                   style:
-                      TextStyle(fontSize: 14, color: AppTheme.textSecondary)),
+                      TextStyle(fontSize: 14, color: AppTheme.getTextSecondary(context))),
               DropdownButton<int>(
                 value: _daysBack,
                 underline: const SizedBox(),
@@ -212,24 +212,22 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: AppTheme.getTextHint(context)),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.textSecondary)),
+                  style: TextStyle(color: AppTheme.getTextSecondary(context))),
             ],
           ),
         ),
       );
     }
 
-    if (_summaries.isEmpty) {
-      return const Center(
+      return Center(
         child: Text('No daily summary data found.',
-            style: TextStyle(color: AppTheme.textSecondary)),
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
-    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -242,9 +240,9 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppTheme.border, width: 1),
+            side: BorderSide(color: AppTheme.getBorder(context), width: 1),
           ),
-          color: AppTheme.surface,
+          color: AppTheme.getSurface(context),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -257,7 +255,9 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
                       width: 52,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                          ? AppTheme.darkPrimaryLighter 
+                          : AppTheme.primaryLight,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Column(
@@ -286,10 +286,10 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
                       children: [
                         Text(
                           DateFormat('EEEE').format(s.date),
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
-                              color: AppTheme.textPrimary),
+                              color: AppTheme.getTextPrimary(context)),
                         ),
                         const SizedBox(height: 2),
                         // Qty badges
@@ -312,7 +312,7 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                const Divider(height: 1, color: AppTheme.border),
+                Divider(height: 1, color: AppTheme.getBorder(context)),
                 const SizedBox(height: 14),
                 // ── Value metrics (2×2 grid) ─────────────────────────────────
                 Row(
@@ -367,7 +367,7 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -384,7 +384,7 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
@@ -412,7 +412,7 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: valueColor.withOpacity(0.08),
+        color: valueColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: valueColor.withOpacity(0.2)),
       ),
@@ -421,9 +421,9 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppTheme.textSecondary,
+              color: AppTheme.getTextSecondary(context),
               letterSpacing: 0.2,
             ),
           ),
