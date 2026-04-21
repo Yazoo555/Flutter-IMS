@@ -1,5 +1,4 @@
-// logistics_service.dart
-// API service for Suppliers and Logistics Tasks using REST endpoints.
+
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -106,11 +105,49 @@ class LogisticsService {
 
   // ── Logistics Tasks ─────────────────────────────────────────────────────────
 
+  /// Fetch all tasks with supplier details.
+  static Future<List<LogisticsTask>> getAllTasksDetail({String? status}) async {
+    String query = 'order=created_at.desc';
+    if (status != null && status != 'all') {
+      query += '&status=eq.$status';
+    }
+    final uri = Uri.parse('$_baseUrl/logistics_tasks_detail?$query');
+    final response = await http.get(uri, headers: _headers);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load tasks detail: ${response.statusCode}');
+    }
+
+    final List<dynamic> data = jsonDecode(response.body);
+    return data
+        .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Fetch a specific task by ID from the detail view.
+  static Future<LogisticsTask> getTaskDetail(String taskId) async {
+    final uri = Uri.parse('$_baseUrl/logistics_tasks_detail?id=eq.$taskId&limit=1');
+    final headers = {
+      ..._headers,
+      'Accept': 'application/vnd.pgrst.object+json',
+    };
+    final response = await http.get(uri, headers: headers);
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load task: ${response.body}');
+    }
+
+    return LogisticsTask.fromJson(jsonDecode(response.body));
+  }
+
   /// Fetch tasks for a specific supplier.
   static Future<List<LogisticsTask>> getTasksForSupplier(
-      String supplierId) async {
-    final uri = Uri.parse(
-        '$_baseUrl/logistics_tasks?supplier_id=eq.$supplierId&order=scheduled_date.desc');
+      String supplierId, {String? status}) async {
+    String query = 'supplier_id=eq.$supplierId&order=scheduled_date.desc';
+    if (status != null && status != 'all') {
+      query += '&status=eq.$status';
+    }
+    final uri = Uri.parse('$_baseUrl/logistics_tasks?$query');
     final response = await http.get(uri, headers: _headers);
 
     if (response.statusCode != 200) {

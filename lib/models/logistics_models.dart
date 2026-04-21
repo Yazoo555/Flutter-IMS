@@ -53,6 +53,8 @@ class LogisticsTask {
   final String id;
   final String userId;
   final String supplierId;
+  final String? supplierName;
+  final String? supplierPhone;
   final String title;
   final String? description;
   final String status; // pending, in_progress, completed, cancelled
@@ -66,6 +68,8 @@ class LogisticsTask {
     required this.id,
     required this.userId,
     required this.supplierId,
+    this.supplierName,
+    this.supplierPhone,
     required this.title,
     this.description,
     required this.status,
@@ -80,6 +84,8 @@ class LogisticsTask {
         id: json['id'] as String,
         userId: json['user_id'] as String,
         supplierId: json['supplier_id'] as String,
+        supplierName: json['supplier_name'] as String?,
+        supplierPhone: json['supplier_phone'] as String?,
         title: json['title'] as String? ?? '',
         description: json['description'] as String?,
         status: json['status'] as String? ?? 'pending',

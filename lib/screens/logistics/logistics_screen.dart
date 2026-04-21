@@ -1,6 +1,6 @@
 // logistics_screen.dart
-// Main Logistics screen with Suppliers tab — lists all suppliers with search,
-// filter, create, edit, delete, and navigation to supplier detail.
+// Main Logistics screen with two tabs: Suppliers and Tasks.
+// Lists all suppliers and all logistics tasks with search, filter, and CRUD.
 
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
@@ -8,6 +8,7 @@ import '../../models/logistics_models.dart';
 import '../../services/logistics_service.dart';
 import 'supplier_detail_screen.dart';
 import 'supplier_form_dialog.dart';
+import 'task_form_dialog.dart';
 
 class LogisticsScreen extends StatefulWidget {
   const LogisticsScreen({super.key});
@@ -16,141 +17,130 @@ class LogisticsScreen extends StatefulWidget {
   State<LogisticsScreen> createState() => _LogisticsScreenState();
 }
 
-class _LogisticsScreenState extends State<LogisticsScreen> {
+class _LogisticsScreenState extends State<LogisticsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  // Suppliers State
   List<Supplier> _suppliers = [];
   List<Supplier> _filteredSuppliers = [];
-  bool _isLoading = true;
-  String? _error;
-  final _searchController = TextEditingController();
-  String _filterStatus = 'all'; // all | active | inactive
+  bool _isLoadingSuppliers = true;
+  String? _supplierError;
+  final _supplierSearchController = TextEditingController();
+  String _supplierFilterStatus = 'all';
+
+  // Tasks State
+  List<LogisticsTask> _tasks = [];
+  List<LogisticsTask> _filteredTasks = [];
+  bool _isLoadingTasks = true;
+  String? _taskError;
+  final _taskSearchController = TextEditingController();
+  String _taskFilterStatus = 'all';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {}); // Rebuild to update FAB and other tab-specific UI
+    });
+
     _fetchSuppliers();
-    _searchController.addListener(_applyFilter);
+    _fetchTasks();
+
+    _supplierSearchController.addListener(_applySupplierFilter);
+    _taskSearchController.addListener(_applyTaskFilter);
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _tabController.dispose();
+    _supplierSearchController.dispose();
+    _taskSearchController.dispose();
     super.dispose();
   }
 
-  // ─── Data ──────────────────────────────────────────────────────────────────
+  // ─── Suppliers Data ────────────────────────────────────────────────────────
 
   Future<void> _fetchSuppliers() async {
     setState(() {
-      _isLoading = true;
-      _error = null;
+      _isLoadingSuppliers = true;
+      _supplierError = null;
     });
-
     try {
       final suppliers = await LogisticsService.getSuppliers();
       if (!mounted) return;
       setState(() {
         _suppliers = suppliers;
-        _isLoading = false;
+        _isLoadingSuppliers = false;
       });
-      _applyFilter();
+      _applySupplierFilter();
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Failed to load suppliers. Please try again.';
-        _isLoading = false;
+        _supplierError = 'Failed to load suppliers.';
+        _isLoadingSuppliers = false;
       });
     }
   }
 
-  void _applyFilter() {
-    final query = _searchController.text.toLowerCase();
+  void _applySupplierFilter() {
+    final query = _supplierSearchController.text.toLowerCase();
     setState(() {
       _filteredSuppliers = _suppliers.where((s) {
         final matchesSearch = query.isEmpty ||
             s.name.toLowerCase().contains(query) ||
             s.email.toLowerCase().contains(query) ||
-            s.phone.contains(query) ||
-            (s.contactName?.toLowerCase().contains(query) ?? false);
-
-        final matchesStatus = switch (_filterStatus) {
+            s.phone.contains(query);
+        final matchesStatus = switch (_supplierFilterStatus) {
           'active' => s.isActive,
           'inactive' => !s.isActive,
           _ => true,
         };
-
         return matchesSearch && matchesStatus;
       }).toList();
     });
   }
 
-  Future<void> _createSupplier() async {
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const SupplierFormDialog(),
-    );
-    if (result == true) {
-      _showSnack('Supplier created successfully.');
-      _fetchSuppliers();
-    }
-  }
+  // ─── Tasks Data ────────────────────────────────────────────────────────────
 
-  Future<void> _editSupplier(Supplier supplier) async {
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => SupplierFormDialog(supplier: supplier),
-    );
-    if (result == true) {
-      _showSnack('Supplier updated successfully.');
-      _fetchSuppliers();
-    }
-  }
-
-  Future<void> _deleteSupplier(Supplier supplier) async {
-    final confirmed = await _showDeleteDialog(supplier.name);
-    if (!confirmed) return;
-
+  Future<void> _fetchTasks() async {
+    setState(() {
+      _isLoadingTasks = true;
+      _taskError = null;
+    });
     try {
-      await LogisticsService.deleteSupplier(supplier.id);
+      final tasks = await LogisticsService.getAllTasksDetail(
+          status: _taskFilterStatus);
       if (!mounted) return;
-      _showSnack('${supplier.name} deleted.');
-      _fetchSuppliers();
+      setState(() {
+        _tasks = tasks;
+        _isLoadingTasks = false;
+      });
+      _applyTaskFilter();
     } catch (e) {
       if (!mounted) return;
-      _showSnack('Delete failed. Please try again.', error: true);
+      setState(() {
+        _taskError = 'Failed to load tasks.';
+        _isLoadingTasks = false;
+      });
     }
   }
 
-  Future<void> _toggleActive(Supplier supplier) async {
-    try {
-      await LogisticsService.updateSupplier(
-        supplier.id,
-        {'is_active': !supplier.isActive},
-      );
-      if (!mounted) return;
-      _showSnack(
-          supplier.isActive ? 'Supplier deactivated.' : 'Supplier activated.');
-      _fetchSuppliers();
-    } catch (_) {
-      if (!mounted) return;
-      _showSnack('Update failed. Please try again.', error: true);
-    }
+  void _applyTaskFilter() {
+    final query = _taskSearchController.text.toLowerCase();
+    setState(() {
+      _filteredTasks = _tasks.where((t) {
+        final matchesSearch = query.isEmpty ||
+            t.title.toLowerCase().contains(query) ||
+            (t.supplierName?.toLowerCase().contains(query) ?? false) ||
+            (t.description?.toLowerCase().contains(query) ?? false);
+        return matchesSearch;
+      }).toList();
+    });
   }
 
-  void _openSupplierDetail(Supplier supplier) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SupplierDetailScreen(
-          supplier: supplier,
-          onDataChanged: _fetchSuppliers,
-        ),
-      ),
-    );
-  }
-
-  // ─── Helpers ───────────────────────────────────────────────────────────────
+  // ─── Shared Actions ────────────────────────────────────────────────────────
 
   void _showSnack(String message, {bool error = false}) {
     if (!mounted) return;
@@ -165,178 +155,122 @@ class _LogisticsScreenState extends State<LogisticsScreen> {
     );
   }
 
-  Future<bool> _showDeleteDialog(String name) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor:
-                isDark ? AppTheme.darkSurface : AppTheme.surface,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            title: Text(
-              'Delete Supplier',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
-              ),
-            ),
-            content: Text(
-              'Are you sure you want to delete "$name"? This cannot be undone.',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: isDark
-                        ? AppTheme.darkTextSecondary
-                        : AppTheme.textSecondary,
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
-                  'Delete',
-                  style: TextStyle(
-                    color: AppTheme.errorColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-  }
-
   // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
+    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.background,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createSupplier,
-        backgroundColor: AppTheme.primary,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: const Text(
-          'Add Supplier',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(48),
+        child: Container(
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            border: Border(bottom: BorderSide(color: borderColor)),
+          ),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: AppTheme.primary,
+            unselectedLabelColor: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
+            indicatorColor: AppTheme.primary,
+            indicatorSize: TabBarIndicatorSize.tab,
+            labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            tabs: const [
+              Tab(text: 'Suppliers'),
+              Tab(text: 'All Tasks'),
+            ],
           ),
         ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          _buildSearchFilterBar(isDark),
-          Expanded(child: _buildBody(isDark)),
+          _buildSuppliersTab(isDark),
+          _buildTasksTab(isDark),
         ],
       ),
+      floatingActionButton: _buildFAB(),
     );
   }
 
-  Widget _buildSearchFilterBar(bool isDark) {
+  Widget? _buildFAB() {
+    if (_tabController.index == 0) {
+      return FloatingActionButton.extended(
+        onPressed: _openAddSupplier,
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.add_business_rounded, color: Colors.white),
+        label: const Text('Add Supplier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      );
+    } else {
+      return FloatingActionButton.extended(
+        onPressed: _openAddTask,
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.add_task_rounded, color: Colors.white),
+        label: const Text('Add Task', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      );
+    }
+  }
+
+  // ─── Tab 1: Suppliers ──────────────────────────────────────────────────────
+
+  Widget _buildSuppliersTab(bool isDark) {
+    return Column(
+      children: [
+        _buildSupplierSearchBar(isDark),
+        Expanded(child: _buildSupplierList(isDark)),
+      ],
+    );
+  }
+
+  Widget _buildSupplierSearchBar(bool isDark) {
     return Container(
-      color: isDark ? AppTheme.darkBackground : AppTheme.background,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         children: [
-          _buildSearchField(isDark),
+          _buildSearchBar(_supplierSearchController, 'Search suppliers...', isDark),
           const SizedBox(height: 10),
-          _buildFilterChips(isDark),
+          _buildSupplierFilterChips(isDark),
         ],
       ),
     );
   }
 
-  Widget _buildSearchField(bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : AppTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: isDark ? AppTheme.darkBorder : AppTheme.border),
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: TextStyle(
-          fontSize: 14,
-          color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Search suppliers...',
-          hintStyle: TextStyle(
-            fontSize: 14,
-            color: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
-          ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            size: 20,
-            color: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    size: 18,
-                    color: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    _applyFilter();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterChips(bool isDark) {
-    void setFilter(String value) {
-      setState(() => _filterStatus = value);
-      _applyFilter();
-    }
-
+  Widget _buildSupplierFilterChips(bool isDark) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           _FilterChip(
             label: 'All',
-            selected: _filterStatus == 'all',
-            onTap: () => setFilter('all'),
+            selected: _supplierFilterStatus == 'all',
+            onTap: () {
+              setState(() => _supplierFilterStatus = 'all');
+              _applySupplierFilter();
+            },
             isDark: isDark,
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: 'Active',
-            selected: _filterStatus == 'active',
-            onTap: () => setFilter('active'),
+            selected: _supplierFilterStatus == 'active',
+            onTap: () {
+              setState(() => _supplierFilterStatus = 'active');
+              _applySupplierFilter();
+            },
             isDark: isDark,
           ),
           const SizedBox(width: 8),
           _FilterChip(
             label: 'Inactive',
-            selected: _filterStatus == 'inactive',
-            onTap: () => setFilter('inactive'),
+            selected: _supplierFilterStatus == 'inactive',
+            onTap: () {
+              setState(() => _supplierFilterStatus = 'inactive');
+              _applySupplierFilter();
+            },
             isDark: isDark,
           ),
         ],
@@ -344,106 +278,19 @@ class _LogisticsScreenState extends State<LogisticsScreen> {
     );
   }
 
-  Widget _buildBody(bool isDark) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppTheme.primary),
-      );
+  Widget _buildSupplierList(bool isDark) {
+    if (_isLoadingSuppliers) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     }
-
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 48,
-                color: isDark ? AppTheme.darkTextHint : AppTheme.textHint,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? AppTheme.darkTextSecondary
-                      : AppTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _fetchSuppliers,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+    if (_supplierError != null) {
+      return _buildErrorState(_supplierError!, _fetchSuppliers, isDark);
     }
-
     if (_filteredSuppliers.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color:
-                    isDark ? AppTheme.darkPrimaryLight : AppTheme.primaryLight,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.local_shipping_rounded,
-                size: 36,
-                color: AppTheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _suppliers.isEmpty ? 'No Suppliers Yet' : 'No Results Found',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color:
-                    isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _suppliers.isEmpty
-                  ? 'Tap "Add Supplier" to add your first supplier.'
-                  : 'Try adjusting your search or filters.',
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
+      return _buildEmptyState('No suppliers found.', Icons.business_rounded, isDark);
     }
-
     return RefreshIndicator(
-      color: AppTheme.primary,
       onRefresh: _fetchSuppliers,
+      color: AppTheme.primary,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         itemCount: _filteredSuppliers.length,
@@ -452,66 +299,252 @@ class _LogisticsScreenState extends State<LogisticsScreen> {
           supplier: _filteredSuppliers[i],
           isDark: isDark,
           onTap: () => _openSupplierDetail(_filteredSuppliers[i]),
-          onEdit: () => _editSupplier(_filteredSuppliers[i]),
+          onEdit: () => _openEditSupplier(_filteredSuppliers[i]),
           onDelete: () => _deleteSupplier(_filteredSuppliers[i]),
-          onToggleActive: () => _toggleActive(_filteredSuppliers[i]),
         ),
       ),
     );
   }
+
+  // ─── Tab 2: Tasks ──────────────────────────────────────────────────────────
+
+  Widget _buildTasksTab(bool isDark) {
+    return Column(
+      children: [
+        _buildTaskSearchBar(isDark),
+        Expanded(child: _buildTaskList(isDark)),
+      ],
+    );
+  }
+
+  Widget _buildTaskSearchBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Column(
+        children: [
+          _buildSearchBar(_taskSearchController, 'Search tasks, suppliers...', isDark),
+          const SizedBox(height: 10),
+          _buildTaskFilterChips(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskFilterChips(bool isDark) {
+    final statuses = [
+      ('all', 'All'),
+      ('pending', 'Pending'),
+      ('in_progress', 'In Progress'),
+      ('completed', 'Completed'),
+      ('cancelled', 'Cancelled'),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: statuses.map((s) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: _FilterChip(
+              label: s.$2,
+              selected: _taskFilterStatus == s.$1,
+              onTap: () {
+                setState(() => _taskFilterStatus = s.$1);
+                _fetchTasks();
+              },
+              isDark: isDark,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTaskList(bool isDark) {
+    if (_isLoadingTasks) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+    }
+    if (_taskError != null) {
+      return _buildErrorState(_taskError!, _fetchTasks, isDark);
+    }
+    if (_filteredTasks.isEmpty) {
+      return _buildEmptyState('No tasks found.', Icons.task_alt_rounded, isDark);
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchTasks,
+      color: AppTheme.primary,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
+        itemCount: _filteredTasks.length,
+        separatorBuilder: (_, _2) => const SizedBox(height: 10),
+        itemBuilder: (_, i) => _TaskTile(
+          task: _filteredTasks[i],
+          isDark: isDark,
+          onTap: () => _openTaskDetail(_filteredTasks[i]),
+          onEdit: () => _openEditTask(_filteredTasks[i]),
+          onDelete: () => _deleteTask(_filteredTasks[i]),
+        ),
+      ),
+    );
+  }
+
+  // ─── Common Widgets ────────────────────────────────────────────────────────
+
+  Widget _buildSearchBar(TextEditingController controller, String hint, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkSurface : AppTheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.border),
+      ),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(fontSize: 14, color: isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(fontSize: 14, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          prefixIcon: Icon(Icons.search_rounded, size: 20, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error, VoidCallback onRetry, bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline_rounded, size: 48, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          const SizedBox(height: 12),
+          Text(error, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary)),
+          const SizedBox(height: 16),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String msg, IconData icon, bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 48, color: isDark ? AppTheme.darkTextHint : AppTheme.textHint),
+          const SizedBox(height: 12),
+          Text(msg, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Action Handlers ───────────────────────────────────────────────────────
+
+  void _openAddSupplier() async {
+    final result = await showDialog<bool>(context: context, builder: (_) => const SupplierFormDialog());
+    if (result == true) {
+      _showSnack('Supplier added.');
+      _fetchSuppliers();
+    }
+  }
+
+  void _openEditSupplier(Supplier s) async {
+    final result = await showDialog<bool>(context: context, builder: (_) => SupplierFormDialog(supplier: s));
+    if (result == true) {
+      _showSnack('Supplier updated.');
+      _fetchSuppliers();
+    }
+  }
+
+  void _deleteSupplier(Supplier s) async {
+    final confirmed = await _showConfirmDialog('Delete Supplier', 'Delete "${s.name}"?');
+    if (confirmed) {
+      try {
+        await LogisticsService.deleteSupplier(s.id);
+        _showSnack('Supplier deleted.');
+        _fetchSuppliers();
+      } catch (_) {
+        _showSnack('Delete failed.', error: true);
+      }
+    }
+  }
+
+  void _openAddTask() async {
+    // Note: We need a supplier list to pick from, or this dialog needs to handle it.
+    // For now, let's assume TaskFormDialog needs a supplierId. 
+    // In a global "All Tasks" view, we might need a way to pick a supplier first.
+    // I'll check if TaskFormDialog can handle supplier picking.
+    _showSnack('Please add tasks from a Supplier detail page.');
+  }
+
+  void _openEditTask(LogisticsTask t) async {
+    final result = await showDialog<bool>(context: context, builder: (_) => TaskFormDialog(supplierId: t.supplierId, task: t));
+    if (result == true) {
+      _showSnack('Task updated.');
+      _fetchTasks();
+    }
+  }
+
+  void _deleteTask(LogisticsTask t) async {
+    final confirmed = await _showConfirmDialog('Delete Task', 'Delete "${t.title}"?');
+    if (confirmed) {
+      try {
+        await LogisticsService.deleteTask(t.id);
+        _showSnack('Task deleted.');
+        _fetchTasks();
+      } catch (_) {
+        _showSnack('Delete failed.', error: true);
+      }
+    }
+  }
+
+  void _openSupplierDetail(Supplier s) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => SupplierDetailScreen(supplier: s, onDataChanged: _fetchSuppliers)));
+  }
+
+  void _openTaskDetail(LogisticsTask t) {
+    // Could navigate to a specific task detail if needed, but usually supplier detail is enough.
+  }
+
+  Future<bool> _showConfirmDialog(String title, String content) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor))),
+        ],
+      ),
+    ) ?? false;
+  }
 }
 
-// ── Filter Chip ───────────────────────────────────────────────────────────────
+// ── Shared Sub-widgets ───────────────────────────────────────────────────────
 
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
   final bool isDark;
-
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    required this.isDark,
-  });
+  const _FilterChip({required this.label, required this.selected, required this.onTap, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppTheme.primary
-              : (isDark ? AppTheme.darkSurface : AppTheme.surface),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected
-                ? AppTheme.primary
-                : (isDark ? AppTheme.darkBorder : AppTheme.border),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: selected
-                ? Colors.white
-                : (isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.textSecondary),
-          ),
-        ),
-      ),
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      selectedColor: AppTheme.primary.withAlpha(50),
+      checkmarkColor: AppTheme.primary,
+      labelStyle: TextStyle(color: selected ? AppTheme.primary : (isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary), fontSize: 12),
+      backgroundColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: selected ? AppTheme.primary : (isDark ? AppTheme.darkBorder : AppTheme.border))),
     );
   }
 }
-
-// ── Supplier Tile ─────────────────────────────────────────────────────────────
 
 class _SupplierTile extends StatelessWidget {
   final Supplier supplier;
@@ -519,222 +552,71 @@ class _SupplierTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onToggleActive;
-
-  const _SupplierTile({
-    required this.supplier,
-    required this.isDark,
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-    required this.onToggleActive,
-  });
+  const _SupplierTile({required this.supplier, required this.isDark, required this.onTap, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
-    final surfaceColor = isDark ? AppTheme.darkSurface : AppTheme.surface;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final textHint = isDark ? AppTheme.darkTextHint : AppTheme.textHint;
-    final bgColor = isDark ? AppTheme.darkBackground : AppTheme.background;
-
-    return GestureDetector(
+    return ListTile(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: surfaceColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor),
-        ),
-        child: Column(
-          children: [
-            // Main content
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  // Icon
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: supplier.isActive
-                          ? (isDark
-                              ? AppTheme.darkPrimaryLight
-                              : AppTheme.primaryLight)
-                          : borderColor.withAlpha(76),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.business_rounded,
-                      size: 24,
-                      color:
-                          supplier.isActive ? AppTheme.primary : textHint,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                supplier.name,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: supplier.isActive
-                                      ? textPrimary
-                                      : textHint,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (!supplier.isActive) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: borderColor.withAlpha(127),
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Text(
-                                  'Inactive',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: textHint,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        if (supplier.contactName != null &&
-                            supplier.contactName!.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            supplier.contactName!,
-                            style: TextStyle(fontSize: 12, color: textSecondary),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  // Menu
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert_rounded,
-                      size: 20,
-                      color: textSecondary,
-                    ),
-                    color: surfaceColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    onSelected: (val) {
-                      if (val == 'edit') onEdit();
-                      if (val == 'toggle') onToggleActive();
-                      if (val == 'delete') onDelete();
-                    },
-                    itemBuilder: (_) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(children: [
-                          Icon(Icons.edit_outlined,
-                              size: 18, color: textSecondary),
-                          const SizedBox(width: 10),
-                          Text('Edit',
-                              style: TextStyle(
-                                  fontSize: 14, color: textPrimary)),
-                        ]),
-                      ),
-                      PopupMenuItem(
-                        value: 'toggle',
-                        child: Row(children: [
-                          Icon(
-                            supplier.isActive
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            size: 18,
-                            color: textSecondary,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            supplier.isActive ? 'Deactivate' : 'Activate',
-                            style: TextStyle(fontSize: 14, color: textPrimary),
-                          ),
-                        ]),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(children: [
-                          Icon(Icons.delete_outline_rounded,
-                              size: 18, color: AppTheme.errorColor),
-                          const SizedBox(width: 10),
-                          Text('Delete',
-                              style: TextStyle(
-                                  fontSize: 14, color: AppTheme.errorColor)),
-                        ]),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Bottom bar with contact info
-            Container(
-              decoration: BoxDecoration(
-                color: bgColor.withAlpha(127),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(14),
-                  bottomRight: Radius.circular(14),
-                ),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              child: Row(
-                children: [
-                  if (supplier.phone.isNotEmpty) ...[
-                    Icon(Icons.phone_outlined,
-                        size: 13, color: textHint),
-                    const SizedBox(width: 4),
-                    Text(
-                      supplier.phone,
-                      style: TextStyle(fontSize: 11, color: textSecondary),
-                    ),
-                    const SizedBox(width: 14),
-                  ],
-                  if (supplier.email.isNotEmpty) ...[
-                    Icon(Icons.email_outlined,
-                        size: 13, color: textHint),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        supplier.email,
-                        style: TextStyle(fontSize: 11, color: textSecondary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 12,
-                    color: textHint,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      tileColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? AppTheme.darkBorder : AppTheme.border)),
+      leading: CircleAvatar(backgroundColor: AppTheme.primary.withAlpha(30), child: const Icon(Icons.business_rounded, color: AppTheme.primary, size: 20)),
+      title: Text(supplier.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+      subtitle: Text(supplier.phone, style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary, fontSize: 13)),
+      trailing: PopupMenuButton(
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        ],
+        onSelected: (val) {
+          if (val == 'edit') onEdit();
+          if (val == 'delete') onDelete();
+        },
+      ),
+    );
+  }
+}
+
+class _TaskTile extends StatelessWidget {
+  final LogisticsTask task;
+  final bool isDark;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  const _TaskTile({required this.task, required this.isDark, required this.onTap, required this.onEdit, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = switch (task.status) {
+      'pending' => const Color(0xFFF59E0B),
+      'in_progress' => const Color(0xFF0EA5E9),
+      'completed' => const Color(0xFF10B981),
+      'cancelled' => const Color(0xFFEF4444),
+      _ => AppTheme.textHint,
+    };
+
+    return ListTile(
+      onTap: onTap,
+      tileColor: isDark ? AppTheme.darkSurface : AppTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isDark ? AppTheme.darkBorder : AppTheme.border)),
+      leading: CircleAvatar(backgroundColor: statusColor.withAlpha(30), child: Icon(Icons.task_alt_rounded, color: statusColor, size: 20)),
+      title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(task.supplierName ?? 'No Supplier', style: TextStyle(color: AppTheme.primary, fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(task.status.toUpperCase(), style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w800)),
+        ],
+      ),
+      trailing: PopupMenuButton(
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        ],
+        onSelected: (val) {
+          if (val == 'edit') onEdit();
+          if (val == 'delete') onDelete();
+        },
       ),
     );
   }
