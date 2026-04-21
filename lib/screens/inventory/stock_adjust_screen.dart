@@ -4,6 +4,8 @@ import '../../main.dart';
 import '../../theme/app_theme.dart';
 import 'inventory_models.dart';
 import 'inventory_widgets.dart';
+import '../../models/logistics_models.dart';
+import '../../services/logistics_service.dart';
 
 class StockAdjustScreen extends StatefulWidget {
   final InventoryItem item;
@@ -20,6 +22,8 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   final _notesController = TextEditingController();
   final _referenceController = TextEditingController();
   String _movementType = 'purchase';
+  bool _createLogisticsTask = false;
+  List<Supplier> _suppliers = [];
   bool _isSaving = false;
 
   static const _movementTypes = [
@@ -29,6 +33,19 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
     _MovementType('return', 'Return', Icons.keyboard_return_rounded, Color(0xFF0EA5E9)),
     _MovementType('damage', 'Damage', Icons.warning_amber_rounded, Color(0xFFEF4444)),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSuppliers();
+  }
+
+  Future<void> _fetchSuppliers() async {
+    try {
+      final suppliers = await LogisticsService.getSuppliers();
+      setState(() => _suppliers = suppliers);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -43,13 +60,24 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
     setState(() => _isSaving = true);
     try {
+      final qty = double.parse(_quantityController.text);
+      final ref = _referenceController.text.trim();
+
       await supabase.rpc('adjust_stock', params: {
         'p_item_id': widget.item.id,
         'p_movement_type': _movementType,
-        'p_quantity': double.parse(_quantityController.text),
-        'p_notes': _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-        'p_reference': _referenceController.text.trim().isEmpty ? null : _referenceController.text.trim(),
+        'p_quantity': qty,
+        'p_notes': _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
+        'p_reference': ref.isEmpty ? null : ref,
       });
+
+      if (!mounted) return;
+
+      if (_createLogisticsTask && _movementType == 'sale') {
+        await _handleLogisticsTaskCreation(qty, ref);
+      }
 
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -61,6 +89,51 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
       if (!mounted) return;
       _showSnack('Adjustment failed. Please try again.', error: true);
       setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _handleLogisticsTaskCreation(double qty, String ref) async {
+    if (_suppliers.isEmpty) {
+      _showSnack('No suppliers found to create task.');
+      return;
+    }
+
+    final selectedSupplier = await showDialog<Supplier>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Supplier for Task'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _suppliers.length,
+            itemBuilder: (context, index) {
+              final s = _suppliers[index];
+              return ListTile(
+                leading: const Icon(Icons.business_rounded, color: AppTheme.primary),
+                title: Text(s.name),
+                onTap: () => Navigator.pop(ctx, s),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    if (selectedSupplier != null) {
+      try {
+        final task = await LogisticsService.createTask(
+          supplierId: selectedSupplier.id,
+          title: 'Delivery: ${widget.item.name}',
+          description: 'Qty: $qty | Ref: ${ref.isEmpty ? 'N/A' : ref}\n${_notesController.text.trim()}',
+          status: 'pending',
+        );
+        // Link the item to the task
+        await LogisticsService.addTaskItems(task.id, [widget.item.id]);
+        _showSnack('Logistics task created successfully.');
+      } catch (e) {
+        _showSnack('Failed to create logistics task.', error: true);
+      }
     }
   }
 
@@ -145,6 +218,24 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                 hint: 'Optional notes',
                 maxLines: 3,
               ),
+              if (_movementType == 'sale') ...[
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Create Logistics Task',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary)),
+                  subtitle: const Text('Add this sale to logistics for tracking',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
+                  value: _createLogisticsTask,
+                  activeColor: AppTheme.primary,
+                  onChanged: (v) => setState(() => _createLogisticsTask = v),
+                ),
+              ],
             ]),
             const SizedBox(height: 32),
             _buildConfirmButton(selectedType),

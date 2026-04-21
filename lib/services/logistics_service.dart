@@ -225,14 +225,13 @@ class LogisticsService {
         .from('items')
         .select(
             'id, name, sku, current_stock, purchase_price, sales_price, categories(name), units(name, abbreviation)')
-        .eq('is_active', true)
-        .order('name');
+        .eq('is_active', true);
 
     if (search != null && search.isNotEmpty) {
       query = query.ilike('name', '%$search%');
     }
 
-    final data = await query;
+    final data = await query.order('name');
     return List<Map<String, dynamic>>.from(data);
   }
 
@@ -246,16 +245,38 @@ class LogisticsService {
     return {for (final row in data) row['item_id'] as String};
   }
 
-  /// Add items to a logistics task.
+  /// Sync items for a logistics task (Add new, remove deselected).
+  static Future<void> syncTaskItems(
+      String taskId, List<String> newItemIds) async {
+    // 1. Get current items
+    final currentIds = await getAssignedItemIds(taskId);
+
+    // 2. Determine what to add and what to remove
+    final toAdd = newItemIds.where((id) => !currentIds.contains(id)).toList();
+    final toRemove = currentIds.where((id) => !newItemIds.contains(id)).toList();
+
+    // 3. Perform operations
+    if (toRemove.isNotEmpty) {
+      await supabase
+          .from('logistics_task_items')
+          .delete()
+          .eq('task_id', taskId)
+          .inFilter('item_id', toRemove);
+    }
+
+    if (toAdd.isNotEmpty) {
+      final rows = toAdd.map((id) => {
+        'task_id': taskId,
+        'item_id': id,
+      }).toList();
+      await supabase.from('logistics_task_items').insert(rows);
+    }
+  }
+
+  /// Add items to a logistics task (Legacy, now calls sync).
   static Future<void> addTaskItems(
       String taskId, List<String> itemIds) async {
-    final rows = itemIds.map((id) => {
-      'task_id': taskId,
-      'item_id': id,
-      'user_id': userId,
-    }).toList();
-
-    await supabase.from('logistics_task_items').insert(rows);
+    await syncTaskItems(taskId, itemIds);
   }
 
   /// Remove an item from a logistics task.
