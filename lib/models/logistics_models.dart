@@ -1,0 +1,105 @@
+// logistics_models.dart
+// Data models for the Logistics feature — Suppliers and Tasks.
+
+class Supplier {
+  final String id;
+  final String userId;
+  final String name;
+  final String? contactName;
+  final String phone;
+  final String email;
+  final String address;
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const Supplier({
+    required this.id,
+    required this.userId,
+    required this.name,
+    this.contactName,
+    required this.phone,
+    required this.email,
+    required this.address,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Supplier.fromJson(Map<String, dynamic> json) => Supplier(
+        id: json['id'] as String,
+        userId: json['user_id'] as String,
+        name: json['name'] as String? ?? '',
+        contactName: json['contact_name'] as String?,
+        phone: json['phone'] as String? ?? '',
+        email: json['email'] as String? ?? '',
+        address: json['address'] as String? ?? '',
+        isActive: json['is_active'] as bool? ?? true,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        updatedAt: DateTime.parse(json['updated_at'] as String),
+      );
+
+  Map<String, dynamic> toCreateJson(String userId) => {
+        'user_id': userId,
+        'name': name,
+        'contact_name': contactName,
+        'phone': phone,
+        'email': email,
+        'address': address,
+      };
+}
+
+class LogisticsTask {
+  final String id;
+  final String userId;
+  final String supplierId;
+  final String title;
+  final String? description;
+  final String status; // pending, in_progress, completed, cancelled
+  final DateTime? scheduledDate;
+  final DateTime? completedAt;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  const LogisticsTask({
+    required this.id,
+    required this.userId,
+    required this.supplierId,
+    required this.title,
+    this.description,
+    required this.status,
+    this.scheduledDate,
+    this.completedAt,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory LogisticsTask.fromJson(Map<String, dynamic> json) => LogisticsTask(
+        id: json['id'] as String,
+        userId: json['user_id'] as String,
+        supplierId: json['supplier_id'] as String,
+        title: json['title'] as String? ?? '',
+        description: json['description'] as String?,
+        status: json['status'] as String? ?? 'pending',
+        scheduledDate: json['scheduled_date'] != null
+            ? DateTime.tryParse(json['scheduled_date'] as String)
+            : null,
+        completedAt: json['completed_at'] != null
+            ? DateTime.tryParse(json['completed_at'] as String)
+            : null,
+        notes: json['notes'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        updatedAt: DateTime.parse(json['updated_at'] as String),
+      );
+
+  /// Status display label
+  String get statusLabel => switch (status) {
+        'pending' => 'Pending',
+        'in_progress' => 'In Progress',
+        'completed' => 'Completed',
+        'cancelled' => 'Cancelled',
+        _ => status,
+      };
+}
