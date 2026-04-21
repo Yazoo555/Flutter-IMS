@@ -203,12 +203,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildMonthlyBarChart(),
             const SizedBox(height: 20),
 
-            // ── Cash Flow Trend ────────────────────────────────────────────
-            _buildSectionHeader('Cash Flow Trend', Icons.trending_up_rounded),
-            const SizedBox(height: 12),
-            _buildCashFlowChart(),
-            const SizedBox(height: 20),
-
             // ── Recent Movements ───────────────────────────────────────────
             _buildSectionHeader(
                 'Recent Transactions', Icons.history_rounded),
@@ -244,35 +238,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     final (purchase, sales, profit) = _ytdTotals;
     final isProfit = profit >= 0;
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _summaryCard(
-            'YTD Sales',
-            'Rs ${_fmt.format(sales)}',
-            Icons.point_of_sale_rounded,
-            const Color(0xFF6366F1),
-          ),
+        _summaryCard(
+          'Total Sales (YTD)',
+          'Rs ${_fmt.format(sales)}',
+          Icons.point_of_sale_rounded,
+          const Color(0xFF6366F1),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _summaryCard(
-            'YTD Purchase',
-            'Rs ${_fmt.format(purchase)}',
-            Icons.add_shopping_cart_rounded,
-            const Color(0xFF10B981),
-          ),
+        const SizedBox(height: 10),
+        _summaryCard(
+          'Total Purchase (YTD)',
+          'Rs ${_fmt.format(purchase)}',
+          Icons.add_shopping_cart_rounded,
+          const Color(0xFF10B981),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _summaryCard(
-            'Gross Profit',
-            'Rs ${_fmt.format(profit)}',
-            isProfit
-                ? Icons.trending_up_rounded
-                : Icons.trending_down_rounded,
-            isProfit ? const Color(0xFF10B981) : AppTheme.errorColor,
-          ),
+        const SizedBox(height: 10),
+        _summaryCard(
+          'Gross Profit (YTD)',
+          'Rs ${_fmt.format(profit)}',
+          isProfit
+              ? Icons.trending_up_rounded
+              : Icons.trending_down_rounded,
+          isProfit ? const Color(0xFF10B981) : AppTheme.errorColor,
         ),
       ],
     );
@@ -281,39 +269,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _summaryCard(
       String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 17, color: color),
+            child: Icon(icon, size: 20, color: color),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: color,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(
+                        fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ],
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: AppTheme.textSecondary)),
+          Icon(Icons.chevron_right_rounded, color: color.withOpacity(0.3), size: 20),
         ],
       ),
     );
@@ -878,134 +871,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           );
         }).toList(),
-      ),
-    );
-  }
-
-  // ── Cash Flow Chart ────────────────────────────────────────────────────────
-
-  Widget _buildCashFlowChart() {
-    if (_loadingMonthly) {
-      return _chartSkeleton();
-    }
-    if (_monthlyError != null || _monthlyReports.isEmpty) {
-      return _chartEmpty(_monthlyError ?? 'No data for cash flow');
-    }
-
-    // Prepare line data
-    final List<FlSpot> purchaseSpots = [];
-    final List<FlSpot> salesSpots = [];
-    
-    final maxVal = _monthlyReports
-        .map((r) => [r.totalPurchaseValue, r.totalSalesValue].reduce((a, b) => a > b ? a : b))
-        .reduce((a, b) => a > b ? a : b);
-
-    // Scale to max 100 for visual consistency
-    double scale(double v) => maxVal == 0 ? 0 : (v / maxVal) * 100;
-
-    for (int i = 0; i < _monthlyReports.length; i++) {
-      final r = _monthlyReports[i];
-      purchaseSpots.add(FlSpot(i.toDouble(), scale(r.totalPurchaseValue)));
-      salesSpots.add(FlSpot(i.toDouble(), scale(r.totalSalesValue)));
-    }
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 16, 20, 8),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _legend('Cash Out (Purchase)', const Color(0xFF10B981)),
-              const SizedBox(width: 20),
-              _legend('Cash In (Sales)', const Color(0xFF6366F1)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 180,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (v) => FlLine(
-                    color: AppTheme.border.withOpacity(0.5),
-                    strokeWidth: 1,
-                    dashArray: [5, 5],
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 24,
-                      getTitlesWidget: (value, meta) {
-                        final idx = value.toInt();
-                        if (idx < 0 || idx >= _monthlyReports.length) return const SizedBox();
-                        final name = _monthlyReports[idx].monthName;
-                        final abbr = name.length >= 3 ? name.substring(0, 3) : name;
-                        return Text(abbr, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary));
-                      },
-                    ),
-                  ),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: purchaseSpots,
-                    isCurved: true,
-                    color: const Color(0xFF10B981),
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF10B981).withOpacity(0.1),
-                    ),
-                  ),
-                  LineChartBarData(
-                    spots: salesSpots,
-                    isCurved: true,
-                    color: const Color(0xFF6366F1),
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: const Color(0xFF6366F1).withOpacity(0.1),
-                    ),
-                  ),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => AppTheme.darkSurface.withOpacity(0.8),
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((s) {
-                        final r = _monthlyReports[s.x.toInt()];
-                        final isPurchase = s.barIndex == 0;
-                        final label = isPurchase ? 'Out' : 'In';
-                        final val = isPurchase ? r.totalPurchaseValue : r.totalSalesValue;
-                        return LineTooltipItem(
-                          '${r.monthName}\n$label: Rs ${_fmt.format(val)}',
-                          const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
