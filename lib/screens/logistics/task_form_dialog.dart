@@ -559,32 +559,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       ),
     );
   }
-}
-
-class _QtyBtn extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _QtyBtn({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 36,
-        decoration: BoxDecoration(
-          color: AppTheme.primary.withOpacity(0.05),
-        ),
-        child: Icon(icon, size: 14, color: AppTheme.primary),
-      ),
-    );
-  }onPressed: () => _removeItem(index)),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildTextField({
     required String label,
@@ -624,6 +598,27 @@ class _QtyBtn extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _QtyBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _QtyBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppTheme.primary.withOpacity(0.05),
+        ),
+        child: Icon(icon, size: 14, color: AppTheme.primary),
+      ),
     );
   }
 }

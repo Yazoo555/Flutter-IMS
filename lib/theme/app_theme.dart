@@ -8,6 +8,7 @@ class AppTheme {
   static const Color primaryLighter = Color(0xFFF0FAF0);
   static const Color accent = Color(0xFF4CAF50);
   static const Color errorColor = Color(0xFFD32F2F);
+  static const Color successColor = Color(0xFF10B981);
 
   // ── Light palette ──────────────────────────────────────────────────────────
   static const Color background = Color(0xFFF5F5F5);
