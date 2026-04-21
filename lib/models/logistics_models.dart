@@ -63,6 +63,7 @@ class LogisticsTask {
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<Map<String, dynamic>> items;
 
   const LogisticsTask({
     required this.id,
@@ -78,6 +79,7 @@ class LogisticsTask {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.items = const [],
   });
 
   factory LogisticsTask.fromJson(Map<String, dynamic> json) => LogisticsTask(
@@ -98,6 +100,9 @@ class LogisticsTask {
         notes: json['notes'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String),
         updatedAt: DateTime.parse(json['updated_at'] as String),
+        items: json['items'] != null
+            ? List<Map<String, dynamic>>.from(json['items'] as List)
+            : const [],
       );
 
   /// Status display label

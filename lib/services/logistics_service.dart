@@ -214,4 +214,56 @@ class LogisticsService {
       throw Exception('Failed to delete task: ${response.body}');
     }
   }
+
+  // ── Task Items (Inventory Integration) ──────────────────────────────────────
+
+  /// Load all active inventory items for the picker.
+  static Future<List<Map<String, dynamic>>> getAvailableItems(
+      {String? search}) async {
+    // We use the supabase client for complex queries to simplify joins
+    var query = supabase
+        .from('items')
+        .select(
+            'id, name, sku, current_stock, purchase_price, sales_price, categories(name), units(name, abbreviation)')
+        .eq('is_active', true)
+        .order('name');
+
+    if (search != null && search.isNotEmpty) {
+      query = query.ilike('name', '%$search%');
+    }
+
+    final data = await query;
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  /// Returns item_ids already on a task.
+  static Future<Set<String>> getAssignedItemIds(String taskId) async {
+    final data = await supabase
+        .from('logistics_task_items')
+        .select('item_id')
+        .eq('task_id', taskId);
+
+    return {for (final row in data) row['item_id'] as String};
+  }
+
+  /// Add items to a logistics task.
+  static Future<void> addTaskItems(
+      String taskId, List<String> itemIds) async {
+    final rows = itemIds.map((id) => {
+      'task_id': taskId,
+      'item_id': id,
+      'user_id': userId,
+    }).toList();
+
+    await supabase.from('logistics_task_items').insert(rows);
+  }
+
+  /// Remove an item from a logistics task.
+  static Future<void> removeTaskItem(String taskId, String itemId) async {
+    await supabase
+        .from('logistics_task_items')
+        .delete()
+        .eq('task_id', taskId)
+        .eq('item_id', itemId);
+  }
 }
