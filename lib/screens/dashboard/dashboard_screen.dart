@@ -6,6 +6,8 @@ import '../../main.dart';
 import '../../models/inventory_models.dart';
 import '../setup/units_screen.dart';
 import '../setup/categories_screen.dart';
+import '../../models/logistics_models.dart';
+import '../logistics/task_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,14 +18,17 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   // ── State ──────────────────────────────────────────────────────────────────
+  String? _monthlyError;
+  String? _recentError;
+  String? _tasksError;
+
   bool _loadingMonthly = true;
   bool _loadingRecent = true;
+  bool _loadingTasks = true;
 
   List<MonthlyStockReport> _monthlyReports = [];
   List<RecentMovement> _recentMovements = [];
-
-  String? _monthlyError;
-  String? _recentError;
+  List<LogisticsTask> _latestTasks = [];
 
   // Bar chart touch index
   int _touchedMonthlyIndex = -1;
@@ -35,6 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _fetchMonthly();
     _fetchRecent();
+    _fetchLatestTasks();
   }
 
   // ── Data Fetching ──────────────────────────────────────────────────────────
@@ -96,6 +102,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _fetchLatestTasks() async {
+    try {
+      final data = await supabase
+          .from('logistics_tasks_detail')
+          .select('*')
+          .order('created_at', ascending: false)
+          .limit(5);
+      if (!mounted) return;
+      final tasks = (data as List)
+          .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
+          .toList();
+      setState(() {
+        _latestTasks = tasks;
+        _loadingTasks = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _tasksError = 'Failed to load tasks';
+        _loadingTasks = false;
+      });
+    }
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   /// Totals across all monthly data loaded
@@ -153,8 +183,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _loadingMonthly = true;
           _loadingRecent = true;
+          _loadingTasks = true;
         });
-        await Future.wait([_fetchMonthly(), _fetchRecent()]);
+        await Future.wait([_fetchMonthly(), _fetchRecent(), _fetchLatestTasks()]);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -172,11 +203,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildMonthlyBarChart(),
             const SizedBox(height: 20),
 
+            // ── Cash Flow Trend ────────────────────────────────────────────
+            _buildSectionHeader('Cash Flow Trend', Icons.trending_up_rounded),
+            const SizedBox(height: 12),
+            _buildCashFlowChart(),
+            const SizedBox(height: 20),
+
             // ── Recent Movements ───────────────────────────────────────────
             _buildSectionHeader(
                 'Recent Transactions', Icons.history_rounded),
             const SizedBox(height: 12),
             _buildRecentMovements(),
+            const SizedBox(height: 20),
+
+            // ── Latest Tasks ───────────────────────────────────────────────
+            _buildSectionHeader('Latest Logistics Tasks', Icons.local_shipping_rounded),
+            const SizedBox(height: 12),
+            _buildLatestTasks(),
             const SizedBox(height: 20),
 
             // ── Quick Access ───────────────────────────────────────────────
@@ -721,6 +764,248 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppTheme.border),
         ),
+      ),
+    );
+  }
+
+  // ── Latest Tasks ───────────────────────────────────────────────────────────
+
+  Widget _buildLatestTasks() {
+    if (_loadingTasks) {
+      return Column(
+        children: List.generate(3, (_) => _skeletonTile()),
+      );
+    }
+    if (_tasksError != null) {
+      return _chartEmpty(_tasksError!);
+    }
+    if (_latestTasks.isEmpty) {
+      return _chartEmpty('No logistics tasks yet');
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        children: _latestTasks.asMap().entries.map((entry) {
+          final i = entry.key;
+          final task = entry.value;
+          final isLast = i == _latestTasks.length - 1;
+
+          Color statusColor = switch (task.status) {
+            'pending' => const Color(0xFFF59E0B),
+            'in_progress' => const Color(0xFF0EA5E9),
+            'completed' => const Color(0xFF10B981),
+            'cancelled' => const Color(0xFFEF4444),
+            _ => AppTheme.textHint,
+          };
+
+          return Column(
+            children: [
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TaskDetailScreen(task: task),
+                    ),
+                  ).then((_) => _fetchLatestTasks());
+                },
+                borderRadius: isLast 
+                  ? const BorderRadius.vertical(bottom: Radius.circular(14))
+                  : (i == 0 ? const BorderRadius.vertical(top: Radius.circular(14)) : null),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.local_shipping_outlined, color: statusColor, size: 20),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.title,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${task.supplierName ?? 'Direct'}  ·  ${DateFormat('MMM d').format(task.createdAt)}',
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          task.status.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: statusColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (!isLast)
+                const Divider(height: 1, indent: 66, color: AppTheme.border),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ── Cash Flow Chart ────────────────────────────────────────────────────────
+
+  Widget _buildCashFlowChart() {
+    if (_loadingMonthly) {
+      return _chartSkeleton();
+    }
+    if (_monthlyError != null || _monthlyReports.isEmpty) {
+      return _chartEmpty(_monthlyError ?? 'No data for cash flow');
+    }
+
+    // Prepare line data
+    final List<FlSpot> purchaseSpots = [];
+    final List<FlSpot> salesSpots = [];
+    
+    final maxVal = _monthlyReports
+        .map((r) => [r.totalPurchaseValue, r.totalSalesValue].reduce((a, b) => a > b ? a : b))
+        .reduce((a, b) => a > b ? a : b);
+
+    // Scale to max 100 for visual consistency
+    double scale(double v) => maxVal == 0 ? 0 : (v / maxVal) * 100;
+
+    for (int i = 0; i < _monthlyReports.length; i++) {
+      final r = _monthlyReports[i];
+      purchaseSpots.add(FlSpot(i.toDouble(), scale(r.totalPurchaseValue)));
+      salesSpots.add(FlSpot(i.toDouble(), scale(r.totalSalesValue)));
+    }
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 16, 20, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _legend('Cash Out (Purchase)', const Color(0xFF10B981)),
+              const SizedBox(width: 20),
+              _legend('Cash In (Sales)', const Color(0xFF6366F1)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 180,
+            child: LineChart(
+              LineChartData(
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (v) => FlLine(
+                    color: AppTheme.border.withOpacity(0.5),
+                    strokeWidth: 1,
+                    dashArray: [5, 5],
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 24,
+                      getTitlesWidget: (value, meta) {
+                        final idx = value.toInt();
+                        if (idx < 0 || idx >= _monthlyReports.length) return const SizedBox();
+                        final name = _monthlyReports[idx].monthName;
+                        final abbr = name.length >= 3 ? name.substring(0, 3) : name;
+                        return Text(abbr, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary));
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: purchaseSpots,
+                    isCurved: true,
+                    color: const Color(0xFF10B981),
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: const Color(0xFF10B981).withOpacity(0.1),
+                    ),
+                  ),
+                  LineChartBarData(
+                    spots: salesSpots,
+                    isCurved: true,
+                    color: const Color(0xFF6366F1),
+                    barWidth: 3,
+                    isStrokeCapRound: true,
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: const Color(0xFF6366F1).withOpacity(0.1),
+                    ),
+                  ),
+                ],
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => AppTheme.darkSurface.withOpacity(0.8),
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((s) {
+                        final r = _monthlyReports[s.x.toInt()];
+                        final isPurchase = s.barIndex == 0;
+                        final label = isPurchase ? 'Out' : 'In';
+                        final val = isPurchase ? r.totalPurchaseValue : r.totalSalesValue;
+                        return LineTooltipItem(
+                          '${r.monthName}\n$label: Rs ${_fmt.format(val)}',
+                          const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
