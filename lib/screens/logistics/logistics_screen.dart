@@ -294,7 +294,7 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         itemCount: _filteredSuppliers.length,
-        separatorBuilder: (_, _2) => const SizedBox(height: 10),
+        separatorBuilder: (context, index) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _SupplierTile(
           supplier: _filteredSuppliers[i],
           isDark: isDark,
@@ -376,7 +376,7 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         itemCount: _filteredTasks.length,
-        separatorBuilder: (_, _2) => const SizedBox(height: 10),
+        separatorBuilder: (context, index) => const SizedBox(height: 10),
         itemBuilder: (_, i) => _TaskTile(
           task: _filteredTasks[i],
           isDark: isDark,
@@ -471,11 +471,54 @@ class _LogisticsScreenState extends State<LogisticsScreen>
   }
 
   void _openAddTask() async {
-    // Note: We need a supplier list to pick from, or this dialog needs to handle it.
-    // For now, let's assume TaskFormDialog needs a supplierId. 
-    // In a global "All Tasks" view, we might need a way to pick a supplier first.
-    // I'll check if TaskFormDialog can handle supplier picking.
-    _showSnack('Please add tasks from a Supplier detail page.');
+    if (_suppliers.isEmpty) {
+      _showSnack('Please add a supplier first.');
+      return;
+    }
+
+    final selectedSupplier = await showDialog<Supplier>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Select Supplier'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _suppliers.length,
+              itemBuilder: (context, index) {
+                final s = _suppliers[index];
+                return ListTile(
+                  leading: const Icon(Icons.business_rounded,
+                      color: AppTheme.primary),
+                  title: Text(s.name),
+                  subtitle: Text(s.email),
+                  onTap: () => Navigator.pop(ctx, s),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedSupplier != null) {
+      if (!mounted) return;
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (_) => TaskFormDialog(supplierId: selectedSupplier.id),
+      );
+      if (result == true) {
+        _showSnack('Task created.');
+        _fetchTasks();
+      }
+    }
   }
 
   void _openEditTask(LogisticsTask t) async {
