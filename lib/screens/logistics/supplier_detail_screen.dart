@@ -599,7 +599,7 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 // ── Task Tile ─────────────────────────────────────────────────────────────────
 
 class _TaskTile extends StatelessWidget {
-  final Color textSecondary;
+  final LogisticsTask task;
   final Color bgColor;
   final Color statusColor;
   final IconData statusIcon;
@@ -609,6 +609,11 @@ class _TaskTile extends StatelessWidget {
   const _TaskTile({
     required this.task,
     required this.bgColor,
+    required this.statusColor,
+    required this.statusIcon,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {

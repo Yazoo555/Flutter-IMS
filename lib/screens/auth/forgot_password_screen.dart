@@ -227,7 +227,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             maxLength: 35,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.mail_outline_rounded,
               color: AppTheme.getTextHint(context),
               size: 20,
@@ -283,7 +283,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.next,
             maxLength: 6,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.pin_rounded,
               color: AppTheme.getTextHint(context),
               size: 20,
@@ -314,7 +314,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _newPasswordController,
                     isPassword: true,
                     maxLength: 10,
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.lock_outline_rounded,
                       color: AppTheme.getTextHint(context),
                       size: 20,
@@ -330,7 +330,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _confirmPasswordController,
                     isPassword: true,
                     maxLength: 10,
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.lock_outline_rounded,
                       color: AppTheme.getTextHint(context),
                       size: 20,
@@ -355,7 +355,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               controller: _newPasswordController,
               isPassword: true,
               maxLength: 10,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
                 color: AppTheme.getTextHint(context),
                 size: 20,
@@ -369,7 +369,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               controller: _confirmPasswordController,
               isPassword: true,
               maxLength: 10,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
                 color: AppTheme.getTextHint(context),
                 size: 20,
@@ -408,7 +408,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Expanded(
                   child: Text(
                     'Password must be 8-10 characters long and contain both letters and numbers',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.getTextSecondary(context),
                       height: 1.4,
@@ -532,11 +532,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 });
               }
             },
-            child: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.getTextSecondary(context),
-              size: 20,
-            ),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppTheme.getTextSecondary(context),
+            size: 20,
+          ),
           ),
       ],
     );

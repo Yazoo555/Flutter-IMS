@@ -83,29 +83,29 @@ class ItemTile extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _buildMainRow(),
-            _buildBottomBar(),
+            _buildMainRow(context),
+            _buildBottomBar(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMainRow() {
+  Widget _buildMainRow(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          _buildIconBadge(),
+          _buildIconBadge(context),
           const SizedBox(width: 12),
-          Expanded(child: _buildItemInfo()),
-          _buildPopupMenu(),
+          Expanded(child: _buildItemInfo(context)),
+          _buildPopupMenu(context),
         ],
       ),
     );
   }
 
-  Widget _buildIconBadge() {
+  Widget _buildIconBadge(BuildContext context) {
     return Container(
       width: 48,
       height: 48,
@@ -125,7 +125,7 @@ class ItemTile extends StatelessWidget {
     );
   }
 
-  Widget _buildItemInfo() {
+  Widget _buildItemInfo(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -160,12 +160,12 @@ class ItemTile extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 3),
-        _buildSubtitle(),
+        _buildSubtitle(context),
       ],
     );
   }
 
-  Widget _buildSubtitle() {
+  Widget _buildSubtitle(BuildContext context) {
     final hasSku = item.sku != null && item.sku!.isNotEmpty;
 
     return Row(
@@ -177,7 +177,7 @@ class ItemTile extends StatelessWidget {
     );
   }
 
-  Widget _buildPopupMenu() {
+  Widget _buildPopupMenu(BuildContext context) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_vert_rounded,
           size: 20, color: AppTheme.getTextSecondary(context)),
@@ -229,7 +229,7 @@ class ItemTile extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
     final stockValue =
         '${item.currentStock.toStringAsFixed(item.currentStock % 1 == 0 ? 0 : 1)} ${item.unit?.abbreviation ?? ''}';
 

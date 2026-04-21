@@ -224,10 +224,19 @@ class _DailySummaryReportScreenState extends State<DailySummaryReportScreen> {
       );
     }
 
+    if (_selectedItemId == null) {
+      return Center(
+        child: Text('Select an item to view summary.',
+            style: TextStyle(color: AppTheme.getTextSecondary(context))),
+      );
+    }
+
+    if (_summaries.isEmpty) {
       return Center(
         child: Text('No daily summary data found.',
             style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),

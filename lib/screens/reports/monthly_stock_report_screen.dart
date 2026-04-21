@@ -166,10 +166,12 @@ class _MonthlyStockReportScreenState extends State<MonthlyStockReportScreen> {
       );
     }
 
+    if (_reports.isEmpty) {
       return Center(
         child: Text('No monthly data found for this year.',
             style: TextStyle(color: AppTheme.getTextSecondary(context))),
       );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),

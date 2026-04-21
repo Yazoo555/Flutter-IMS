@@ -109,7 +109,7 @@ class _ItemMovementsReportScreenState extends State<ItemMovementsReportScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: isDark
-                ? const ColorScheme.dark(
+                ? ColorScheme.dark(
                     primary: AppTheme.primary,
                     surface: AppTheme.darkSurface,
                   )

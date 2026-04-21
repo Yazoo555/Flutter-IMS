@@ -52,6 +52,7 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
             fontWeight: FontWeight.w500,
           ),
           decoration: AppTheme.inputDecoration(
+            context: context,
             hintText: widget.hintText,
             prefixIcon: widget.prefixIcon != null
                 ? Padding(

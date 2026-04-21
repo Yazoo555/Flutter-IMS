@@ -238,7 +238,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                       child: const Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.primary),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

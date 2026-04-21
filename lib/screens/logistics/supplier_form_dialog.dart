@@ -176,7 +176,6 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     hint: 'e.g. Acme Supplies',
                     icon: Icons.store_rounded,
                     validator: (v) =>
-                    validator: (v) =>
                         (v == null || v.trim().isEmpty) ? 'Name is required' : null,
                     inputFill: inputFill,
                     borderColor: borderColor,
@@ -248,7 +247,6 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     validator: (v) => (v == null || v.trim().isEmpty)
                         ? 'Address is required'
                         : null,
-                    isDark: isDark,
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -333,6 +331,9 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
+    required Color inputFill,
+    required Color borderColor,
+    required Color textPrimary,
     required Color textSecondary,
   }) {
     final hintColor = AppTheme.getTextHint(context);

@@ -113,7 +113,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
             backgroundColor: AppTheme.getSurface(context),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16)),
-            title: const Text(
+            title: Text(
               'Delete Unit',
               style: TextStyle(
                 fontSize: 18,

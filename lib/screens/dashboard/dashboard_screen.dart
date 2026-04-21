@@ -268,6 +268,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _summaryCard(
       String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppTheme.getSurface(context),
         borderRadius: BorderRadius.circular(14),
@@ -424,7 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
                             abbr,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 10,
                                 color: AppTheme.getTextSecondary(context)),
                           ),

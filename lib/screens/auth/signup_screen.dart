@@ -217,7 +217,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         hintText: 'Enter your username',
                         controller: _usernameController,
                         maxLength: 35,
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.person_outline_rounded,
                           color: AppTheme.getTextHint(context),
                           size: 20,
@@ -233,7 +233,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         maxLength: 35,
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.mail_outline_rounded,
                           color: AppTheme.getTextHint(context),
                           size: 20,
@@ -250,7 +250,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: 'Enter your username',
                   controller: _usernameController,
                   maxLength: 35,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.person_outline_rounded,
                     color: AppTheme.getTextHint(context),
                     size: 20,
@@ -264,7 +264,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   maxLength: 35,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.mail_outline_rounded,
                     color: AppTheme.getTextHint(context),
                     size: 20,
@@ -281,7 +281,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _passwordController,
                 isPassword: true,
                 maxLength: 10,
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.lock_outline_rounded,
                   color: AppTheme.getTextHint(context),
                   size: 20,
@@ -315,7 +315,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     Expanded(
                       child: Text(
                         'Password must be 8-10 characters long and contain both letters and numbers',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.getTextSecondary(context),
                           height: 1.4,

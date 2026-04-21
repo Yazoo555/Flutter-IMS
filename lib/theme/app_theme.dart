@@ -167,7 +167,7 @@ class AppTheme {
         unselectedItemColor: isDark ? darkTextHint : textHint,
         elevation: 0,
       ),
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: primary,
         unselectedLabelColor: isDark ? darkTextHint : textHint,
         indicatorColor: primary,
@@ -211,7 +211,7 @@ class AppTheme {
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: brd),
+          side: BorderSide(color: brd),
         ),
       ),
     );
@@ -233,4 +233,9 @@ class AppTheme {
           : textSecondary;
   static Color getTextHint(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? darkTextHint : textHint;
+
+  static Color getInputBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? darkInputBackground
+          : inputBackground;
 }

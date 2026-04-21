@@ -133,7 +133,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             backgroundColor: AppTheme.getSurface(context),
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
+            title: Text(
               'Delete Category',
               style: TextStyle(
                 fontSize: 18,
