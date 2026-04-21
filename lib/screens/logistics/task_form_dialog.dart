@@ -125,7 +125,12 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
     if (result != null) {
       setState(() {
-        _selectedItems.addAll(result);
+        // Add default quantity of 1.0 to each newly selected item
+        final itemsWithQty = result.map((i) => {
+          ...i,
+          'quantity': 1.0,
+        }).toList();
+        _selectedItems.addAll(itemsWithQty);
       });
     }
   }
@@ -133,6 +138,12 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   void _removeItem(int index) {
     setState(() {
       _selectedItems.removeAt(index);
+    });
+  }
+
+  void _updateItemQuantity(int index, double qty) {
+    setState(() {
+      _selectedItems[index]['quantity'] = qty;
     });
   }
 
@@ -165,12 +176,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         }
 
         await LogisticsService.updateTask(taskId, fields);
-        
-        // Sync items: Remove all then re-add (simple strategy for now)
-        // Or better: diff them. For simplicity, we'll just clear and re-insert if modified.
-        // But the user's API might not support bulk clear easily.
-        // Let's just add new ones for now or assume addTaskItems handles it.
-        // Actually, we'll just add the current selection.
       } else {
         final newTask = await LogisticsService.createTask(
           supplierId: widget.supplierId,
@@ -183,10 +188,26 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         taskId = newTask.id;
       }
 
-      // Add selected items
+      // Add selected items with quantities
       if (_selectedItems.isNotEmpty) {
-        final itemIds = _selectedItems.map((i) => i['id'] as String).toList();
-        await LogisticsService.addTaskItems(taskId, itemIds);
+        final itemsToSync = _selectedItems.map((i) => {
+          'id': i['id'] as String,
+          'quantity': i['quantity'] ?? 1.0,
+        }).toList();
+        
+        await LogisticsService.addTaskItems(taskId, itemsToSync);
+
+        // Reduce stock immediately for new tasks or new items added
+        // For simplicity, we'll assume "sale" movement type for logistics tasks.
+        // If it's a new task, reduce stock for all items.
+        if (!_isEditing) {
+          await LogisticsService.adjustStockBulk(
+            items: itemsToSync,
+            movementType: 'sale',
+            reference: 'TASK-${taskId.substring(0, 8).toUpperCase()}',
+            notes: 'Stock reduced for logistics task: ${_titleController.text.trim()}',
+          );
+        }
       }
 
       if (!mounted) return;
@@ -455,7 +476,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     if (_isLoadingItems) {
       return const Center(child: Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2)));
     }
-    
     if (_selectedItems.isEmpty) {
       return Container(
         width: double.infinity,
@@ -474,11 +494,92 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         separatorBuilder: (_, __) => Divider(height: 1, color: borderColor),
         itemBuilder: (context, index) {
           final item = _selectedItems[index];
-          return ListTile(
-            dense: true,
-            title: Text(item['name'] ?? '', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
-            subtitle: Text('SKU: ${item['sku'] ?? 'N/A'}', style: TextStyle(fontSize: 11, color: textSecondary)),
-            trailing: IconButton(icon: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppTheme.errorColor), onPressed: () => _removeItem(index)),
+          final qty = item['quantity'] ?? 1.0;
+          
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item['name'] ?? '', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+                      Text('SKU: ${item['sku'] ?? 'N/A'}', style: TextStyle(fontSize: 11, color: textSecondary)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Quantity Input
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkSurface : AppTheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Row(
+                      children: [
+                        _QtyBtn(
+                          icon: Icons.remove_rounded,
+                          onTap: () {
+                            if (qty > 1) _updateItemQuantity(index, qty - 1);
+                          },
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              qty.toStringAsFixed(qty % 1 == 0 ? 0 : 2),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: textPrimary),
+                            ),
+                          ),
+                        ),
+                        _QtyBtn(
+                          icon: Icons.add_rounded,
+                          onTap: () => _updateItemQuantity(index, qty + 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline_rounded, size: 18, color: AppTheme.errorColor),
+                  onPressed: () => _removeItem(index),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _QtyBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _QtyBtn({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 28,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppTheme.primary.withOpacity(0.05),
+        ),
+        child: Icon(icon, size: 14, color: AppTheme.primary),
+      ),
+    );
+  }onPressed: () => _removeItem(index)),
           );
         },
       ),

@@ -75,7 +75,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
       if (!mounted) return;
 
-      if (_createLogisticsTask && _movementType == 'sale') {
+      if (_movementType == 'sale') {
         await _handleLogisticsTaskCreation(qty, ref);
       }
 
@@ -128,8 +128,10 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
           description: 'Qty: $qty | Ref: ${ref.isEmpty ? 'N/A' : ref}\n${_notesController.text.trim()}',
           status: 'pending',
         );
-        // Link the item to the task
-        await LogisticsService.addTaskItems(task.id, [widget.item.id]);
+        // Link the item to the task with quantity
+        await LogisticsService.addTaskItems(task.id, [
+          {'id': widget.item.id, 'quantity': qty}
+        ]);
         _showSnack('Logistics task created successfully.');
       } catch (e) {
         _showSnack('Failed to create logistics task.', error: true);
@@ -221,19 +223,33 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
               if (_movementType == 'sale') ...[
                 const SizedBox(height: 16),
                 const Divider(height: 1),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Create Logistics Task',
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary)),
-                  subtitle: const Text('Add this sale to logistics for tracking',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textHint)),
-                  value: _createLogisticsTask,
-                  activeColor: AppTheme.primary,
-                  onChanged: (v) => setState(() => _createLogisticsTask = v),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Logistics Task',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary)),
+                          Text('A delivery task will be created automatically for this sale.',
+                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ]),

@@ -9,6 +9,7 @@ import '../../services/logistics_service.dart';
 import 'supplier_detail_screen.dart';
 import 'supplier_form_dialog.dart';
 import 'task_form_dialog.dart';
+import 'task_detail_screen.dart';
 
 class LogisticsScreen extends StatefulWidget {
   const LogisticsScreen({super.key});
@@ -547,7 +548,12 @@ class _LogisticsScreenState extends State<LogisticsScreen>
   }
 
   void _openTaskDetail(LogisticsTask t) {
-    // Could navigate to a specific task detail if needed, but usually supplier detail is enough.
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TaskDetailScreen(task: t),
+      ),
+    ).then((_) => _fetchTasks()); // Refresh on return
   }
 
   Future<bool> _showConfirmDialog(String title, String content) async {

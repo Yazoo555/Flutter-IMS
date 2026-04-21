@@ -245,14 +245,17 @@ class LogisticsService {
     return {for (final row in data) row['item_id'] as String};
   }
 
-  /// Sync items for a logistics task (Add new, remove deselected).
+  /// Sync items for a logistics task (Add new, remove deselected) with quantities.
   static Future<void> syncTaskItems(
-      String taskId, List<String> newItemIds) async {
+      String taskId, List<Map<String, dynamic>> items) async {
+    // items should be a list of maps: {'id': String, 'quantity': double}
+    
     // 1. Get current items
     final currentIds = await getAssignedItemIds(taskId);
+    final newItemIds = items.map((i) => i['id'] as String).toSet();
 
     // 2. Determine what to add and what to remove
-    final toAdd = newItemIds.where((id) => !currentIds.contains(id)).toList();
+    final toAdd = items.where((i) => !currentIds.contains(i['id'])).toList();
     final toRemove = currentIds.where((id) => !newItemIds.contains(id)).toList();
 
     // 3. Perform operations
@@ -265,18 +268,37 @@ class LogisticsService {
     }
 
     if (toAdd.isNotEmpty) {
-      final rows = toAdd.map((id) => {
+      final rows = toAdd.map((i) => {
         'task_id': taskId,
-        'item_id': id,
+        'item_id': i['id'],
+        'quantity': i['quantity'] ?? 0.0,
       }).toList();
       await supabase.from('logistics_task_items').insert(rows);
     }
   }
 
-  /// Add items to a logistics task (Legacy, now calls sync).
+  /// Add items to a logistics task with quantities.
   static Future<void> addTaskItems(
-      String taskId, List<String> itemIds) async {
-    await syncTaskItems(taskId, itemIds);
+      String taskId, List<Map<String, dynamic>> items) async {
+    await syncTaskItems(taskId, items);
+  }
+
+  /// Adjust stock for multiple items at once.
+  static Future<void> adjustStockBulk({
+    required List<Map<String, dynamic>> items,
+    required String movementType,
+    String? reference,
+    String? notes,
+  }) async {
+    for (final item in items) {
+      await supabase.rpc('adjust_stock', params: {
+        'p_item_id': item['id'],
+        'p_movement_type': movementType,
+        'p_quantity': item['quantity'],
+        'p_notes': notes,
+        'p_reference': reference,
+      });
+    }
   }
 
   /// Remove an item from a logistics task.
