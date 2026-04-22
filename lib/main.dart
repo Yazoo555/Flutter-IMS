@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/home_screen.dart';
+import 'services/theme_service.dart';
 
 const supabaseUrl = 'https://zinognrruckgcmrxgzro.supabase.co';
 const supabaseAnonKey =
@@ -16,6 +17,15 @@ Future<void> main() async {
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
+
+  // Load saved theme mode
+  final savedThemeMode = await ThemeService.loadThemeMode();
+  themeModeNotifier.value = savedThemeMode;
+
+  // Listen for theme changes and save them
+  themeModeNotifier.addListener(() {
+    ThemeService.saveThemeMode(themeModeNotifier.value);
+  });
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
