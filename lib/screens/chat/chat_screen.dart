@@ -41,6 +41,23 @@ class ChatMessage {
 
 enum MessageStatus { sending, sent, error }
 
+// ─── Chat Session Store (singleton) ──────────────────────────────────────────
+//
+// Keeps the message list alive for the lifetime of the app process.
+// No packages required — just a plain Dart singleton.
+// Call ChatSessionStore.instance.clear() to reset (e.g. on logout).
+
+class ChatSessionStore {
+  ChatSessionStore._();
+  static final ChatSessionStore instance = ChatSessionStore._();
+
+  final List<ChatMessage> messages = [];
+
+  void add(ChatMessage msg) => messages.add(msg);
+
+  void clear() => messages.clear();
+}
+
 // ─── Suggestion Model ─────────────────────────────────────────────────────────
 
 class _Suggestion {
@@ -62,7 +79,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  final List<ChatMessage> _messages = [];
+
+  // ── Use the singleton store instead of a local list ──────────────────────
+  List<ChatMessage> get _messages => ChatSessionStore.instance.messages;
+
   bool _isLoading = false;
   bool _showScrollFab = false;
   late AnimationController _fabAnimController;
@@ -87,6 +107,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 200),
     );
     _scrollController.addListener(_onScroll);
+
+    // Scroll to the bottom if there are already persisted messages
+    if (_messages.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom(animated: false));
+    }
   }
 
   @override
@@ -139,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
 
     setState(() {
-      _messages.add(userMsg);
+      ChatSessionStore.instance.add(userMsg);
       _isLoading = true;
     });
     _controller.clear();
@@ -147,6 +172,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     try {
       final userId = supabase.auth.currentUser!.id;
+      // Send all messages except the one we just added as conversation history
       final history = _messages
           .take(_messages.length - 1)
           .map((m) => m.toHistoryJson())
@@ -173,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final data = jsonDecode(response.body);
         final reply = data['reply'] ?? "I couldn't process that request.";
         setState(() {
-          _messages.add(ChatMessage(
+          ChatSessionStore.instance.add(ChatMessage(
             content: reply,
             isUser: false,
             timestamp: DateTime.now(),
@@ -186,7 +212,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _messages.add(ChatMessage(
+        ChatSessionStore.instance.add(ChatMessage(
           content:
               "⚠️ Couldn't reach the AI assistant. Please check your connection and try again.",
           isUser: false,
@@ -498,22 +524,30 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
         decoration: BoxDecoration(
-          color: primary.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.07),
+          color: AppTheme.getSurface(context),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: primary.withOpacity(0.15)),
+          border: Border.all(color: AppTheme.getBorder(context)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Icon(icon, color: primary, size: 22),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               title,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.getTextPrimary(context),
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               sub,
               style: TextStyle(
@@ -950,7 +984,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              setState(() => _messages.clear());
+              setState(() => ChatSessionStore.instance.clear());
             },
             child: Text("Clear",
                 style: TextStyle(color: AppTheme.primary)),
