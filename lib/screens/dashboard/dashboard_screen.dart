@@ -8,6 +8,7 @@ import '../setup/units_screen.dart';
 import '../setup/categories_screen.dart';
 import '../../models/logistics_models.dart';
 import '../logistics/task_detail_screen.dart';
+import '../../services/dashboard_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -38,93 +39,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchMonthly();
-    _fetchRecent();
-    _fetchLatestTasks();
+    _loadData();
+  }
+
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    try {
+      // If we have cache, show it immediately (if not forcing refresh)
+      if (DashboardService.hasCache && !forceRefresh) {
+        final (monthly, recent, tasks) = await DashboardService.fetchDashboardData();
+        if (mounted) {
+          setState(() {
+            _monthlyReports = monthly;
+            _recentMovements = recent;
+            _latestTasks = tasks;
+            _loadingMonthly = false;
+            _loadingRecent = false;
+            _loadingTasks = false;
+          });
+        }
+        
+        // If cache is stale, refresh in background
+        if (DashboardService.isCacheStale) {
+          _refreshInBackground();
+        }
+        return;
+      }
+
+      // No cache or forcing refresh
+      final (monthly, recent, tasks) = await DashboardService.fetchDashboardData(forceRefresh: forceRefresh);
+      if (mounted) {
+        setState(() {
+          _monthlyReports = monthly;
+          _recentMovements = recent;
+          _latestTasks = tasks;
+          _loadingMonthly = false;
+          _loadingRecent = false;
+          _loadingTasks = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _monthlyError = 'Failed to load dashboard';
+          _recentError = 'Failed to load transactions';
+          _tasksError = 'Failed to load tasks';
+          _loadingMonthly = false;
+          _loadingRecent = false;
+          _loadingTasks = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _refreshInBackground() async {
+    try {
+      final (monthly, recent, tasks) = await DashboardService.fetchDashboardData(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _monthlyReports = monthly;
+          _recentMovements = recent;
+          _latestTasks = tasks;
+        });
+      }
+    } catch (_) {}
   }
 
   // ── Data Fetching ──────────────────────────────────────────────────────────
 
-  Future<void> _fetchMonthly() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) {
-      if (mounted) {
-        setState(() {
-          _monthlyError = 'Not authenticated';
-          _loadingMonthly = false;
-        });
-      }
-      return;
-    }
-    try {
-      final data = await supabase.rpc('get_monthly_report_with_value', params: {
-        'p_user_id': user.id,
-        'p_year': DateTime.now().year,
-      });
-      if (!mounted) return;
-      final reports = (data as List)
-          .map((e) => MonthlyStockReport.fromJson(e as Map<String, dynamic>))
-          .toList();
-      setState(() {
-        _monthlyReports = reports;
-        _loadingMonthly = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _monthlyError = 'Failed to load monthly data';
-        _loadingMonthly = false;
-      });
-    }
-  }
-
-  Future<void> _fetchRecent() async {
-    try {
-      final data = await supabase
-          .from('recent_movements_with_value')
-          .select('*')
-          .order('created_at', ascending: false)
-          .limit(5);
-      if (!mounted) return;
-      final movements = (data as List)
-          .map((e) => RecentMovement.fromJson(e as Map<String, dynamic>))
-          .toList();
-      setState(() {
-        _recentMovements = movements;
-        _loadingRecent = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _recentError = 'Failed to load recent movements';
-        _loadingRecent = false;
-      });
-    }
-  }
-
-  Future<void> _fetchLatestTasks() async {
-    try {
-      final data = await supabase
-          .from('logistics_tasks_detail')
-          .select('*')
-          .order('created_at', ascending: false)
-          .limit(5);
-      if (!mounted) return;
-      final tasks = (data as List)
-          .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
-          .toList();
-      setState(() {
-        _latestTasks = tasks;
-        _loadingTasks = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _tasksError = 'Failed to load tasks';
-        _loadingTasks = false;
-      });
-    }
-  }
+  // Removed individual fetch methods as they are now handled by DashboardService
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -179,14 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       color: AppTheme.primary,
-      onRefresh: () async {
-        setState(() {
-          _loadingMonthly = true;
-          _loadingRecent = true;
-          _loadingTasks = true;
-        });
-        await Future.wait([_fetchMonthly(), _fetchRecent(), _fetchLatestTasks()]);
-      },
+      onRefresh: () => _loadData(forceRefresh: true),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -805,7 +780,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     MaterialPageRoute(
                       builder: (_) => TaskDetailScreen(task: task),
                     ),
-                  ).then((_) => _fetchLatestTasks());
+                  ).then((_) => _loadData(forceRefresh: true));
                 },
                 borderRadius: isLast 
                   ? const BorderRadius.vertical(bottom: Radius.circular(14))

@@ -48,7 +48,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     try {
       final data = await supabase
           .from('items')
-          .select('*,categories(*),units(*)')
+          .select('id, name, sku, description, current_stock, opening_stock, low_stock_alert, purchase_price, sales_price, is_active, created_at, categories(id, name), units(id, name, abbreviation)')
           .order('name', ascending: true);
 
       if (!mounted) return;
