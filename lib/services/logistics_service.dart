@@ -2,12 +2,60 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../models/logistics_models.dart';
 
 class LogisticsService {
   static const String _baseUrl =
       'https://zinognrruckgcmrxgzro.supabase.co/rest/v1';
+
+  // ── Cache Keys ─────────────────────────────────────────────────────────────
+  static const _kSuppliers = 'log_cached_suppliers';
+  static const _kTasks = 'log_cached_tasks';
+  static const _kLastFetchSuppliers = 'log_last_fetch_suppliers';
+  static const _kLastFetchTasks = 'log_last_fetch_tasks';
+
+  // ── In-Memory Cache ────────────────────────────────────────────────────────
+  static List<Supplier>? _cachedSuppliers;
+  static List<LogisticsTask>? _cachedTasks;
+  static DateTime? _lastFetchSuppliers;
+  static DateTime? _lastFetchTasks;
+
+  static bool get hasSuppliersCache => _cachedSuppliers != null;
+  static bool get hasTasksCache => _cachedTasks != null;
+
+  static bool get isSuppliersStale =>
+      _lastFetchSuppliers == null ||
+      DateTime.now().difference(_lastFetchSuppliers!).inMinutes > 5;
+
+  static bool get isTasksStale =>
+      _lastFetchTasks == null ||
+      DateTime.now().difference(_lastFetchTasks!).inMinutes > 5;
+
+  /// Invalidate in-memory cache (e.g. after mutations).
+  static void invalidateSuppliers() {
+    _cachedSuppliers = null;
+    _lastFetchSuppliers = null;
+  }
+
+  static void invalidateTasks() {
+    _cachedTasks = null;
+    _lastFetchTasks = null;
+  }
+
+  /// Clear both in-memory and on-disk cache (e.g. on logout).
+  static void clearCache() async {
+    _cachedSuppliers = null;
+    _cachedTasks = null;
+    _lastFetchSuppliers = null;
+    _lastFetchTasks = null;
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove(_kSuppliers);
+    prefs.remove(_kTasks);
+    prefs.remove(_kLastFetchSuppliers);
+    prefs.remove(_kLastFetchTasks);
+  }
 
   static String? get _authToken => supabase.auth.currentSession?.accessToken != null 
       ? 'Bearer ${supabase.auth.currentSession!.accessToken}' 
@@ -35,8 +83,22 @@ class LogisticsService {
 
   // ── Suppliers ───────────────────────────────────────────────────────────────
 
-  /// Fetch all suppliers ordered by name.
-  static Future<List<Supplier>> getSuppliers() async {
+  /// Fetch all suppliers. Returns cache when fresh; fetches network when stale.
+  static Future<List<Supplier>> getSuppliers({bool forceRefresh = false}) async {
+    // 1. Return valid in-memory cache immediately
+    if (!forceRefresh && hasSuppliersCache && !isSuppliersStale) {
+      return _cachedSuppliers!;
+    }
+
+    // 2. Hydrate from disk on cold start
+    if (!hasSuppliersCache) {
+      await _loadSuppliersFromPrefs();
+      if (!forceRefresh && hasSuppliersCache && !isSuppliersStale) {
+        return _cachedSuppliers!;
+      }
+    }
+
+    // 3. Fetch from network
     final uri = Uri.parse('$_baseUrl/suppliers?order=name.asc');
     final response = await http.get(uri, headers: _headers);
 
@@ -45,9 +107,15 @@ class LogisticsService {
     }
 
     final List<dynamic> data = jsonDecode(response.body);
-    return data
+    final suppliers = data
         .map((e) => Supplier.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    _cachedSuppliers = suppliers;
+    _lastFetchSuppliers = DateTime.now();
+    _saveSuppliersToPrefs();
+
+    return suppliers;
   }
 
   /// Create a new supplier.
@@ -105,10 +173,26 @@ class LogisticsService {
 
   // ── Logistics Tasks ─────────────────────────────────────────────────────────
 
-  /// Fetch all tasks with supplier details.
-  static Future<List<LogisticsTask>> getAllTasksDetail({String? status}) async {
+  /// Fetch all tasks. Returns cache when fresh; fetches network when stale.
+  /// NOTE: status filter bypasses cache and always hits network.
+  static Future<List<LogisticsTask>> getAllTasksDetail({String? status, bool forceRefresh = false}) async {
+    final isFiltered = status != null && status != 'all';
+
+    // Only use cache for the unfiltered ("all") view
+    if (!isFiltered) {
+      if (!forceRefresh && hasTasksCache && !isTasksStale) {
+        return _cachedTasks!;
+      }
+      if (!hasTasksCache) {
+        await _loadTasksFromPrefs();
+        if (!forceRefresh && hasTasksCache && !isTasksStale) {
+          return _cachedTasks!;
+        }
+      }
+    }
+
     String query = 'order=created_at.desc';
-    if (status != null && status != 'all') {
+    if (isFiltered) {
       query += '&status=eq.$status';
     }
     final uri = Uri.parse('$_baseUrl/logistics_tasks_detail?$query');
@@ -119,9 +203,18 @@ class LogisticsService {
     }
 
     final List<dynamic> data = jsonDecode(response.body);
-    return data
+    final tasks = data
         .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    // Only cache the full unfiltered list
+    if (!isFiltered) {
+      _cachedTasks = tasks;
+      _lastFetchTasks = DateTime.now();
+      _saveTasksToPrefs();
+    }
+
+    return tasks;
   }
 
   /// Fetch a specific task by ID from the detail view.
@@ -308,5 +401,67 @@ class LogisticsService {
         .delete()
         .eq('task_id', taskId)
         .eq('item_id', itemId);
+  }
+
+  // ── Persistence ────────────────────────────────────────────────────────────
+
+  static Future<void> _loadSuppliersFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_kSuppliers);
+      final millis = prefs.getInt(_kLastFetchSuppliers);
+      if (json != null) {
+        _cachedSuppliers = (jsonDecode(json) as List)
+            .map((e) => Supplier.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      if (millis != null) {
+        _lastFetchSuppliers = DateTime.fromMillisecondsSinceEpoch(millis);
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> _saveSuppliersToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_cachedSuppliers != null) {
+        prefs.setString(_kSuppliers,
+            jsonEncode(_cachedSuppliers!.map((e) => e.toJson()).toList()));
+      }
+      if (_lastFetchSuppliers != null) {
+        prefs.setInt(_kLastFetchSuppliers,
+            _lastFetchSuppliers!.millisecondsSinceEpoch);
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> _loadTasksFromPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_kTasks);
+      final millis = prefs.getInt(_kLastFetchTasks);
+      if (json != null) {
+        _cachedTasks = (jsonDecode(json) as List)
+            .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      if (millis != null) {
+        _lastFetchTasks = DateTime.fromMillisecondsSinceEpoch(millis);
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> _saveTasksToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_cachedTasks != null) {
+        prefs.setString(
+            _kTasks, jsonEncode(_cachedTasks!.map((e) => e.toJson()).toList()));
+      }
+      if (_lastFetchTasks != null) {
+        prefs.setInt(
+            _kLastFetchTasks, _lastFetchTasks!.millisecondsSinceEpoch);
+      }
+    } catch (_) {}
   }
 }

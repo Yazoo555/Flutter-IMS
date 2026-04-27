@@ -1,6 +1,9 @@
 // logistics_screen.dart
 // Main Logistics screen with two tabs: Suppliers and Tasks.
-// Lists all suppliers and all logistics tasks with search, filter, and CRUD.
+// Uses LogisticsService caching — same pattern as Dashboard and Inventory:
+//   • First load: show cached data instantly, fetch from network if stale.
+//   • Pull-to-refresh: force network fetch silently (list stays visible).
+//   • After mutations: invalidate cache then force-refresh.
 
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
@@ -46,8 +49,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       setState(() {}); // Rebuild to update FAB and other tab-specific UI
     });
 
-    _fetchSuppliers();
-    _fetchTasks();
+    _loadSuppliers();
+    _loadTasks();
 
     _supplierSearchController.addListener(_applySupplierFilter);
     _taskSearchController.addListener(_applyTaskFilter);
@@ -63,25 +66,57 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   // ─── Suppliers Data ────────────────────────────────────────────────────────
 
-  Future<void> _fetchSuppliers() async {
-    setState(() {
-      _isLoadingSuppliers = true;
-      _supplierError = null;
-    });
+  Future<void> _loadSuppliers({bool forceRefresh = false}) async {
     try {
-      final suppliers = await LogisticsService.getSuppliers();
+      final suppliers =
+          await LogisticsService.getSuppliers(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _suppliers = suppliers;
         _isLoadingSuppliers = false;
+        _supplierError = null;
       });
       _applySupplierFilter();
+
+      // Background update if stale but we served cache
+      if (!forceRefresh && LogisticsService.isSuppliersStale) {
+        _refreshSuppliersInBackground();
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _supplierError = 'Failed to load suppliers.';
-        _isLoadingSuppliers = false;
-      });
+      if (_suppliers.isNotEmpty) {
+        // Keep showing cached data, just show a snack
+        setState(() => _isLoadingSuppliers = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Connect to wifi to update suppliers'),
+            backgroundColor: AppTheme.errorColor.withOpacity(0.9),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        setState(() {
+          _supplierError = 'Failed to load suppliers.';
+          _isLoadingSuppliers = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _refreshSuppliersInBackground() async {
+    try {
+      final suppliers =
+          await LogisticsService.getSuppliers(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _suppliers = suppliers;
+          _supplierError = null;
+        });
+        _applySupplierFilter();
+      }
+    } catch (_) {
+      // Fail silently — keep showing cached data
     }
   }
 
@@ -105,26 +140,59 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   // ─── Tasks Data ────────────────────────────────────────────────────────────
 
-  Future<void> _fetchTasks() async {
-    setState(() {
-      _isLoadingTasks = true;
-      _taskError = null;
-    });
+  Future<void> _loadTasks({bool forceRefresh = false}) async {
     try {
       final tasks = await LogisticsService.getAllTasksDetail(
-          status: _taskFilterStatus);
+        status: _taskFilterStatus,
+        forceRefresh: forceRefresh,
+      );
       if (!mounted) return;
       setState(() {
         _tasks = tasks;
         _isLoadingTasks = false;
+        _taskError = null;
       });
       _applyTaskFilter();
+
+      // Background update if stale but we served cache (only for "all" view)
+      final isFiltered = _taskFilterStatus != 'all';
+      if (!forceRefresh && !isFiltered && LogisticsService.isTasksStale) {
+        _refreshTasksInBackground();
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _taskError = 'Failed to load tasks.';
-        _isLoadingTasks = false;
-      });
+      if (_tasks.isNotEmpty) {
+        // Keep showing cached data, just show a snack
+        setState(() => _isLoadingTasks = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Connect to wifi to update tasks'),
+            backgroundColor: AppTheme.errorColor.withOpacity(0.9),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        setState(() {
+          _taskError = 'Failed to load tasks.';
+          _isLoadingTasks = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _refreshTasksInBackground() async {
+    try {
+      final tasks = await LogisticsService.getAllTasksDetail(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _tasks = tasks;
+          _taskError = null;
+        });
+        _applyTaskFilter();
+      }
+    } catch (_) {
+      // Fail silently — keep showing cached data
     }
   }
 
@@ -275,13 +343,13 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     }
     if (_supplierError != null) {
-      return _buildErrorState(_supplierError!, _fetchSuppliers, context);
+      return _buildErrorState(_supplierError!, () => _loadSuppliers(forceRefresh: true), context);
     }
     if (_filteredSuppliers.isEmpty) {
       return _buildEmptyState('No suppliers found.', Icons.business_rounded, context);
     }
     return RefreshIndicator(
-      onRefresh: _fetchSuppliers,
+      onRefresh: () => _loadSuppliers(forceRefresh: true),
       color: AppTheme.primary,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
@@ -340,8 +408,13 @@ class _LogisticsScreenState extends State<LogisticsScreen>
               label: s.$2,
               selected: _taskFilterStatus == s.$1,
               onTap: () {
-                setState(() => _taskFilterStatus = s.$1);
-                _fetchTasks();
+                setState(() {
+                  _taskFilterStatus = s.$1;
+                  // Show loading only when switching to a filtered view
+                  // (bypasses cache, hits network)
+                  if (s.$1 != 'all') _isLoadingTasks = true;
+                });
+                _loadTasks(forceRefresh: s.$1 != 'all');
               },
             ),
           );
@@ -355,13 +428,13 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     }
     if (_taskError != null) {
-      return _buildErrorState(_taskError!, _fetchTasks, context);
+      return _buildErrorState(_taskError!, () => _loadTasks(forceRefresh: true), context);
     }
     if (_filteredTasks.isEmpty) {
       return _buildEmptyState('No tasks found.', Icons.task_alt_rounded, context);
     }
     return RefreshIndicator(
-      onRefresh: _fetchTasks,
+      onRefresh: () => _loadTasks(forceRefresh: true),
       color: AppTheme.primary,
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
@@ -438,7 +511,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     final result = await showDialog<bool>(context: context, builder: (_) => const SupplierFormDialog());
     if (result == true) {
       _showSnack('Supplier added.');
-      _fetchSuppliers();
+      LogisticsService.invalidateSuppliers();
+      _loadSuppliers(forceRefresh: true);
     }
   }
 
@@ -446,7 +520,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     final result = await showDialog<bool>(context: context, builder: (_) => SupplierFormDialog(supplier: s));
     if (result == true) {
       _showSnack('Supplier updated.');
-      _fetchSuppliers();
+      LogisticsService.invalidateSuppliers();
+      _loadSuppliers(forceRefresh: true);
     }
   }
 
@@ -456,7 +531,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       try {
         await LogisticsService.deleteSupplier(s.id);
         _showSnack('Supplier deleted.');
-        _fetchSuppliers();
+        LogisticsService.invalidateSuppliers();
+        _loadSuppliers(forceRefresh: true);
       } catch (_) {
         _showSnack('Delete failed.', error: true);
       }
@@ -510,7 +586,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       );
       if (result == true) {
         _showSnack('Task created.');
-        _fetchTasks();
+        LogisticsService.invalidateTasks();
+        _loadTasks(forceRefresh: true);
       }
     }
   }
@@ -519,7 +596,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     final result = await showDialog<bool>(context: context, builder: (_) => TaskFormDialog(supplierId: t.supplierId, task: t));
     if (result == true) {
       _showSnack('Task updated.');
-      _fetchTasks();
+      LogisticsService.invalidateTasks();
+      _loadTasks(forceRefresh: true);
     }
   }
 
@@ -529,7 +607,8 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       try {
         await LogisticsService.deleteTask(t.id);
         _showSnack('Task deleted.');
-        _fetchTasks();
+        LogisticsService.invalidateTasks();
+        _loadTasks(forceRefresh: true);
       } catch (_) {
         _showSnack('Delete failed.', error: true);
       }
@@ -537,7 +616,14 @@ class _LogisticsScreenState extends State<LogisticsScreen>
   }
 
   void _openSupplierDetail(Supplier s) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => SupplierDetailScreen(supplier: s, onDataChanged: _fetchSuppliers)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => SupplierDetailScreen(supplier: s, onDataChanged: () {
+      LogisticsService.invalidateSuppliers();
+      _loadSuppliers(forceRefresh: true);
+    }))).then((_) {
+      // Also refresh tasks since supplier changes can affect them
+      LogisticsService.invalidateTasks();
+      _loadTasks(forceRefresh: true);
+    });
   }
 
   void _openTaskDetail(LogisticsTask t) {
@@ -546,7 +632,10 @@ class _LogisticsScreenState extends State<LogisticsScreen>
       MaterialPageRoute(
         builder: (_) => TaskDetailScreen(task: t),
       ),
-    ).then((_) => _fetchTasks()); // Refresh on return
+    ).then((_) {
+      LogisticsService.invalidateTasks();
+      _loadTasks(forceRefresh: true);
+    });
   }
 
   Future<bool> _showConfirmDialog(String title, String content) async {

@@ -47,6 +47,19 @@ class Supplier {
         'email': email,
         'address': address,
       };
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'name': name,
+        'contact_name': contactName,
+        'phone': phone,
+        'email': email,
+        'address': address,
+        'is_active': isActive,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+      };
 }
 
 class LogisticsTask {
