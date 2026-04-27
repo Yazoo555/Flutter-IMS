@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import 'inventory_models.dart';
+import '../../models/inventory_models.dart';
 import 'add_edit_item_screen.dart';
 import 'stock_adjust_screen.dart';
 

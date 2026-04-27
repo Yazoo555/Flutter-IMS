@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -13,11 +12,6 @@ class ItemCategory {
         id: json['id'] as String,
         name: json['name'] as String,
       );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-      };
 }
 
 class ItemUnit {
@@ -33,12 +27,6 @@ class ItemUnit {
         name: json['name'] as String,
         abbreviation: json['abbreviation'] as String,
       );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'abbreviation': abbreviation,
-      };
 }
 
 class InventoryItem {
@@ -81,6 +69,33 @@ class InventoryItem {
   bool get isLowStock =>
       lowStockAlert != null && currentStock <= lowStockAlert!;
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'category_id': categoryId,
+        'unit_id': unitId,
+        'name': name,
+        'sku': sku,
+        'description': description,
+        'opening_stock': openingStock,
+        'current_stock': currentStock,
+        'low_stock_alert': lowStockAlert,
+        'purchase_price': purchasePrice,
+        'sales_price': salesPrice,
+        'is_active': isActive,
+        'created_at': createdAt.toIso8601String(),
+        'categories': category != null
+            ? {'id': category!.id, 'name': category!.name}
+            : null,
+        'units': unit != null
+            ? {
+                'id': unit!.id,
+                'name': unit!.name,
+                'abbreviation': unit!.abbreviation
+              }
+            : null,
+      };
+
   factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
         id: json['id'] as String,
         userId: json['user_id'] as String,
@@ -104,25 +119,6 @@ class InventoryItem {
             ? ItemUnit.fromJson(json['units'] as Map<String, dynamic>)
             : null,
       );
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'user_id': userId,
-        'category_id': categoryId,
-        'unit_id': unitId,
-        'name': name,
-        'sku': sku,
-        'description': description,
-        'opening_stock': openingStock,
-        'current_stock': currentStock,
-        'low_stock_alert': lowStockAlert,
-        'purchase_price': purchasePrice,
-        'sales_price': salesPrice,
-        'is_active': isActive,
-        'created_at': createdAt.toIso8601String(),
-        'categories': category?.toJson(),
-        'units': unit?.toJson(),
-      };
 }
 
 class MovementType {

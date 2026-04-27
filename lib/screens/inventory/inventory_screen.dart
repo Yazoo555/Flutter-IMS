@@ -1,14 +1,19 @@
 // inventory_screen.dart
 // The main Inventory listing screen with search, filters, and item management.
+// Uses InventoryService for in-memory + disk caching — mirrors the Dashboard pattern:
+//   • First load: show cached data instantly if fresh, else fetch from network.
+//   • Pull-to-refresh: force network fetch silently (no loading spinner if data exists).
+//   • After add/edit/delete: invalidate cache then refresh.
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 import '../../theme/app_theme.dart';
-import 'inventory_models.dart';
+import '../../models/inventory_models.dart';
 import 'inventory_widgets.dart';
 import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
+import '../../services/inventory_service.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -28,7 +33,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchItems();
+    _loadData();
     _searchController.addListener(_applyFilter);
   }
 
@@ -40,44 +45,42 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   // ─── Data ──────────────────────────────────────────────────────────────────
 
-  Future<void> _fetchItems({bool forceRefresh = false}) async {
+  Future<void> _loadData({bool forceRefresh = false}) async {
     try {
-      // 1. Try to get data
+      // 1. Fetch (returns cache immediately if fresh, else hits network)
       final items = await InventoryService.fetchItems(forceRefresh: forceRefresh);
-      
-      if (mounted) {
-        setState(() {
-          _items = items;
-          _isLoading = false;
-          _error = null;
-        });
-        _applyFilter();
-      }
 
-      // 2. Background update if stale
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _isLoading = false;
+        _error = null;
+      });
+      _applyFilter();
+
+      // 2. If cache was stale but we didn't force-refresh, trigger background update
       if (!forceRefresh && InventoryService.isCacheStale) {
         _refreshInBackground();
       }
     } catch (e) {
-      if (mounted) {
-        if (_items.isNotEmpty) {
-          setState(() {
-            _isLoading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Connect to wifi to update inventory'),
-              backgroundColor: AppTheme.errorColor.withOpacity(0.9),
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        } else {
-          setState(() {
-            _error = 'Failed to load items. Please try again.';
-            _isLoading = false;
-          });
-        }
+      if (!mounted) return;
+
+      // If we already have data, keep showing it and show a snack instead
+      if (_items.isNotEmpty) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Connect to wifi to update inventory'),
+            backgroundColor: AppTheme.errorColor.withOpacity(0.9),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        setState(() {
+          _error = 'Failed to load items. Please try again.';
+          _isLoading = false;
+        });
       }
     }
   }
@@ -93,7 +96,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         _applyFilter();
       }
     } catch (_) {
-      // Fail silently in background
+      // Fail silently — keep showing current (cached) data
     }
   }
 
@@ -126,7 +129,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       await supabase.from('items').delete().eq('id', item.id);
       if (!mounted) return;
       _showSnack('${item.name} deleted.');
-      _fetchItems();
+      InventoryService.invalidate();
+      _loadData(forceRefresh: true);
     } on PostgrestException catch (e) {
       if (!mounted) return;
       final msg = e.code == '23503'
@@ -146,7 +150,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
           .update({'is_active': !item.isActive}).eq('id', item.id);
       if (!mounted) return;
       _showSnack(item.isActive ? 'Item deactivated.' : 'Item activated.');
-      _fetchItems();
+      InventoryService.invalidate();
+      _loadData(forceRefresh: true);
     } catch (_) {
       if (!mounted) return;
       _showSnack('Update failed. Please try again.', error: true);
@@ -215,7 +220,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       context,
       MaterialPageRoute(builder: (_) => const AddEditItemScreen()),
     );
-    if (created == true) _fetchItems();
+    if (created == true) {
+      InventoryService.invalidate();
+      _loadData(forceRefresh: true);
+    }
   }
 
   Future<void> _openEditItem(InventoryItem item) async {
@@ -223,7 +231,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       context,
       MaterialPageRoute(builder: (_) => AddEditItemScreen(item: item)),
     );
-    if (updated == true) _fetchItems();
+    if (updated == true) {
+      InventoryService.invalidate();
+      _loadData(forceRefresh: true);
+    }
   }
 
   Future<void> _openItemDetail(InventoryItem item) async {
@@ -232,16 +243,21 @@ class _InventoryScreenState extends State<InventoryScreen> {
       MaterialPageRoute(
         builder: (_) => ItemDetailScreen(
           item: item,
-          onDataChanged: _fetchItems,
+          onDataChanged: () {
+            InventoryService.invalidate();
+            _loadData(forceRefresh: true);
+          },
         ),
       ),
     );
-    if (result == true) _fetchItems();
+    if (result == true) {
+      InventoryService.invalidate();
+      _loadData(forceRefresh: true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: AppTheme.getBg(context),
       floatingActionButton: FloatingActionButton.extended(
@@ -372,7 +388,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       fontSize: 14, color: AppTheme.getTextSecondary(context))),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _fetchItems,
+                onPressed: _loadData,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
@@ -428,7 +444,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return RefreshIndicator(
       color: AppTheme.primary,
-      onRefresh: _fetchItems,
+      // Pull-to-refresh: force a network fetch, but never show full loading
+      // spinner — existing list stays visible while the indicator spins.
+      onRefresh: () => _loadData(forceRefresh: true),
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         itemCount: _filteredItems.length,

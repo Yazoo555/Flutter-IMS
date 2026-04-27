@@ -1,14 +1,22 @@
+// inventory_service.dart
+// Caching service for the Inventory screen — mirrors the DashboardService pattern.
+// Strategy:
+//   1. Return in-memory cache immediately if fresh (< 5 min old).
+//   2. Hydrate from SharedPreferences on first cold start, then return that.
+//   3. Fetch from network when cache is missing or stale.
+//   4. On pull-to-refresh: force network fetch, update both caches.
+
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../models/inventory_models.dart';
 
 class InventoryService {
-  // ── Keys ───────────────────────────────────────────────────────────────────
-  static const _kItems = 'inventory_cached_items';
-  static const _kLastFetch = 'inventory_last_fetch_time';
+  // ── Prefs Keys ─────────────────────────────────────────────────────────────
+  static const _kItems = 'inv_cached_items';
+  static const _kLastFetch = 'inv_last_fetch_time';
 
-  // ── Cache ──────────────────────────────────────────────────────────────────
+  // ── In-Memory Cache ────────────────────────────────────────────────────────
   static List<InventoryItem>? _cachedItems;
   static DateTime? _lastFetch;
 
@@ -18,15 +26,17 @@ class InventoryService {
       _lastFetch == null ||
       DateTime.now().difference(_lastFetch!).inMinutes > 5;
 
-  // ── Data Fetching ──────────────────────────────────────────────────────────
+  // ── Public API ─────────────────────────────────────────────────────────────
 
-  static Future<List<InventoryItem>> fetchItems({bool forceRefresh = false}) async {
-    // 1. If not forcing refresh, try to return valid in-memory cache
+  /// Returns items. Uses cache when fresh; fetches from network when stale.
+  static Future<List<InventoryItem>> fetchItems(
+      {bool forceRefresh = false}) async {
+    // 1. Return valid in-memory cache immediately
     if (!forceRefresh && hasCache && !isCacheStale) {
       return _cachedItems!;
     }
 
-    // 2. Try to load from SharedPreferences if memory cache is empty
+    // 2. Try to hydrate from disk on first cold start
     if (!hasCache) {
       await _loadFromPrefs();
       if (!forceRefresh && hasCache && !isCacheStale) {
@@ -34,21 +44,42 @@ class InventoryService {
       }
     }
 
-    // 3. Fetch from API
+    // 3. Fetch from network
     final data = await supabase
         .from('items')
-        .select('id, user_id, category_id, unit_id, name, sku, description, current_stock, opening_stock, low_stock_alert, purchase_price, sales_price, is_active, created_at, categories(id, name), units(id, name, abbreviation)')
+        .select(
+            'id, user_id, category_id, unit_id, name, sku, description, '
+            'current_stock, opening_stock, low_stock_alert, purchase_price, '
+            'sales_price, is_active, created_at, '
+            'categories(id, name), units(id, name, abbreviation)')
         .order('name', ascending: true);
 
-    _cachedItems = (data as List)
+    final items = (data as List)
         .map((e) => InventoryItem.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    _cachedItems = items;
     _lastFetch = DateTime.now();
 
-    // Save to disk asynchronously
+    // Persist to disk asynchronously (don't await)
     _saveToPrefs();
 
-    return _cachedItems!;
+    return items;
+  }
+
+  /// Force-invalidate in-memory cache (e.g., after add/edit/delete).
+  static void invalidate() {
+    _cachedItems = null;
+    _lastFetch = null;
+  }
+
+  /// Clear both in-memory and persisted cache (e.g., on logout).
+  static void clearCache() async {
+    _cachedItems = null;
+    _lastFetch = null;
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove(_kItems);
+    prefs.remove(_kLastFetch);
   }
 
   // ── Persistence ────────────────────────────────────────────────────────────
@@ -67,8 +98,8 @@ class InventoryService {
       if (lastFetchMillis != null) {
         _lastFetch = DateTime.fromMillisecondsSinceEpoch(lastFetchMillis);
       }
-    } catch (e) {
-      // Ignore errors loading from prefs
+    } catch (_) {
+      // Silently ignore errors reading from prefs
     }
   }
 
@@ -76,21 +107,13 @@ class InventoryService {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (_cachedItems != null) {
-        prefs.setString(_kItems, jsonEncode(_cachedItems));
+        prefs.setString(_kItems, jsonEncode(_cachedItems!.map((e) => e.toJson()).toList()));
       }
       if (_lastFetch != null) {
         prefs.setInt(_kLastFetch, _lastFetch!.millisecondsSinceEpoch);
       }
-    } catch (e) {
-      // Ignore errors saving to prefs
+    } catch (_) {
+      // Silently ignore errors saving to prefs
     }
-  }
-
-  static void clearCache() async {
-    _cachedItems = null;
-    _lastFetch = null;
-    final prefs = await SharedPreferences.getInstance();
-    prefs.remove(_kItems);
-    prefs.remove(_kLastFetch);
   }
 }

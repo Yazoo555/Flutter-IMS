@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import 'inventory_models.dart';
+import '../../models/inventory_models.dart';
 
 // ── Filter Chip ───────────────────────────────────────────────────────────────
 

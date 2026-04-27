@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 import '../../theme/app_theme.dart';
-import 'inventory_models.dart';
+import '../../models/inventory_models.dart';
 import 'inventory_widgets.dart';
 
 // ── Add / Edit Item Screen ────────────────────────────────────────────────────
