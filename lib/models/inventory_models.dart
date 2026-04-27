@@ -13,6 +13,11 @@ class ItemCategory {
         id: json['id'] as String,
         name: json['name'] as String,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+      };
 }
 
 class ItemUnit {
@@ -28,6 +33,12 @@ class ItemUnit {
         name: json['name'] as String,
         abbreviation: json['abbreviation'] as String,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'abbreviation': abbreviation,
+      };
 }
 
 class InventoryItem {
@@ -93,6 +104,25 @@ class InventoryItem {
             ? ItemUnit.fromJson(json['units'] as Map<String, dynamic>)
             : null,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'category_id': categoryId,
+        'unit_id': unitId,
+        'name': name,
+        'sku': sku,
+        'description': description,
+        'opening_stock': openingStock,
+        'current_stock': currentStock,
+        'low_stock_alert': lowStockAlert,
+        'purchase_price': purchasePrice,
+        'sales_price': salesPrice,
+        'is_active': isActive,
+        'created_at': createdAt.toIso8601String(),
+        'categories': category?.toJson(),
+        'units': unit?.toJson(),
+      };
 }
 
 class MovementType {
@@ -139,6 +169,18 @@ class RecentMovement {
     this.reference,
     this.notes,
   });
+
+  factory RecentMovement.fromJson(Map<String, dynamic> json) => RecentMovement(
+        createdAt: DateTime.parse(json['created_at'] as String),
+        itemName: json['item_name'] as String? ?? 'Unknown Item',
+        movementType: json['movement_type'] as String? ?? '',
+        quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
+        purchasePrice: (json['purchase_price'] as num?)?.toDouble() ?? 0,
+        salesPrice: (json['sales_price'] as num?)?.toDouble() ?? 0,
+        transactionValue: (json['transaction_value'] as num?)?.toDouble() ?? 0,
+        reference: json['reference'] as String?,
+        notes: json['notes'] as String?,
+      );
 
   Map<String, dynamic> toJson() => {
         'created_at': createdAt.toIso8601String(),

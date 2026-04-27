@@ -40,32 +40,60 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   // ─── Data ──────────────────────────────────────────────────────────────────
 
-  Future<void> _fetchItems() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchItems({bool forceRefresh = false}) async {
     try {
-      final data = await supabase
-          .from('items')
-          .select('id, user_id, category_id, unit_id, name, sku, description, current_stock, opening_stock, low_stock_alert, purchase_price, sales_price, is_active, created_at, categories(id, name), units(id, name, abbreviation)')
-          .order('name', ascending: true);
+      // 1. Try to get data
+      final items = await InventoryService.fetchItems(forceRefresh: forceRefresh);
+      
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _isLoading = false;
+          _error = null;
+        });
+        _applyFilter();
+      }
 
-      if (!mounted) return;
-      final items = (data as List)
-          .map((e) => InventoryItem.fromJson(e as Map<String, dynamic>))
-          .toList();
-      setState(() {
-        _items = items;
-        _isLoading = false;
-      });
-      _applyFilter();
+      // 2. Background update if stale
+      if (!forceRefresh && InventoryService.isCacheStale) {
+        _refreshInBackground();
+      }
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Failed to load items. Please try again.';
-        _isLoading = false;
-      });
+      if (mounted) {
+        if (_items.isNotEmpty) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Connect to wifi to update inventory'),
+              backgroundColor: AppTheme.errorColor.withOpacity(0.9),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            _error = 'Failed to load items. Please try again.';
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _refreshInBackground() async {
+    try {
+      final items = await InventoryService.fetchItems(forceRefresh: true);
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _error = null;
+        });
+        _applyFilter();
+      }
+    } catch (_) {
+      // Fail silently in background
     }
   }
 

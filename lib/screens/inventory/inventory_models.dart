@@ -11,6 +11,11 @@ class ItemCategory {
         id: json['id'] as String,
         name: json['name'] as String,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+      };
 }
 
 class ItemUnit {
@@ -29,6 +34,12 @@ class ItemUnit {
         name: json['name'] as String,
         abbreviation: json['abbreviation'] as String,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'abbreviation': abbreviation,
+      };
 }
 
 class InventoryItem {
@@ -92,4 +103,23 @@ class InventoryItem {
             ? ItemUnit.fromJson(json['units'] as Map<String, dynamic>)
             : null,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'category_id': categoryId,
+        'unit_id': unitId,
+        'name': name,
+        'sku': sku,
+        'description': description,
+        'opening_stock': openingStock,
+        'current_stock': currentStock,
+        'low_stock_alert': lowStockAlert,
+        'purchase_price': purchasePrice,
+        'sales_price': salesPrice,
+        'is_active': isActive,
+        'created_at': createdAt.toIso8601String(),
+        'categories': category?.toJson(),
+        'units': unit?.toJson(),
+      };
 }
