@@ -105,6 +105,23 @@ class LogisticsTask {
             : const [],
       );
 
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'user_id': userId,
+        'supplier_id': supplierId,
+        'supplier_name': supplierName,
+        'supplier_phone': supplierPhone,
+        'title': title,
+        'description': description,
+        'status': status,
+        'scheduled_date': scheduledDate?.toIso8601String(),
+        'completed_at': completedAt?.toIso8601String(),
+        'notes': notes,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+        'items': items,
+      };
+
   /// Status display label
   String get statusLabel => switch (status) {
         'pending' => 'Pending',

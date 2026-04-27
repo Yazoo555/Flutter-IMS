@@ -44,29 +44,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadData({bool forceRefresh = false}) async {
     try {
-      // If we have cache, show it immediately (if not forcing refresh)
-      if (DashboardService.hasCache && !forceRefresh) {
-        final (monthly, recent, tasks) = await DashboardService.fetchDashboardData();
-        if (mounted) {
-          setState(() {
-            _monthlyReports = monthly;
-            _recentMovements = recent;
-            _latestTasks = tasks;
-            _loadingMonthly = false;
-            _loadingRecent = false;
-            _loadingTasks = false;
-          });
-        }
-        
-        // If cache is stale, refresh in background
-        if (DashboardService.isCacheStale) {
-          _refreshInBackground();
-        }
-        return;
-      }
-
-      // No cache or forcing refresh
+      // 1. Try to get data
       final (monthly, recent, tasks) = await DashboardService.fetchDashboardData(forceRefresh: forceRefresh);
+      
       if (mounted) {
         setState(() {
           _monthlyReports = monthly;
@@ -75,18 +55,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _loadingMonthly = false;
           _loadingRecent = false;
           _loadingTasks = false;
+          _monthlyError = null;
+          _recentError = null;
+          _tasksError = null;
         });
+      }
+
+      // 2. Background update if stale
+      if (!forceRefresh && DashboardService.isCacheStale) {
+        _refreshInBackground();
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _monthlyError = 'Failed to load dashboard';
-          _recentError = 'Failed to load transactions';
-          _tasksError = 'Failed to load tasks';
-          _loadingMonthly = false;
-          _loadingRecent = false;
-          _loadingTasks = false;
-        });
+        // If we already have data showing, don't replace it with an error UI
+        if (_monthlyReports.isNotEmpty || _recentMovements.isNotEmpty || _latestTasks.isNotEmpty) {
+          setState(() {
+            _loadingMonthly = false;
+            _loadingRecent = false;
+            _loadingTasks = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Connect to wifi to update dashboard'),
+              backgroundColor: AppTheme.errorColor.withOpacity(0.9),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            _monthlyError = 'Failed to load dashboard';
+            _recentError = 'Failed to load transactions';
+            _tasksError = 'Failed to load tasks';
+            _loadingMonthly = false;
+            _loadingRecent = false;
+            _loadingTasks = false;
+          });
+        }
       }
     }
   }
@@ -99,9 +104,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _monthlyReports = monthly;
           _recentMovements = recent;
           _latestTasks = tasks;
+          _monthlyError = null;
+          _recentError = null;
+          _tasksError = null;
         });
       }
-    } catch (_) {}
+    } catch (_) {
+      // Fail silently in background, keeping current (cached) data
+    }
   }
 
   // ── Data Fetching ──────────────────────────────────────────────────────────

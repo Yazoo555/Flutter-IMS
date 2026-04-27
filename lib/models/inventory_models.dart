@@ -140,17 +140,17 @@ class RecentMovement {
     this.notes,
   });
 
-  factory RecentMovement.fromJson(Map<String, dynamic> json) => RecentMovement(
-        createdAt: DateTime.parse(json['created_at'] as String),
-        itemName: json['item_name'] as String? ?? 'Unknown Item',
-        movementType: json['movement_type'] as String? ?? '',
-        quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
-        purchasePrice: (json['purchase_price'] as num?)?.toDouble() ?? 0,
-        salesPrice: (json['sales_price'] as num?)?.toDouble() ?? 0,
-        transactionValue: (json['transaction_value'] as num?)?.toDouble() ?? 0,
-        reference: json['reference'] as String?,
-        notes: json['notes'] as String?,
-      );
+  Map<String, dynamic> toJson() => {
+        'created_at': createdAt.toIso8601String(),
+        'item_name': itemName,
+        'movement_type': movementType,
+        'quantity': quantity,
+        'purchase_price': purchasePrice,
+        'sales_price': salesPrice,
+        'transaction_value': transactionValue,
+        'reference': reference,
+        'notes': notes,
+      };
 }
 
 // Legacy model kept for item_movements_report_screen (uses old stock_movements RPC)
@@ -245,6 +245,18 @@ class MonthlyStockReport {
     required this.grossMarginPercentage,
     required this.totalItemsSold,
   });
+
+  Map<String, dynamic> toJson() => {
+        'month': month,
+        'month_name': monthName,
+        'total_purchases_qty': totalPurchasesQty,
+        'total_sales_qty': totalSalesQty,
+        'total_purchase_value': totalPurchaseValue,
+        'total_sales_value': totalSalesValue,
+        'gross_profit': grossProfit,
+        'gross_margin_percentage': grossMarginPercentage,
+        'total_items_sold': totalItemsSold,
+      };
 
   factory MonthlyStockReport.fromJson(Map<String, dynamic> json) =>
       MonthlyStockReport(
