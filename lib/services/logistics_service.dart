@@ -57,27 +57,39 @@ class LogisticsService {
     prefs.remove(_kLastFetchTasks);
   }
 
-  static String? get _authToken => supabase.auth.currentSession?.accessToken != null 
-      ? 'Bearer ${supabase.auth.currentSession!.accessToken}' 
+  static String? get _authToken => supabase.auth.currentSession?.accessToken != null
+      ? 'Bearer ${supabase.auth.currentSession!.accessToken}'
       : null;
 
   static String get _apiKey => supabaseAnonKey;
 
   static String? get userId => supabase.auth.currentUser?.id;
 
-  // ── Shared headers ──────────────────────────────────────────────────────────
+  // ── Session-wait helper ────────────────────────────────────────────────────
+  /// Waits up to ~5 s for Supabase to restore the persisted session on cold
+  /// start. Returns the Bearer token, or null if the session never arrived.
+  static Future<String?> _waitForAuthToken() async {
+    // Fast path: session already available.
+    if (_authToken != null) return _authToken;
 
-  static Map<String, String> get _headers {
-    final token = _authToken;
-    return {
-      if (token != null) 'Authorization': token,
-      'apikey': _apiKey,
-      'Content-Type': 'application/json',
-    };
+    // Slow path: poll up to 10 × 500 ms = 5 s.
+    for (int i = 0; i < 10; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      if (_authToken != null) return _authToken;
+    }
+    return null; // Session genuinely absent — caller will get a 401 and can surface error.
   }
 
-  static Map<String, String> get _headersWithReturn => {
-        ..._headers,
+  // ── Shared headers ──────────────────────────────────────────────────────────
+
+  static Map<String, String> _buildHeaders(String? token) => {
+        if (token != null) 'Authorization': token,
+        'apikey': _apiKey,
+        'Content-Type': 'application/json',
+      };
+
+  static Map<String, String> _buildHeadersWithReturn(String? token) => {
+        ..._buildHeaders(token),
         'Prefer': 'return=representation',
       };
 
@@ -99,8 +111,9 @@ class LogisticsService {
     }
 
     // 3. Fetch from network
+    final token = await _waitForAuthToken();
     final uri = Uri.parse('$_baseUrl/suppliers?order=name.asc');
-    final response = await http.get(uri, headers: _headers);
+    final response = await http.get(uri, headers: _buildHeaders(token));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load suppliers: ${response.statusCode}');
@@ -136,8 +149,9 @@ class LogisticsService {
       'address': address,
     });
 
+    final token = await _waitForAuthToken();
     final response =
-        await http.post(uri, headers: _headersWithReturn, body: body);
+        await http.post(uri, headers: _buildHeadersWithReturn(token), body: body);
 
     if (response.statusCode != 201) {
       throw Exception('Failed to create supplier: ${response.body}');
@@ -153,8 +167,9 @@ class LogisticsService {
     Map<String, dynamic> fields,
   ) async {
     final uri = Uri.parse('$_baseUrl/suppliers?id=eq.$supplierId');
+    final token = await _waitForAuthToken();
     final response =
-        await http.patch(uri, headers: _headers, body: jsonEncode(fields));
+        await http.patch(uri, headers: _buildHeaders(token), body: jsonEncode(fields));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to update supplier: ${response.body}');
@@ -164,7 +179,8 @@ class LogisticsService {
   /// Delete a supplier.
   static Future<void> deleteSupplier(String supplierId) async {
     final uri = Uri.parse('$_baseUrl/suppliers?id=eq.$supplierId');
-    final response = await http.delete(uri, headers: _headers);
+    final token = await _waitForAuthToken();
+    final response = await http.delete(uri, headers: _buildHeaders(token));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete supplier: ${response.body}');
@@ -195,8 +211,9 @@ class LogisticsService {
     if (isFiltered) {
       query += '&status=eq.$status';
     }
+    final token = await _waitForAuthToken();
     final uri = Uri.parse('$_baseUrl/logistics_tasks_detail?$query');
-    final response = await http.get(uri, headers: _headers);
+    final response = await http.get(uri, headers: _buildHeaders(token));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load tasks detail: ${response.statusCode}');
@@ -219,9 +236,10 @@ class LogisticsService {
 
   /// Fetch a specific task by ID from the detail view.
   static Future<LogisticsTask> getTaskDetail(String taskId) async {
+    final token = await _waitForAuthToken();
     final uri = Uri.parse('$_baseUrl/logistics_tasks_detail?id=eq.$taskId&limit=1');
     final headers = {
-      ..._headers,
+      ..._buildHeaders(token),
       'Accept': 'application/vnd.pgrst.object+json',
     };
     final response = await http.get(uri, headers: headers);
@@ -240,8 +258,9 @@ class LogisticsService {
     if (status != null && status != 'all') {
       query += '&status=eq.$status';
     }
+    final token = await _waitForAuthToken();
     final uri = Uri.parse('$_baseUrl/logistics_tasks?$query');
-    final response = await http.get(uri, headers: _headers);
+    final response = await http.get(uri, headers: _buildHeaders(token));
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load tasks: ${response.statusCode}');
@@ -273,8 +292,9 @@ class LogisticsService {
       'notes': notes ?? '',
     });
 
+    final token = await _waitForAuthToken();
     final response =
-        await http.post(uri, headers: _headersWithReturn, body: body);
+        await http.post(uri, headers: _buildHeadersWithReturn(token), body: body);
 
     if (response.statusCode != 201) {
       throw Exception('Failed to create task: ${response.body}');
@@ -290,8 +310,9 @@ class LogisticsService {
     Map<String, dynamic> fields,
   ) async {
     final uri = Uri.parse('$_baseUrl/logistics_tasks?id=eq.$taskId');
+    final token = await _waitForAuthToken();
     final response =
-        await http.patch(uri, headers: _headers, body: jsonEncode(fields));
+        await http.patch(uri, headers: _buildHeaders(token), body: jsonEncode(fields));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to update task: ${response.body}');
@@ -301,7 +322,8 @@ class LogisticsService {
   /// Delete a logistics task.
   static Future<void> deleteTask(String taskId) async {
     final uri = Uri.parse('$_baseUrl/logistics_tasks?id=eq.$taskId');
-    final response = await http.delete(uri, headers: _headers);
+    final token = await _waitForAuthToken();
+    final response = await http.delete(uri, headers: _buildHeaders(token));
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete task: ${response.body}');
