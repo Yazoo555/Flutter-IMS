@@ -19,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  final List<int> _navHistory = [0];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<_NavItem> _navItems = const [
@@ -96,9 +97,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ? AppTheme.darkPrimaryLight
         : AppTheme.primaryLight;
 
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppTheme.getBg(context),
+    return PopScope(
+      canPop: _navHistory.length <= 1,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_navHistory.length > 1) {
+          setState(() {
+            _navHistory.removeLast();
+            _currentIndex = _navHistory.last;
+          });
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppTheme.getBg(context),
 
       // ── Drawer ────────────────────────────────────────────────────────
       drawer: Drawer(
@@ -421,7 +433,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _currentIndex = i),
+                    onTap: () {
+                      if (_currentIndex != i) {
+                        setState(() {
+                          _currentIndex = i;
+                          _navHistory.remove(i);
+                          _navHistory.add(i);
+                        });
+                      }
+                    },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -464,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
