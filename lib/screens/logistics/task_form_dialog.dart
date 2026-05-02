@@ -319,11 +319,16 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                       _buildTextField(
                         label: 'Title *',
                         controller: _titleController,
-                        hint: 'e.g. Deliver raw materials',
+                        hint: 'e.g. Deliver materials',
                         icon: Icons.title_rounded,
-                        validator: (v) => (v == null || v.trim().isEmpty)
-                            ? 'Title is required'
-                            : null,
+                        maxLength: 20,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Title is required';
+                          if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
+                            return 'Only letters and numbers allowed';
+                          }
+                          return null;
+                        },
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
                         hintColor: hintColor,
@@ -332,11 +337,19 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
-                        label: 'Description',
+                        label: 'Description *',
                         controller: _descriptionController,
                         hint: 'Task details...',
                         icon: Icons.description_outlined,
                         maxLines: 2,
+                        maxLength: 120,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Description is required';
+                          if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
+                            return 'Only letters and numbers allowed';
+                          }
+                          return null;
+                        },
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
                         hintColor: hintColor,
@@ -421,6 +434,13 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         hint: 'Additional notes...',
                         icon: Icons.notes_rounded,
                         maxLines: 2,
+                        maxLength: 150,
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && !RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
+                            return 'Only letters and numbers allowed';
+                          }
+                          return null;
+                        },
                         textPrimary: textPrimary,
                         textSecondary: textSecondary,
                         hintColor: hintColor,
@@ -561,6 +581,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     required String hint,
     required IconData icon,
     int maxLines = 1,
+    int? maxLength,
     String? Function(String?)? validator,
     required Color textPrimary,
     required Color textSecondary,
@@ -576,6 +597,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         TextFormField(
           controller: controller,
           maxLines: maxLines,
+          maxLength: maxLength,
           validator: validator,
           style: TextStyle(fontSize: 14, color: textPrimary),
           decoration: InputDecoration(
@@ -584,6 +606,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
             prefixIcon: Icon(icon, size: 18, color: hintColor),
             filled: true,
             fillColor: inputFill,
+            counterStyle: TextStyle(fontSize: 10, color: textSecondary),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: borderColor)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: borderColor)),

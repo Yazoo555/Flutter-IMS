@@ -175,8 +175,14 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     controller: _nameController,
                     hint: 'e.g. Acme Supplies',
                     icon: Icons.store_rounded,
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                    maxLength: 20,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Name is required';
+                      if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
+                        return 'Only letters and numbers allowed';
+                      }
+                      return null;
+                    },
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -187,10 +193,18 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
 
                   // ── Contact Name ────────────────────────────────────────────
                   _buildField(
-                    label: 'Contact Person',
+                    label: 'Contact Person *',
                     controller: _contactNameController,
                     hint: 'e.g. John Doe',
                     icon: Icons.person_outline_rounded,
+                    maxLength: 20,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Contact person is required';
+                      if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(v)) {
+                        return 'Only alphabetic characters allowed';
+                      }
+                      return null;
+                    },
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -205,10 +219,14 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     controller: _emailController,
                     hint: 'supplier@example.com',
                     icon: Icons.email_outlined,
+                    maxLength: 35,
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Email is required';
-                      if (!v.contains('@')) return 'Enter a valid email';
+                      final email = v?.trim() ?? '';
+                      if (email.isEmpty) return 'Email is required';
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+                        return 'Enter a valid email address';
+                      }
                       return null;
                     },
                     inputFill: inputFill,
@@ -223,12 +241,17 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                   _buildField(
                     label: 'Phone *',
                     controller: _phoneController,
-                    hint: '+977 98XXXXXXXX',
+                    hint: '98XXXXXXXX',
                     icon: Icons.phone_outlined,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Phone is required'
-                        : null,
+                    maxLength: 10,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Phone is required';
+                      if (!RegExp(r'^[0-9]{10}$').hasMatch(v)) {
+                        return 'Enter a valid 10-digit number';
+                      }
+                      return null;
+                    },
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -244,9 +267,14 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
                     hint: 'Street, City, Country',
                     icon: Icons.location_on_outlined,
                     maxLines: 2,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Address is required'
-                        : null,
+                    maxLength: 100,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Address is required';
+                      if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
+                        return 'Only letters and numbers allowed';
+                      }
+                      return null;
+                    },
                     inputFill: inputFill,
                     borderColor: borderColor,
                     textPrimary: textPrimary,
@@ -330,6 +358,7 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
     required IconData icon,
     TextInputType? keyboardType,
     int maxLines = 1,
+    int? maxLength,
     String? Function(String?)? validator,
     required Color inputFill,
     required Color borderColor,
@@ -352,6 +381,7 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
         TextFormField(
           controller: controller,
           maxLines: maxLines,
+          maxLength: maxLength,
           keyboardType: keyboardType,
           validator: validator,
           style: TextStyle(fontSize: 14, color: textPrimary),
@@ -361,6 +391,7 @@ class _SupplierFormDialogState extends State<SupplierFormDialog> {
             prefixIcon: Icon(icon, size: 18, color: hintColor),
             filled: true,
             fillColor: inputFill,
+            counterStyle: TextStyle(fontSize: 10, color: textSecondary),
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
