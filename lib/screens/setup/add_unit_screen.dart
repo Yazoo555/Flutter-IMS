@@ -256,21 +256,21 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : const Row(
+                        : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 _isEditing
                                     ? 'Update Unit'
                                     : 'Create Unit',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
                               ),
-                              SizedBox(width: 8),
-                              Icon(Icons.arrow_forward_rounded,
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward_rounded,
                                   color: Colors.white, size: 18),
                             ],
                           ),
