@@ -291,11 +291,15 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   Widget _buildSupplierSearchBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.getBg(context),
+        border: Border(bottom: BorderSide(color: AppTheme.getBorder(context), width: 0.5)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         children: [
           _buildSearchBar(_supplierSearchController, 'Search suppliers...', context),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildSupplierFilterChips(context),
         ],
       ),
@@ -378,11 +382,15 @@ class _LogisticsScreenState extends State<LogisticsScreen>
 
   Widget _buildTaskSearchBar(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      decoration: BoxDecoration(
+        color: AppTheme.getBg(context),
+        border: Border(bottom: BorderSide(color: AppTheme.getBorder(context), width: 0.5)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Column(
         children: [
           _buildSearchBar(_taskSearchController, 'Search tasks, suppliers...', context),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           _buildTaskFilterChips(context),
         ],
       ),
@@ -664,17 +672,25 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      selectedColor: Theme.of(context).brightness == Brightness.dark
-          ? AppTheme.darkPrimaryLighter
-          : AppTheme.primaryLight,
-      checkmarkColor: AppTheme.primary,
-      labelStyle: TextStyle(color: selected ? AppTheme.primary : AppTheme.getTextSecondary(context), fontSize: 12),
-      backgroundColor: AppTheme.getSurface(context),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: selected ? AppTheme.primary : AppTheme.getBorder(context))),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primary : AppTheme.getSurface(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? AppTheme.primary : AppTheme.getBorder(context)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : AppTheme.getTextSecondary(context),
+          ),
+        ),
+      ),
     );
   }
 }
