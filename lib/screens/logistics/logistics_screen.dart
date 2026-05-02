@@ -6,6 +6,7 @@ class LogisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -14,7 +15,7 @@ class LogisticsScreen extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: c.primaryLight,
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -24,18 +25,18 @@ class LogisticsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Logistics',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
+              color: c.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Track shipments and manage deliveries.',
-            style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+            style: TextStyle(fontSize: 14, color: c.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],

@@ -9,6 +9,7 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -23,7 +24,7 @@ class AppLogo extends StatelessWidget {
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w800,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
             letterSpacing: 1.2,
           ),
         ),

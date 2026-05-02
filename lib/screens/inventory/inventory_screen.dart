@@ -138,27 +138,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<bool> _showDeleteDialog(String name) async {
+    final c = context.colors;
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: c.surface,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text('Delete Item',
+            title: Text('Delete Item',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary)),
+                    color: c.textPrimary)),
             content: Text(
               'Are you sure you want to delete "$name"? This cannot be undone.',
-              style:
-                  const TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 14, color: c.textSecondary),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary)),
+                child: Text('Cancel',
+                    style: TextStyle(color: c.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -206,8 +206,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddItem,
         backgroundColor: AppTheme.primary,
@@ -228,8 +229,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Widget _buildSearchFilterBar() {
+    final c = context.colors;
     return Container(
-      color: AppTheme.background,
+      color: c.background,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Column(
         children: [
@@ -242,25 +244,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Widget _buildSearchField() {
+    final c = context.colors;
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+        style: TextStyle(fontSize: 14, color: c.textPrimary),
         decoration: InputDecoration(
           hintText: 'Search items, SKU...',
-          hintStyle:
-              const TextStyle(fontSize: 14, color: AppTheme.textHint),
-          prefixIcon: const Icon(Icons.search_rounded,
-              size: 20, color: AppTheme.textHint),
+          hintStyle: TextStyle(fontSize: 14, color: c.textHint),
+          prefixIcon: Icon(Icons.search_rounded,
+              size: 20, color: c.textHint),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded,
-                      size: 18, color: AppTheme.textHint),
+                  icon: Icon(Icons.clear_rounded,
+                      size: 18, color: c.textHint),
                   onPressed: () {
                     _searchController.clear();
                     _applyFilter();
@@ -315,6 +317,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Widget _buildBody() {
+    final c = context.colors;
     if (_isLoading) {
       return const Center(
           child: CircularProgressIndicator(color: AppTheme.primary));
@@ -327,13 +330,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: c.textHint),
               const SizedBox(height: 12),
               Text(_error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 14, color: AppTheme.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 14, color: c.textSecondary)),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _fetchItems,
@@ -360,7 +363,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
+                color: c.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(Icons.inventory_2_rounded,
@@ -369,18 +372,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
             const SizedBox(height: 16),
             Text(
               _items.isEmpty ? 'No Items Yet' : 'No Results Found',
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary),
+                  color: c.textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
               _items.isEmpty
                   ? 'Tap "Add Item" to add your first inventory item.'
                   : 'Try adjusting your search or filters.',
-              style: const TextStyle(
-                  fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(
+                  fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

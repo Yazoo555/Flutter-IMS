@@ -237,12 +237,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _summaryCard(
       String label, String value, IconData icon, Color color) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,8 +270,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 2),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 10, color: AppTheme.textSecondary)),
+              style: TextStyle(
+                  fontSize: 10, color: c.textSecondary)),
         ],
       ),
     );
@@ -279,6 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ── Monthly Bar Chart ──────────────────────────────────────────────────────
 
   Widget _buildMonthlyBarChart() {
+    final c = context.colors;
     if (_loadingMonthly) {
       return _chartSkeleton();
     }
@@ -328,9 +330,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 16, 16, 8),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,9 +392,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           padding: const EdgeInsets.only(top: 6),
                           child: Text(
                             abbr,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 10,
-                                color: AppTheme.textSecondary),
+                                color: c.textSecondary),
                           ),
                         );
                       },
@@ -410,7 +412,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (v) => FlLine(
-                    color: AppTheme.border,
+                    color: c.border,
                     strokeWidth: 0.8,
                     dashArray: [4, 4],
                   ),
@@ -426,15 +428,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildBarTooltip(MonthlyStockReport r) {
+    final c = context.colors;
     final isProfit = r.grossProfit >= 0;
     final profitColor =
         isProfit ? const Color(0xFF10B981) : AppTheme.errorColor;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppTheme.background,
+        color: c.background,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -443,15 +446,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(r.monthName,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary)),
+                      color: c.textPrimary)),
               Text(
                   'Buy: Rs ${_fmt.format(r.totalPurchaseValue)}  '
                   'Sell: Rs ${_fmt.format(r.totalSalesValue)}',
-                  style: const TextStyle(
-                      fontSize: 11, color: AppTheme.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 11, color: c.textSecondary)),
             ],
           ),
           Text(
@@ -469,6 +472,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ── Recent Movements ───────────────────────────────────────────────────────
 
   Widget _buildRecentMovements() {
+    final c = context.colors;
     if (_loadingRecent) {
       return Column(
         children: List.generate(
@@ -484,9 +488,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         children: _recentMovements.asMap().entries.map((entry) {
@@ -521,19 +525,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Text(
                             move.itemName,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
-                                color: AppTheme.textPrimary),
+                                color: c.textPrimary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 1),
                           Text(
                             '${move.movementType.toUpperCase()}  ·  ${DateFormat('MMM dd, HH:mm').format(move.createdAt.toLocal())}',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 11,
-                                color: AppTheme.textSecondary),
+                                color: c.textSecondary),
                           ),
                         ],
                       ),
@@ -553,8 +557,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         Text(
                           '${isDeficit ? '-' : '+'}${move.quantity % 1 == 0 ? move.quantity.toInt() : move.quantity} units',
-                          style: const TextStyle(
-                              fontSize: 11, color: AppTheme.textSecondary),
+                          style: TextStyle(
+                              fontSize: 11, color: c.textSecondary),
                         ),
                       ],
                     ),
@@ -562,7 +566,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               if (!isLast)
-                const Divider(height: 1, indent: 62, color: AppTheme.border),
+                Divider(height: 1, indent: 62, color: c.border),
             ],
           );
         }).toList(),
@@ -610,14 +614,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final c = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: c.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.border),
+          border: Border.all(color: c.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -633,14 +638,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 10),
             Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary)),
+                    color: c.textPrimary)),
             const SizedBox(height: 2),
             Text(description,
-                style: const TextStyle(
-                    fontSize: 11, color: AppTheme.textSecondary)),
+                style: TextStyle(
+                    fontSize: 11, color: c.textSecondary)),
           ],
         ),
       ),
@@ -650,16 +655,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ── Shared helpers ─────────────────────────────────────────────────────────
 
   Widget _buildSectionHeader(String title, IconData icon) {
+    final c = context.colors;
     return Row(
       children: [
         Icon(icon, size: 16, color: AppTheme.primary),
         const SizedBox(width: 6),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
             letterSpacing: 0.2,
           ),
         ),
@@ -668,6 +674,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _legend(String label, Color color) {
+    final c = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -676,19 +683,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: color, borderRadius: BorderRadius.circular(3))),
         const SizedBox(width: 5),
         Text(label,
-            style: const TextStyle(
-                fontSize: 11, color: AppTheme.textSecondary)),
+            style: TextStyle(
+                fontSize: 11, color: c.textSecondary)),
       ],
     );
   }
 
   Widget _chartSkeleton() {
+    final c = context.colors;
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: const Center(
           child: CircularProgressIndicator(color: AppTheme.primary)),
@@ -696,30 +704,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _chartEmpty(String msg) {
+    final c = context.colors;
     return Container(
       height: 100,
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Center(
         child: Text(msg,
             style:
-                const TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                TextStyle(fontSize: 13, color: c.textSecondary)),
       ),
     );
   }
 
   Widget _skeletonTile() {
+    final c = context.colors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: c.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border),
+          border: Border.all(color: c.border),
         ),
       ),
     );

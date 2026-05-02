@@ -120,22 +120,23 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context, false),
         ),
         title: Text(
           _isEditing ? 'Edit Category' : 'Add Category',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
           ),
         ),
       ),
@@ -179,10 +180,10 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                               _isEditing
                                   ? 'Update Category'
                                   : 'New Category',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
+                                color: c.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -190,9 +191,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                               _isEditing
                                   ? 'Modify the details below.'
                                   : 'Group your inventory items by category.',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppTheme.textSecondary,
+                                color: c.textSecondary,
                               ),
                             ),
                           ],
@@ -210,9 +211,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   hintText: 'e.g. Electronics, Beverages',
                   controller: _nameController,
                   maxLength: 50,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.label_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: c.textHint,
                     size: 20,
                   ),
                   validator: _validateName,
@@ -225,9 +226,9 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   hintText: 'Brief description of this category',
                   controller: _descController,
                   maxLength: 200,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.notes_rounded,
-                    color: AppTheme.textHint,
+                    color: c.textHint,
                     size: 20,
                   ),
                   validator: _validateDescription,
@@ -249,12 +250,12 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context, false),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                   ),

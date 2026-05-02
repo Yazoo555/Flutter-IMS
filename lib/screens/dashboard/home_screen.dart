@@ -85,27 +85,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final surfaceColor = Theme.of(context).cardColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Adaptive colours that respect theme
-    final textPrimary =
-        isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
-    final textSecondary =
-        isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
-    final borderColor = isDark ? AppTheme.darkBorder : AppTheme.border;
-    final primaryLight =
-        isDark ? AppTheme.darkPrimaryLight : AppTheme.primaryLight;
+    final c = context.colors;
 
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor:
-          isDark ? AppTheme.darkBackground : AppTheme.background,
+      backgroundColor: c.background,
 
       // ── Drawer ────────────────────────────────────────────────────────
       drawer: Drawer(
-        backgroundColor: surfaceColor,
+        backgroundColor: c.surface,
         child: SafeArea(
           child: Column(
             children: [
@@ -188,17 +176,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: isDark
+                              color: c.isDark
                                   ? const Color(0xFF6366F1).withAlpha(30)
                                   : const Color(0xFFF59E0B).withAlpha(30),
                               borderRadius: BorderRadius.circular(9),
                             ),
                             child: Icon(
-                              isDark
+                              c.isDark
                                   ? Icons.dark_mode_rounded
                                   : Icons.light_mode_rounded,
                               size: 19,
-                              color: isDark
+                              color: c.isDark
                                   ? const Color(0xFF818CF8)
                                   : const Color(0xFFF59E0B),
                             ),
@@ -213,13 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: textPrimary,
+                                    color: c.textPrimary,
                                   ),
                                 ),
                                 Text(
-                                  isDark ? 'On' : 'Off',
+                                  c.isDark ? 'On' : 'Off',
                                   style: TextStyle(
-                                      fontSize: 11, color: textSecondary),
+                                      fontSize: 11, color: c.textSecondary),
                                 ),
                               ],
                             ),
@@ -246,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const Spacer(),
 
-              Divider(color: borderColor, height: 1),
+              Divider(color: c.border, height: 1),
               const SizedBox(height: 8),
 
               // ── Log Out ─────────────────────────────────────────────────
@@ -287,12 +275,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // ── App Bar ───────────────────────────────────────────────────────
       appBar: AppBar(
-        backgroundColor: surfaceColor,
+        backgroundColor: c.surface,
         elevation: 0,
         scrolledUnderElevation: 1,
-        shadowColor: borderColor,
+        shadowColor: c.border,
         leading: IconButton(
-          icon: Icon(Icons.menu_rounded, color: textPrimary, size: 24),
+          icon: Icon(Icons.menu_rounded, color: c.textPrimary, size: 24),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         title: const AppLogo(),
@@ -305,10 +293,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: primaryLight,
+                  color: c.primaryLight,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                      color: colorScheme.primary.withAlpha(76)),
+                      color: AppTheme.primary.withAlpha(76)),
                 ),
                 child: Center(
                   child: Text(
@@ -340,8 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
       // ── Bottom Navigation Bar ─────────────────────────────────────────
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: surfaceColor,
-          border: Border(top: BorderSide(color: borderColor, width: 1)),
+          color: c.surface,
+          border: Border(top: BorderSide(color: c.border, width: 1)),
         ),
         child: SafeArea(
           child: SizedBox(
@@ -364,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? primaryLight
+                                ? c.primaryLight
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -373,9 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 22,
                             color: isSelected
                                 ? AppTheme.primary
-                                : (isDark
-                                    ? AppTheme.darkTextHint
-                                    : AppTheme.textHint),
+                                : c.textHint,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -388,9 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : FontWeight.w500,
                             color: isSelected
                                 ? AppTheme.primary
-                                : (isDark
-                                    ? AppTheme.darkTextHint
-                                    : AppTheme.textHint),
+                                : c.textHint,
                           ),
                         ),
                       ],

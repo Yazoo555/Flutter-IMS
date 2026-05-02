@@ -123,22 +123,23 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context, false),
         ),
         title: Text(
           _isEditing ? 'Edit Unit' : 'Add Unit',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
           ),
         ),
       ),
@@ -156,7 +157,7 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
+                    color: c.primaryLight,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                         color: AppTheme.primary.withOpacity(0.2)),
@@ -180,10 +181,10 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                           children: [
                             Text(
                               _isEditing ? 'Update Unit' : 'New Unit',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
+                                color: c.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 3),
@@ -191,9 +192,9 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                               _isEditing
                                   ? 'Modify the details below.'
                                   : 'Define a measurement unit for your items.',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
-                                color: AppTheme.textSecondary,
+                                color: c.textSecondary,
                               ),
                             ),
                           ],
@@ -206,28 +207,30 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 const SizedBox(height: 28),
 
                 // ── Fields ───────────────────────────────────────────────
-                _buildFieldLabel('UNIT NAME'),
+                _buildFieldLabel('UNIT NAME', context),
                 const SizedBox(height: 8),
                 _buildTextField(
+                  context: context,
                   controller: _nameController,
                   hint: 'e.g. Kilogram',
                   maxLength: 10,
                   validator: _validateName,
-                  prefixIcon: const Icon(Icons.straighten_rounded,
-                      size: 20, color: AppTheme.textHint),
+                  prefixIcon: Icon(Icons.straighten_rounded,
+                      size: 20, color: c.textHint),
                 ),
 
                 const SizedBox(height: 20),
 
-                _buildFieldLabel('ABBREVIATION'),
+                _buildFieldLabel('ABBREVIATION', context),
                 const SizedBox(height: 8),
                 _buildTextField(
+                  context: context,
                   controller: _abbreviationController,
                   hint: 'e.g. kg',
                   maxLength: 5,
                   validator: _validateAbbreviation,
-                  prefixIcon: const Icon(Icons.label_outline_rounded,
-                      size: 20, color: AppTheme.textHint),
+                  prefixIcon: Icon(Icons.label_outline_rounded,
+                      size: 20, color: c.textHint),
                 ),
 
                 const SizedBox(height: 36),
@@ -253,21 +256,21 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : Row(
+                        : const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 _isEditing
                                     ? 'Update Unit'
                                     : 'Create Unit',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.arrow_forward_rounded,
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_rounded,
                                   color: Colors.white, size: 18),
                             ],
                           ),
@@ -280,12 +283,12 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context, false),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                   ),
@@ -298,52 +301,55 @@ class _AddUnitScreenState extends State<AddUnitScreen> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
+  Widget _buildFieldLabel(String label, BuildContext context) {
+    final c = context.colors;
     return Text(
       label,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppTheme.textSecondary,
+        color: c.textSecondary,
         letterSpacing: 0.8,
       ),
     );
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required TextEditingController controller,
     required String hint,
     required int maxLength,
     required String? Function(String?)? validator,
     required Widget prefixIcon,
   }) {
+    final c = context.colors;
     return TextFormField(
       controller: controller,
       validator: validator,
       maxLength: maxLength,
       buildCounter: (_, {required currentLength, required isFocused, maxLength}) =>
           null,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.w500,
-        color: AppTheme.textPrimary,
+        color: c.textPrimary,
       ),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle:
-            const TextStyle(color: AppTheme.textHint, fontSize: 14),
+            TextStyle(color: c.textHint, fontSize: 14),
         prefixIcon: prefixIcon,
         filled: true,
-        fillColor: AppTheme.background,
+        fillColor: c.inputBackground,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
+          borderSide: BorderSide(color: c.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppTheme.border),
+          borderSide: BorderSide(color: c.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -34,10 +34,11 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: AppTheme.labelSmall),
+        Text(widget.label, style: c.labelSmall),
         const SizedBox(height: 8),
         TextFormField(
           controller: widget.controller,
@@ -46,12 +47,13 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
           textInputAction: widget.textInputAction, // Added textInputAction
           validator: widget.validator,
           maxLength: widget.maxLength,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
             fontWeight: FontWeight.w500,
           ),
-          decoration: AppTheme.inputDecoration(
+          decoration: AppTheme.inputDecorationOf(
+            context,
             hintText: widget.hintText,
             prefixIcon: widget.prefixIcon != null
                 ? Padding(
@@ -65,7 +67,7 @@ class _LabeledTextFieldState extends State<LabeledTextField> {
                       _obscureText
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: AppTheme.textHint,
+                      color: c.textHint,
                       size: 20,
                     ),
                     onPressed: () {

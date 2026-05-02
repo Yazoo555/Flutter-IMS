@@ -75,12 +75,13 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   }
 
   Widget _buildSectionCard(List<Widget> children) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,19 +92,20 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final selectedType = _movementTypes.firstWhere((t) => t.value == _movementType);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Adjust Stock',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+        title: Text('Adjust Stock',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: c.textPrimary)),
       ),
       body: Form(
         key: _formKey,
@@ -155,12 +157,13 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   }
 
   Widget _buildItemSummaryCard() {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Row(
         children: [
@@ -168,7 +171,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: c.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.inventory_2_rounded, size: 24, color: AppTheme.primary),
@@ -179,12 +182,12 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.item.name,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: c.textPrimary),
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Text(
                   'Current Stock: ${widget.item.currentStock.toStringAsFixed(widget.item.currentStock % 1 == 0 ? 0 : 2)} ${widget.item.unit?.abbreviation ?? ''}',
-                  style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                  style: TextStyle(fontSize: 13, color: c.textSecondary),
                 ),
               ],
             ),
@@ -195,6 +198,7 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   }
 
   Widget _buildMovementTypeSelector() {
+    final c = context.colors;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -206,20 +210,20 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
             duration: const Duration(milliseconds: 150),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected ? type.color.withOpacity(0.15) : AppTheme.background,
+              color: isSelected ? type.color.withOpacity(0.15) : c.background,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isSelected ? type.color : AppTheme.border),
+              border: Border.all(color: isSelected ? type.color : c.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(type.icon, size: 16, color: isSelected ? type.color : AppTheme.textHint),
+                Icon(type.icon, size: 16, color: isSelected ? type.color : c.textHint),
                 const SizedBox(width: 6),
                 Text(type.label,
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? type.color : AppTheme.textSecondary)),
+                        color: isSelected ? type.color : c.textSecondary)),
               ],
             ),
           ),

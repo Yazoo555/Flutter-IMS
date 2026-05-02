@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
-import '../../main.dart'; // for supabase client
+import '../../main.dart';
 import '../../models/inventory_models.dart';
 import 'package:intl/intl.dart';
 import '../../utils/report_pdf_helper.dart';
@@ -18,7 +18,7 @@ class _RecentMovementsReportScreenState
   bool _isLoading = true;
   String? _error;
   List<RecentMovement> _movements = [];
-  String _filter = 'recent'; // 'recent' or 'today'
+  String _filter = 'recent';
 
   final _fmt = NumberFormat('#,##0', 'en_US');
 
@@ -29,91 +29,56 @@ class _RecentMovementsReportScreenState
   }
 
   Future<void> _fetchData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
+    setState(() { _isLoading = true; _error = null; });
     try {
       final now = DateTime.now();
       final todayStr = DateFormat('yyyy-MM-dd').format(now);
-      final tomorrowStr =
-          DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1)));
-
+      final tomorrowStr = DateFormat('yyyy-MM-dd').format(now.add(const Duration(days: 1)));
       final query = supabase.from('recent_movements_with_value').select('*');
-
       final data = _filter == 'today'
-          ? await query
-              .gte('created_at', todayStr)
-              .lt('created_at', tomorrowStr)
-              .order('created_at', ascending: false)
-          : await query
-              .order('created_at', ascending: false)
-              .limit(20);
-
+          ? await query.gte('created_at', todayStr).lt('created_at', tomorrowStr).order('created_at', ascending: false)
+          : await query.order('created_at', ascending: false).limit(20);
       if (!mounted) return;
-
-      final movements = (data as List)
-          .map((e) => RecentMovement.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      setState(() {
-        _movements = movements;
-        _isLoading = false;
-      });
+      final movements = (data as List).map((e) => RecentMovement.fromJson(e as Map<String, dynamic>)).toList();
+      setState(() { _movements = movements; _isLoading = false; });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = 'Failed to load report data.';
-        _isLoading = false;
-      });
+      setState(() { _error = 'Failed to load report data.'; _isLoading = false; });
     }
   }
 
   Color _colorForType(String type) {
     switch (type) {
-      case 'purchase':
-        return const Color(0xFF10B981);
-      case 'sale':
-        return const Color(0xFF6366F1);
-      case 'adjustment':
-        return const Color(0xFFF59E0B);
-      case 'return':
-        return const Color(0xFF0EA5E9);
-      case 'damage':
-        return const Color(0xFFEF4444);
-      default:
-        return AppTheme.textSecondary;
+      case 'purchase': return const Color(0xFF10B981);
+      case 'sale': return const Color(0xFF6366F1);
+      case 'adjustment': return const Color(0xFFF59E0B);
+      case 'return': return const Color(0xFF0EA5E9);
+      case 'damage': return const Color(0xFFEF4444);
+      default: return AppTheme.textSecondary;
     }
   }
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'purchase':
-        return Icons.add_shopping_cart_rounded;
-      case 'sale':
-        return Icons.point_of_sale_rounded;
-      case 'adjustment':
-        return Icons.tune_rounded;
-      case 'return':
-        return Icons.keyboard_return_rounded;
-      case 'damage':
-        return Icons.warning_amber_rounded;
-      default:
-        return Icons.swap_horiz_rounded;
+      case 'purchase': return Icons.add_shopping_cart_rounded;
+      case 'sale': return Icons.point_of_sale_rounded;
+      case 'adjustment': return Icons.tune_rounded;
+      case 'return': return Icons.keyboard_return_rounded;
+      case 'damage': return Icons.warning_amber_rounded;
+      default: return Icons.swap_horiz_rounded;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Recent Movements',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Recent Movements', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: c.textPrimary)),
+        backgroundColor: c.surface,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.textPrimary),
+        iconTheme: IconThemeData(color: c.textPrimary),
         actions: [
           IconButton(
             icon: const Icon(Icons.download_rounded),
@@ -132,9 +97,10 @@ class _RecentMovementsReportScreenState
   }
 
   Widget _buildFilters() {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: AppTheme.surface,
+      color: c.surface,
       child: Row(
         children: [
           _buildFilterChip('Recent (Top 20)', 'recent'),
@@ -146,67 +112,40 @@ class _RecentMovementsReportScreenState
   }
 
   Widget _buildFilterChip(String label, String value) {
+    final c = context.colors;
     final isSelected = _filter == value;
     return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
-        if (selected) {
-          setState(() => _filter = value);
-          _fetchData();
-        }
+        if (selected) { setState(() => _filter = value); _fetchData(); }
       },
-      selectedColor: AppTheme.primaryLight,
+      selectedColor: c.primaryLight,
       labelStyle: TextStyle(
-        color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+        color: isSelected ? AppTheme.primary : c.textSecondary,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? AppTheme.primary : AppTheme.border,
-        ),
+        side: BorderSide(color: isSelected ? AppTheme.primary : c.border),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppTheme.primary));
-    }
-
+    final c = context.colors;
+    if (_isLoading) return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
-              const SizedBox(height: 12),
-              Text(_error!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppTheme.textSecondary)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _fetchData,
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
+      return Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.error_outline_rounded, size: 48, color: c.textHint),
+        const SizedBox(height: 12),
+        Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: c.textSecondary)),
+        const SizedBox(height: 16),
+        ElevatedButton(onPressed: _fetchData, child: const Text('Retry')),
+      ])));
     }
-
-    if (_movements.isEmpty) {
-      return const Center(
-        child: Text('No movements found.',
-            style: TextStyle(color: AppTheme.textSecondary)),
-      );
-    }
+    if (_movements.isEmpty) return Center(child: Text('No movements found.', style: TextStyle(color: c.textSecondary)));
 
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -214,165 +153,61 @@ class _RecentMovementsReportScreenState
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final move = _movements[index];
-        final isDeficit =
-            move.movementType == 'sale' || move.movementType == 'damage';
+        final isDeficit = move.movementType == 'sale' || move.movementType == 'damage';
         final color = _colorForType(move.movementType);
 
         return Card(
-          elevation: 0,
-          margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: AppTheme.border, width: 1),
-          ),
-          color: AppTheme.surface,
+          elevation: 0, margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: c.border, width: 1)),
+          color: c.surface,
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Header row ──────────────────────────────────────────────
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(_iconForType(move.movementType),
-                          color: color, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            move.itemName,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                                color: AppTheme.textPrimary),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            DateFormat('MMM dd, yyyy  HH:mm')
-                                .format(move.createdAt.toLocal()),
-                            style: const TextStyle(
-                                fontSize: 12, color: AppTheme.textSecondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Type badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        move.movementType.toUpperCase(),
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: color),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // ── Divider ──────────────────────────────────────────────────
-                const Divider(height: 1, color: AppTheme.border),
-                const SizedBox(height: 10),
-                // ── Value row ────────────────────────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetric(
-                      'Qty',
-                      '${isDeficit ? '-' : '+'}${move.quantity % 1 == 0 ? move.quantity.toInt() : move.quantity}',
-                      isDeficit ? AppTheme.errorColor : color,
-                    ),
-                    _buildMetric(
-                      'Purchase Price',
-                      'Rs ${_fmt.format(move.purchasePrice)}',
-                      AppTheme.textPrimary,
-                    ),
-                    _buildMetric(
-                      'Sales Price',
-                      'Rs ${_fmt.format(move.salesPrice)}',
-                      AppTheme.textPrimary,
-                    ),
-                    _buildMetric(
-                      'Value',
-                      'Rs ${_fmt.format(move.transactionValue)}',
-                      isDeficit ? AppTheme.errorColor : const Color(0xFF10B981),
-                      bold: true,
-                    ),
-                  ],
-                ),
-                if (move.reference != null && move.reference!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.label_outline_rounded,
-                          size: 13, color: AppTheme.textHint),
-                      const SizedBox(width: 4),
-                      Text(
-                        move.reference!,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppTheme.textSecondary),
-                      ),
-                    ],
-                  ),
-                ],
-                if (move.notes != null && move.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.notes_rounded,
-                          size: 13, color: AppTheme.textHint),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          move.notes!,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppTheme.textSecondary),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Container(width: 44, height: 44, decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  child: Icon(_iconForType(move.movementType), color: color, size: 20)),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(move.itemName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: c.textPrimary)),
+                  const SizedBox(height: 2),
+                  Text(DateFormat('MMM dd, yyyy  HH:mm').format(move.createdAt.toLocal()), style: TextStyle(fontSize: 12, color: c.textSecondary)),
+                ])),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Text(move.movementType.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color))),
+              ]),
+              const SizedBox(height: 12),
+              Divider(height: 1, color: c.border),
+              const SizedBox(height: 10),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                _buildMetric('Qty', '${isDeficit ? '-' : '+'}${move.quantity % 1 == 0 ? move.quantity.toInt() : move.quantity}', isDeficit ? AppTheme.errorColor : color),
+                _buildMetric('Purchase Price', 'Rs ${_fmt.format(move.purchasePrice)}', c.textPrimary),
+                _buildMetric('Sales Price', 'Rs ${_fmt.format(move.salesPrice)}', c.textPrimary),
+                _buildMetric('Value', 'Rs ${_fmt.format(move.transactionValue)}', isDeficit ? AppTheme.errorColor : const Color(0xFF10B981), bold: true),
+              ]),
+              if (move.reference != null && move.reference!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Row(children: [Icon(Icons.label_outline_rounded, size: 13, color: c.textHint), const SizedBox(width: 4),
+                  Text(move.reference!, style: TextStyle(fontSize: 12, color: c.textSecondary))]),
               ],
-            ),
+              if (move.notes != null && move.notes!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(children: [Icon(Icons.notes_rounded, size: 13, color: c.textHint), const SizedBox(width: 4),
+                  Expanded(child: Text(move.notes!, style: TextStyle(fontSize: 12, color: c.textSecondary)))]),
+              ],
+            ]),
           ),
         );
       },
     );
   }
 
-  Widget _buildMetric(String label, String value, Color valueColor,
-      {bool bold = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style:
-                const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: bold ? FontWeight.w700 : FontWeight.w600,
-            color: valueColor,
-          ),
-        ),
-      ],
-    );
+  Widget _buildMetric(String label, String value, Color valueColor, {bool bold = false}) {
+    final c = context.colors;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: TextStyle(fontSize: 11, color: c.textSecondary)),
+      const SizedBox(height: 2),
+      Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.w700 : FontWeight.w600, color: valueColor)),
+    ]);
   }
 }

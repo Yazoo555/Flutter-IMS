@@ -107,31 +107,32 @@ class _UnitsScreenState extends State<UnitsScreen> {
   }
 
   Future<bool> _showDeleteDialog(String name, String abbreviation) async {
+    final c = context.colors;
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: c.surface,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16)),
-            title: const Text(
+            title: Text(
               'Delete Unit',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: c.textPrimary,
               ),
             ),
             content: RichText(
               text: TextSpan(
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: c.textSecondary),
                 children: [
                   const TextSpan(text: 'Are you sure you want to delete '),
                   TextSpan(
                     text: '$name ($abbreviation)',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary),
+                        color: c.textPrimary),
                   ),
                   const TextSpan(text: '? This cannot be undone.'),
                 ],
@@ -140,12 +141,12 @@ class _UnitsScreenState extends State<UnitsScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel',
-                    style: TextStyle(color: AppTheme.textSecondary)),
+                child: Text('Cancel',
+                    style: TextStyle(color: c.textSecondary)),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
+                child: const Text(
                   'Delete',
                   style: TextStyle(
                     color: AppTheme.errorColor,
@@ -185,28 +186,29 @@ class _UnitsScreenState extends State<UnitsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Units',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppTheme.textSecondary, size: 22),
+            icon: Icon(Icons.refresh_rounded,
+                color: c.textSecondary, size: 22),
             onPressed: _fetchUnits,
             tooltip: 'Refresh',
           ),
@@ -231,6 +233,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
   }
 
   Widget _buildBody() {
+    final c = context.colors;
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppTheme.primary),
@@ -244,14 +247,14 @@ class _UnitsScreenState extends State<UnitsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: c.textHint),
               const SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -279,26 +282,26 @@ class _UnitsScreenState extends State<UnitsScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppTheme.primaryLight,
+                color: c.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(Icons.straighten_rounded,
                   size: 36, color: AppTheme.primary),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Units Yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: c.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap "Add Unit" to create your first one.',
               style:
-                  TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+                  TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -338,12 +341,13 @@ class _UnitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Row(
         children: [
@@ -352,7 +356,7 @@ class _UnitTile extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: c.primaryLight,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -377,18 +381,18 @@ class _UnitTile extends StatelessWidget {
               children: [
                 Text(
                   unit.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: c.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 Text(
                   'Abbreviation: ${unit.abbreviation}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppTheme.textSecondary),
+                  style: TextStyle(
+                      fontSize: 12, color: c.textSecondary),
                 ),
               ],
             ),
@@ -396,8 +400,8 @@ class _UnitTile extends StatelessWidget {
 
           // Actions
           IconButton(
-            icon: const Icon(Icons.edit_outlined,
-                size: 20, color: AppTheme.textSecondary),
+            icon: Icon(Icons.edit_outlined,
+                size: 20, color: c.textSecondary),
             onPressed: onEdit,
             tooltip: 'Edit',
             splashRadius: 20,

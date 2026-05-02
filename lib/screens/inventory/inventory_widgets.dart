@@ -25,6 +25,7 @@ class InventoryFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final color = warningColor ? const Color(0xFFF59E0B) : AppTheme.primary;
     return GestureDetector(
       onTap: onTap,
@@ -32,16 +33,16 @@ class InventoryFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? color : AppTheme.surface,
+          color: selected ? color : c.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : AppTheme.border),
+          border: Border.all(color: selected ? color : c.border),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected ? Colors.white : c.textSecondary,
           ),
         ),
       ),
@@ -69,61 +70,64 @@ class ItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.surface,
+          color: c.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: item.isLowStock
                 ? const Color(0xFFF59E0B).withOpacity(0.5)
-                : AppTheme.border,
+                : c.border,
           ),
         ),
         child: Column(
           children: [
-            _buildMainRow(),
-            _buildBottomBar(),
+            _buildMainRow(context),
+            _buildBottomBar(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMainRow() {
+  Widget _buildMainRow(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          _buildIconBadge(),
+          _buildIconBadge(context),
           const SizedBox(width: 12),
-          Expanded(child: _buildItemInfo()),
-          _buildPopupMenu(),
+          Expanded(child: _buildItemInfo(context)),
+          _buildPopupMenu(context),
         ],
       ),
     );
   }
 
-  Widget _buildIconBadge() {
+  Widget _buildIconBadge(BuildContext context) {
+    final c = context.colors;
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
         color: item.isActive
-            ? AppTheme.primaryLight
-            : AppTheme.border.withOpacity(0.3),
+            ? c.primaryLight
+            : c.border.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
         Icons.inventory_2_rounded,
         size: 24,
-        color: item.isActive ? AppTheme.primary : AppTheme.textHint,
+        color: item.isActive ? AppTheme.primary : c.textHint,
       ),
     );
   }
 
-  Widget _buildItemInfo() {
+  Widget _buildItemInfo(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -135,14 +139,14 @@ class ItemTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: item.isActive ? AppTheme.textPrimary : AppTheme.textHint,
+                  color: item.isActive ? c.textPrimary : c.textHint,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             if (!item.isActive) ...[
               const SizedBox(width: 6),
-              _StatusBadge(label: 'Inactive', color: AppTheme.border.withOpacity(0.5), textColor: AppTheme.textHint),
+              _StatusBadge(label: 'Inactive', color: c.border.withOpacity(0.5), textColor: c.textHint),
             ],
             if (item.isLowStock) ...[
               const SizedBox(width: 6),
@@ -155,28 +159,30 @@ class ItemTile extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 3),
-        _buildSubtitle(),
+        _buildSubtitle(context),
       ],
     );
   }
 
-  Widget _buildSubtitle() {
+  Widget _buildSubtitle(BuildContext context) {
+    final c = context.colors;
     final hasSku = item.sku != null && item.sku!.isNotEmpty;
 
     return Row(
       children: [
         if (hasSku)
           Text('SKU: ${item.sku}',
-              style: const TextStyle(fontSize: 11, color: AppTheme.textHint)),
+              style: TextStyle(fontSize: 11, color: c.textHint)),
       ],
     );
   }
 
-  Widget _buildPopupMenu() {
+  Widget _buildPopupMenu(BuildContext context) {
+    final c = context.colors;
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert_rounded,
-          size: 20, color: AppTheme.textSecondary),
-      color: AppTheme.surface,
+      icon: Icon(Icons.more_vert_rounded,
+          size: 20, color: c.textSecondary),
+      color: c.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (val) {
         if (val == 'edit') onEdit();
@@ -184,13 +190,13 @@ class ItemTile extends StatelessWidget {
         if (val == 'delete') onDelete();
       },
       itemBuilder: (_) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'edit',
           child: Row(children: [
-            Icon(Icons.edit_outlined, size: 18, color: AppTheme.textSecondary),
-            SizedBox(width: 10),
+            Icon(Icons.edit_outlined, size: 18, color: c.textSecondary),
+            const SizedBox(width: 10),
             Text('Edit',
-                style: TextStyle(fontSize: 14, color: AppTheme.textPrimary)),
+                style: TextStyle(fontSize: 14, color: c.textPrimary)),
           ]),
         ),
         PopupMenuItem(
@@ -201,12 +207,12 @@ class ItemTile extends StatelessWidget {
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               size: 18,
-              color: AppTheme.textSecondary,
+              color: c.textSecondary,
             ),
             const SizedBox(width: 10),
             Text(
               item.isActive ? 'Deactivate' : 'Activate',
-              style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+              style: TextStyle(fontSize: 14, color: c.textPrimary),
             ),
           ]),
         ),
@@ -224,13 +230,14 @@ class ItemTile extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(BuildContext context) {
+    final c = context.colors;
     final stockValue =
         '${item.currentStock.toStringAsFixed(item.currentStock % 1 == 0 ? 0 : 1)} ${item.unit?.abbreviation ?? ''}';
 
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.background.withOpacity(0.5),
+        color: c.background.withOpacity(0.5),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(14),
           bottomRight: Radius.circular(14),
@@ -310,11 +317,12 @@ class StatBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 10, color: AppTheme.textHint)),
+            style: TextStyle(fontSize: 10, color: c.textHint)),
         Text(value,
             style: TextStyle(
                 fontSize: 12, fontWeight: FontWeight.w700, color: color)),
@@ -332,14 +340,15 @@ class SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: AppTheme.textHint,
+          color: c.textHint,
           letterSpacing: 0.8,
         ),
       ),
@@ -371,39 +380,39 @@ class FormFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary)),
+                color: c.textSecondary)),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
-          style: const TextStyle(fontSize: 14, color: AppTheme.textPrimary),
+          style: TextStyle(fontSize: 14, color: c.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle:
-                const TextStyle(fontSize: 14, color: AppTheme.textHint),
+            hintStyle: TextStyle(fontSize: 14, color: c.textHint),
             prefixText: prefix,
-            prefixStyle: const TextStyle(
-                fontSize: 14, color: AppTheme.textSecondary),
+            prefixStyle: TextStyle(
+                fontSize: 14, color: c.textSecondary),
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: c.surface,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: c.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: c.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -447,37 +456,38 @@ class DropdownFieldWidget<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textSecondary)),
+                color: c.textSecondary)),
         const SizedBox(height: 6),
         DropdownButtonFormField<T>(
           value: value,
           items: items,
           onChanged: onChanged,
           hint: Text(hint,
-              style: const TextStyle(
-                  fontSize: 14, color: AppTheme.textHint)),
-          style: const TextStyle(
-              fontSize: 14, color: AppTheme.textPrimary),
-          dropdownColor: AppTheme.surface,
+              style: TextStyle(
+                  fontSize: 14, color: c.textHint)),
+          style: TextStyle(
+              fontSize: 14, color: c.textPrimary),
+          dropdownColor: c.surface,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppTheme.surface,
+            fillColor: c.surface,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: c.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.border),
+              borderSide: BorderSide(color: c.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

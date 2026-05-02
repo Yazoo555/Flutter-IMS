@@ -155,8 +155,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       body: SafeArea(
         child: AuthResponsiveLayout(
           formContent: _buildFormPanel(context),
@@ -203,6 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // ─── Step 1: Enter Email ──────────────────────────────────────────────────
 
   Widget _buildEmailStep(BuildContext context) {
+    final c = context.colors;
     return Form(
       key: _emailFormKey,
       child: Column(
@@ -214,11 +216,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(1, 2),
           const SizedBox(height: 20),
-          const Text('Forgot Password?', style: AppTheme.heading1),
+          Text('Forgot Password?', style: c.heading1),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             "Enter your registered email address and we'll send you a one-time password (OTP) to reset your password.",
-            style: AppTheme.bodyMedium,
+            style: c.bodyMedium,
           ),
           const SizedBox(height: 36),
           LabeledTextField(
@@ -227,9 +229,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             maxLength: 35,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.mail_outline_rounded,
-              color: AppTheme.textHint,
+              color: c.textHint,
               size: 20,
             ),
             validator: _validateEmail,
@@ -245,7 +247,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Center(
             child: GestureDetector(
               onTap: () => Navigator.pop(context),
-              child: const Text('Back to Login', style: AppTheme.linkText),
+              child: Text('Back to Login', style: c.linkText),
             ),
           ),
           SizedBox(height: context.isDesktop ? 48 : 32),
@@ -257,6 +259,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // ─── Step 2: Reset Password ───────────────────────────────────────────────
 
   Widget _buildResetStep(BuildContext context) {
+    final c = context.colors;
     return Form(
       key: _resetFormKey,
       child: Column(
@@ -268,11 +271,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           SizedBox(height: context.isDesktop ? 40 : 52),
           _buildStepBadge(2, 2),
           const SizedBox(height: 20),
-          const Text('Reset Password', style: AppTheme.heading1),
+          Text('Reset Password', style: c.heading1),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Enter the OTP sent to your email and create a new password.',
-            style: AppTheme.bodyMedium,
+            style: c.bodyMedium,
           ),
           const SizedBox(height: 36),
 
@@ -283,9 +286,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.next,
             maxLength: 6,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.pin_rounded,
-              color: AppTheme.textHint,
+              color: c.textHint,
               size: 20,
             ),
             validator: (value) {
@@ -314,9 +317,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _newPasswordController,
                     isPassword: true,
                     maxLength: 10,
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.lock_outline_rounded,
-                      color: AppTheme.textHint,
+                      color: c.textHint,
                       size: 20,
                     ),
                     validator: _validatePassword,
@@ -330,9 +333,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _confirmPasswordController,
                     isPassword: true,
                     maxLength: 10,
-                    prefixIcon: const Icon(
+                    prefixIcon: Icon(
                       Icons.lock_outline_rounded,
-                      color: AppTheme.textHint,
+                      color: c.textHint,
                       size: 20,
                     ),
                     validator: (value) {
@@ -355,9 +358,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               controller: _newPasswordController,
               isPassword: true,
               maxLength: 10,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
-                color: AppTheme.textHint,
+                color: c.textHint,
                 size: 20,
               ),
               validator: _validatePassword,
@@ -369,9 +372,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               controller: _confirmPasswordController,
               isPassword: true,
               maxLength: 10,
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
-                color: AppTheme.textHint,
+                color: c.textHint,
                 size: 20,
               ),
               validator: (value) {
@@ -390,9 +393,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: AppTheme.primaryLighter,
+              color: c.primaryLighter,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.primaryLight),
+              border: Border.all(color: c.primaryLight),
             ),
             child: Row(
               children: [
@@ -402,9 +405,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Expanded(
                   child: Text(
                     'Password must be 8-10 characters long and contain both letters and numbers',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.textSecondary,
+                      color: c.textSecondary,
                       height: 1.4,
                     ),
                   ),
@@ -429,6 +432,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // ─── Step 3: Success ──────────────────────────────────────────────────────
 
   Widget _buildSuccessStep(BuildContext context) {
+    final c = context.colors;
     return Column(
       key: const ValueKey('success'),
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -440,9 +444,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
           decoration: BoxDecoration(
-            color: AppTheme.primaryLighter,
+            color: c.primaryLighter,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppTheme.primaryLight, width: 1),
+            border: Border.all(color: c.primaryLight, width: 1),
             boxShadow: context.isDesktop
                 ? [
                     BoxShadow(
@@ -469,15 +473,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Password Reset!',
-                style: AppTheme.heading2,
+                style: c.heading2,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Your password has been updated successfully. You can now log in with your new password.',
-                style: AppTheme.bodyMedium,
+                style: c.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -504,6 +508,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   // ─── Shared Widgets ───────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
+    final c = context.colors;
     return Row(
       children: [
         if (!context.isDesktop) const AppLogo(),
@@ -519,9 +524,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 });
               }
             },
-            child: const Icon(
+            child: Icon(
               Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary,
+              color: c.textSecondary,
               size: 20,
             ),
           ),
@@ -530,12 +535,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildStepBadge(int current, int total) {
+    final c = context.colors;
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppTheme.primaryLight,
+            color: c.primaryLight,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -564,7 +570,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: current / total,
-              backgroundColor: AppTheme.primaryLight,
+              backgroundColor: c.primaryLight,
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppTheme.primary),
               minHeight: 4,

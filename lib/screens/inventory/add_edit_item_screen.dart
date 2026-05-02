@@ -166,12 +166,13 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   }
 
   Widget _buildSectionCard(List<Widget> children) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,22 +215,23 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           _isEditing ? 'Edit Item' : 'Add Item',
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary),
+              color: c.textPrimary),
         ),
       ),
       body: _isLoadingMeta
@@ -368,4 +370,3 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     );
   }
 }
-

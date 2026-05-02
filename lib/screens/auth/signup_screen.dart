@@ -165,8 +165,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       body: SafeArea(
         child: AuthResponsiveLayout(
           formContent: _buildFormPanel(context),
@@ -176,6 +177,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildFormPanel(BuildContext context) {
+    final c = context.colors;
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
         horizontal: context.isDesktop ? 48 : 24,
@@ -198,11 +200,11 @@ class _SignupScreenState extends State<SignupScreen> {
   ],
 ),  
               SizedBox(height: context.isDesktop ? 16 : 44),
-              const Text('Create Account', style: AppTheme.heading1),
+              Text('Create Account', style: c.heading1),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Fill in your details to get started.',
-                style: AppTheme.bodyMedium,
+                style: c.bodyMedium,
               ),
               const SizedBox(height: 36),
 
@@ -217,9 +219,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         hintText: 'Enter your username',
                         controller: _usernameController,
                         maxLength: 35,
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.person_outline_rounded,
-                          color: AppTheme.textHint,
+                          color: c.textHint,
                           size: 20,
                         ),
                         validator: _validateUsername,
@@ -233,9 +235,9 @@ class _SignupScreenState extends State<SignupScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         maxLength: 35,
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.mail_outline_rounded,
-                          color: AppTheme.textHint,
+                          color: c.textHint,
                           size: 20,
                         ),
                         validator: _validateEmail,
@@ -250,9 +252,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: 'Enter your username',
                   controller: _usernameController,
                   maxLength: 35,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.person_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: c.textHint,
                     size: 20,
                   ),
                   validator: _validateUsername,
@@ -264,9 +266,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   maxLength: 35,
-                  prefixIcon: const Icon(
+                  prefixIcon: Icon(
                     Icons.mail_outline_rounded,
-                    color: AppTheme.textHint,
+                    color: c.textHint,
                     size: 20,
                   ),
                   validator: _validateEmail,
@@ -281,9 +283,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _passwordController,
                 isPassword: true,
                 maxLength: 10,
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.lock_outline_rounded,
-                  color: AppTheme.textHint,
+                  color: c.textHint,
                   size: 20,
                 ),
                 validator: _validatePassword,
@@ -294,9 +296,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLighter,
+                  color: c.primaryLighter,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.primaryLight),
+                  border: Border.all(color: c.primaryLight),
                 ),
                 child: Row(
                   children: [
@@ -309,9 +311,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     Expanded(
                       child: Text(
                         'Password must be 8-10 characters long and contain both letters and numbers',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppTheme.textSecondary,
+                          color: c.textSecondary,
                           height: 1.4,
                         ),
                       ),
@@ -330,23 +332,23 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
 
               const SizedBox(height: 36),
-              const Divider(color: AppTheme.divider, height: 1),
+              Divider(color: c.divider, height: 1),
               const SizedBox(height: 24),
 
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Already have an account? ',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppTheme.textSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Text('Log In', style: AppTheme.linkText),
+                      child: Text('Log In', style: c.linkText),
                     ),
                   ],
                 ),

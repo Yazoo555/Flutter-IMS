@@ -11,24 +11,25 @@ class ReportsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        title: const Text('Reports',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
-        backgroundColor: AppTheme.surface,
+        title: Text('Reports',
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: c.textPrimary)),
+        backgroundColor: c.surface,
         elevation: 0,
         centerTitle: false,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
-          const Text(
+          Text(
             'Analytics & Records',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textSecondary,
+              color: c.textSecondary,
               letterSpacing: 0.5,
             ),
           ),
@@ -37,52 +38,40 @@ class ReportsScreen extends StatelessWidget {
             title: 'Recent Movements',
             subtitle: 'View all simple inventory transactions',
             icon: Icons.history_rounded,
-            iconColor: const Color(0xFF6366F1), // Indigo
+            iconColor: const Color(0xFF6366F1),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const RecentMovementsReportScreen()),
-              );
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const RecentMovementsReportScreen()));
             },
           ),
           ReportDashboardCard(
             title: 'Item Movements',
             subtitle: 'Detailed movements for an item by date',
             icon: Icons.calendar_month_rounded,
-            iconColor: const Color(0xFF10B981), // Emerald
+            iconColor: const Color(0xFF10B981),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const ItemMovementsReportScreen()),
-              );
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ItemMovementsReportScreen()));
             },
           ),
           ReportDashboardCard(
             title: 'Daily Summary',
             subtitle: 'Day-by-day stock summaries for items',
             icon: Icons.insert_chart_rounded,
-            iconColor: const Color(0xFFF59E0B), // Amber
+            iconColor: const Color(0xFFF59E0B),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const DailySummaryReportScreen()),
-              );
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const DailySummaryReportScreen()));
             },
           ),
           ReportDashboardCard(
             title: 'Monthly Report',
             subtitle: 'Total purchases, sales and adjustments per month',
             icon: Icons.poll_rounded,
-            iconColor: const Color(0xFF0EA5E9), // Sky Blue
+            iconColor: const Color(0xFF0EA5E9),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const MonthlyStockReportScreen()),
-              );
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const MonthlyStockReportScreen()));
             },
           ),
         ],

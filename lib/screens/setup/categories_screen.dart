@@ -127,38 +127,39 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<bool> _showDeleteDialog(String name) async {
+    final c = context.colors;
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: AppTheme.surface,
+            backgroundColor: c.surface,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Text(
+            title: Text(
               'Delete Category',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: c.textPrimary,
               ),
             ),
             content: Text(
               'Are you sure you want to delete "$name"? This cannot be undone.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: c.textSecondary,
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: AppTheme.textSecondary),
+                  style: TextStyle(color: c.textSecondary),
                 ),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text(
+                child: const Text(
                   'Delete',
                   style: TextStyle(
                     color: AppTheme.errorColor,
@@ -196,28 +197,29 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.background,
+        backgroundColor: c.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textSecondary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: c.textSecondary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Categories',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+            color: c.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: AppTheme.textSecondary, size: 22),
+            icon: Icon(Icons.refresh_rounded,
+                color: c.textSecondary, size: 22),
             onPressed: _fetchCategories,
             tooltip: 'Refresh',
           ),
@@ -242,6 +244,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Widget _buildBody() {
+    final c = context.colors;
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: AppTheme.primary),
@@ -255,14 +258,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppTheme.textHint),
+              Icon(Icons.error_outline_rounded,
+                  size: 48, color: c.textHint),
               const SizedBox(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: 14, color: c.textSecondary),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -297,18 +300,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   size: 36, color: Color(0xFF0EA5E9)),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Categories Yet',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: c.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
+            Text(
               'Tap "Add Category" to create your first one.',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              style: TextStyle(fontSize: 14, color: c.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],
@@ -348,14 +351,15 @@ class _CategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     const tileColor = Color(0xFF0EA5E9);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
+        border: Border.all(color: c.border),
       ),
       child: Row(
         children: [
@@ -382,10 +386,10 @@ class _CategoryTile extends StatelessWidget {
                     Flexible(
                       child: Text(
                         category.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.textPrimary,
+                          color: c.textPrimary,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -416,8 +420,8 @@ class _CategoryTile extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     category.description!,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppTheme.textSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: c.textSecondary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -429,8 +433,8 @@ class _CategoryTile extends StatelessWidget {
           // Actions
           if (!category.isDefault) ...[
             IconButton(
-              icon: const Icon(Icons.edit_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(Icons.edit_outlined,
+                  size: 20, color: c.textSecondary),
               onPressed: onEdit,
               tooltip: 'Edit',
               splashRadius: 20,
@@ -445,8 +449,8 @@ class _CategoryTile extends StatelessWidget {
           ] else ...[
             // Default category — only allow editing
             IconButton(
-              icon: const Icon(Icons.edit_outlined,
-                  size: 20, color: AppTheme.textSecondary),
+              icon: Icon(Icons.edit_outlined,
+                  size: 20, color: c.textSecondary),
               onPressed: onEdit,
               tooltip: 'Edit',
               splashRadius: 20,

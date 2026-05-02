@@ -102,8 +102,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: c.background,
       body: SafeArea(
         // AuthResponsiveLayout shows a two-column layout on desktop,
         // and falls back to the plain form on mobile/tablet.
@@ -115,6 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildFormPanel(BuildContext context) {
+    final c = context.colors;
     return SingleChildScrollView(
       // On desktop the right panel has its own scroll; keep horizontal padding
       // tighter on wide screens via FormConstrainedBox below.
@@ -137,11 +139,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ] else
                 const SizedBox(height: 16),
 
-              const Text('Welcome Back', style: AppTheme.heading1),
+              Text('Welcome Back', style: c.heading1),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Sign in to manage your inventory.',
-                style: AppTheme.bodyMedium,
+                style: c.bodyMedium,
               ),
               const SizedBox(height: 36),
 
@@ -151,9 +153,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 maxLength: 35,
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.mail_outline_rounded,
-                  color: AppTheme.textHint,
+                  color: c.textHint,
                   size: 20,
                 ),
                 validator: _validateEmail,
@@ -166,9 +168,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passwordController,
                 isPassword: true,
                 maxLength: 10,
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.lock_outline_rounded,
-                  color: AppTheme.textHint,
+                  color: c.textHint,
                   size: 20,
                 ),
                 validator: _validatePassword,
@@ -184,9 +186,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       builder: (_) => const ForgotPasswordScreen(),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Forgot Password?',
-                    style: AppTheme.linkText,
+                    style: c.linkText,
                   ),
                 ),
               ),
@@ -200,18 +202,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 36),
 
-              const Divider(color: AppTheme.divider, height: 1),
+              Divider(color: c.divider, height: 1),
               const SizedBox(height: 24),
 
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       "Don't have an account? ",
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppTheme.textSecondary,
+                        color: c.textSecondary,
                       ),
                     ),
                     GestureDetector(
@@ -221,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           builder: (_) => const SignupScreen(),
                         ),
                       ),
-                      child: const Text('Sign Up', style: AppTheme.linkText),
+                      child: Text('Sign Up', style: c.linkText),
                     ),
                   ],
                 ),
