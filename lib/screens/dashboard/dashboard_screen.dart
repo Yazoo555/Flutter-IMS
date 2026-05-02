@@ -182,10 +182,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildYtdSummaryRow(),
             const SizedBox(height: 20),
 
-            // ── Monthly Bar Chart ──────────────────────────────────────────
-            _buildSectionHeader('Monthly Overview', Icons.bar_chart_rounded),
+            // ── Overall Ratio ──────────────────────────────────────────────
+            _buildSectionHeader('Overall Purchase vs Sales', Icons.pie_chart_rounded),
             const SizedBox(height: 12),
-            _buildMonthlyBarChart(),
+            _buildPieChart(),
             const SizedBox(height: 20),
 
             // ── Recent Movements ───────────────────────────────────────────
@@ -297,61 +297,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ── Monthly Bar Chart ──────────────────────────────────────────────────────
+  // ── Monthly Chart ──────────────────────────────────────────────────────────
 
-  Widget _buildMonthlyBarChart() {
+  Widget _buildPieChart() {
     if (_loadingMonthly) {
       return _chartSkeleton();
     }
     if (_monthlyError != null || _monthlyReports.isEmpty) {
-      return _chartEmpty(_monthlyError ?? 'No monthly data yet');
+      return _chartEmpty(_monthlyError ?? 'No data yet');
     }
 
-    // Build groups — purchase (blue/green) vs sales (indigo) side by side
-    final groups = _monthlyReports.asMap().entries.map((e) {
-      final i = e.key;
-      final r = e.value;
-      final isTouched = i == _touchedMonthlyIndex;
-      const purchaseColor = Color(0xFF10B981);
-      const salesColor = Color(0xFF6366F1);
-      final maxVal = _monthlyReports
-          .map((r) =>
-              [r.totalPurchaseValue, r.totalSalesValue].reduce(
-                  (a, b) => a > b ? a : b))
-          .reduce((a, b) => a > b ? a : b);
+    const purchaseColor = Color(0xFF10B981);
+    const salesColor = Color(0xFF6366F1);
 
-      // Scale to reasonable chart height (max 100)
-      double scale(double v) => maxVal == 0 ? 0 : (v / maxVal) * 100;
+    double totalPurchase = 0;
+    double totalSales = 0;
+    for (final r in _monthlyReports) {
+      totalPurchase += r.totalPurchaseValue;
+      totalSales += r.totalSalesValue;
+    }
+    
+    if (totalPurchase == 0 && totalSales == 0) {
+      return _chartEmpty('No purchase or sales data to show');
+    }
 
-      return BarChartGroupData(
-        x: i,
-        barRods: [
-          BarChartRodData(
-            toY: scale(r.totalPurchaseValue),
-            color: isTouched
-                ? purchaseColor
-                : purchaseColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.75),
-            width: 7,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
-          ),
-          BarChartRodData(
-            toY: scale(r.totalSalesValue),
-            color:
-                isTouched ? salesColor : salesColor.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.6 : 0.75),
-            width: 7,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
-          ),
-        ],
-        barsSpace: 3,
-      );
-    }).toList();
+    final isPurchaseTouched = _touchedMonthlyIndex == 0;
+    final isSalesTouched = _touchedMonthlyIndex == 1;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 16, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 20, 20, 16),
       decoration: BoxDecoration(
         color: AppTheme.getSurface(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.getBorder(context)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.getBorder(context).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,81 +349,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _legend('Sales Value', const Color(0xFF6366F1)),
             ],
           ),
-          const SizedBox(height: 12),
-          // Tooltip on touch
-          if (_touchedMonthlyIndex >= 0 &&
-              _touchedMonthlyIndex < _monthlyReports.length)
-            _buildBarTooltip(_monthlyReports[_touchedMonthlyIndex]),
-          if (_touchedMonthlyIndex >= 0) const SizedBox(height: 8),
+          const SizedBox(height: 24),
           SizedBox(
-            height: 160,
-            child: BarChart(
-              BarChartData(
-                maxY: 110,
-                barTouchData: BarTouchData(
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipColor: (_) => Colors.transparent,
-                    tooltipPadding: EdgeInsets.zero,
-                    getTooltipItem: (p1, p2, p3, p4) => null,
-                  ),
-                  touchCallback: (event, response) {
-                    setState(() {
-                      if (response == null ||
-                          response.spot == null ||
-                          event is FlTapUpEvent ||
-                          event is FlPointerExitEvent) {
-                        _touchedMonthlyIndex = -1;
-                      } else {
-                        _touchedMonthlyIndex =
-                            response.spot!.touchedBarGroupIndex;
-                      }
-                    });
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final idx = value.toInt();
-                        if (idx < 0 || idx >= _monthlyReports.length) {
-                          return const SizedBox();
-                        }
-                        final name = _monthlyReports[idx].monthName;
-                        final abbr =
-                            name.length >= 3 ? name.substring(0, 3) : name;
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            abbr,
-                            style: TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.getTextSecondary(context)),
-                          ),
-                        );
+            height: 240,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    pieTouchData: PieTouchData(
+                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                        setState(() {
+                          if (!event.isInterestedForInteractions ||
+                              pieTouchResponse == null ||
+                              pieTouchResponse.touchedSection == null) {
+                            _touchedMonthlyIndex = -1;
+                            return;
+                          }
+                          _touchedMonthlyIndex =
+                              pieTouchResponse.touchedSection!.touchedSectionIndex;
+                        });
                       },
-                      reservedSize: 28,
                     ),
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 4,
+                    centerSpaceRadius: 65,
+                    sections: [
+                      PieChartSectionData(
+                        color: purchaseColor,
+                        value: totalPurchase,
+                        title: isPurchaseTouched ? 'Buy' : '',
+                        radius: isPurchaseTouched ? 65 : 55,
+                        titleStyle: TextStyle(
+                          fontSize: isPurchaseTouched ? 16 : 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      PieChartSectionData(
+                        color: salesColor,
+                        value: totalSales,
+                        title: isSalesTouched ? 'Sell' : '',
+                        radius: isSalesTouched ? 65 : 55,
+                        titleStyle: TextStyle(
+                          fontSize: isSalesTouched ? 16 : 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
                 ),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (v) => FlLine(
-                    color: AppTheme.getBorder(context),
-                    strokeWidth: 0.8,
-                    dashArray: [4, 4],
+                if (_touchedMonthlyIndex >= 0)
+                  _buildPieTooltip(
+                    _touchedMonthlyIndex == 0 ? totalPurchase : totalSales,
+                    _touchedMonthlyIndex == 0 ? 'Purchase' : 'Sales',
+                    _touchedMonthlyIndex == 0 ? purchaseColor : salesColor,
                   ),
-                ),
-                borderData: FlBorderData(show: false),
-                barGroups: groups,
-              ),
+              ],
             ),
           ),
         ],
@@ -446,44 +414,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBarTooltip(MonthlyStockReport r) {
-    final isProfit = r.grossProfit >= 0;
-    final profitColor =
-        isProfit ? const Color(0xFF10B981) : AppTheme.errorColor;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.getBg(context),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppTheme.getBorder(context)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(r.monthName,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.getTextPrimary(context))),
-              Text(
-                  'Buy: Rs ${_fmt.format(r.totalPurchaseValue)}  '
-                  'Sell: Rs ${_fmt.format(r.totalSalesValue)}',
-                  style: TextStyle(
-                      fontSize: 11, color: AppTheme.getTextSecondary(context))),
-            ],
-          ),
-          Text(
-            '${isProfit ? '+' : ''}Rs ${_fmt.format(r.grossProfit)}',
+  Widget _buildPieTooltip(double value, String label, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label,
             style: TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: profitColor),
-          ),
-        ],
-      ),
+                fontWeight: FontWeight.w600,
+                color: AppTheme.getTextSecondary(context))),
+        const SizedBox(height: 4),
+        Text('Rs ${_fmt.format(value)}',
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: color)),
+      ],
     );
   }
 
@@ -705,10 +651,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _chartSkeleton() {
     return Container(
-      height: 200,
+      height: 320,
       decoration: BoxDecoration(
         color: AppTheme.getSurface(context),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.getBorder(context)),
       ),
       child: const Center(
