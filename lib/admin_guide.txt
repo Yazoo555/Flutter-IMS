@@ -1,0 +1,194 @@
+# Inventory Management System - Admin Guide
+
+Welcome to the Admin Guide for the Inventory Management System. This document provides clear, step-by-step instructions on how to navigate and manage all administrative functions within the app.
+
+---
+
+## 1. Dashboard Overview
+
+**Description:**  
+The Dashboard acts as the central hub of the application, providing real-time insights, financial trends (e.g., cash flow charts), and a quick glance at the latest logistics tasks.
+
+**Actions Available:**
+- View high-level metrics (total inventory, low stock alerts, revenue)
+- Monitor recent logistics tasks
+- Analyze cash flow trends
+
+**Steps to Access:**
+1. Open the app and log in with your Admin credentials.
+2. The app will land directly on the **Dashboard** tab.
+3. Scroll down to view the **Cash Flow Chart** and **Latest Logistics Tasks**.
+4. Pull down from the top of the screen to manually refresh the dashboard data.
+
+---
+
+## 2. Inventory Management
+
+**Description:**  
+This module allows admins to track, add, update, and remove items from the inventory. It ensures your stock levels are accurate and up-to-date.
+
+**Actions Available:**
+- View inventory list
+- Add a new inventory item
+- Edit existing item details
+- Delete an item
+
+### View Inventory
+**Steps:**
+1. Tap the **Inventory** tab in the bottom navigation bar.
+2. Scroll through the list or use the search bar to find specific items.
+3. Use the segmented control (e.g., "All", "In Stock", "Low Stock") to filter the list.
+
+### Add a New Inventory Item
+**Steps:**
+1. Go to the **Inventory** tab.
+2. Tap the floating **'+' (Add)** button in the bottom right corner.
+3. Fill in the item details in the form:
+   - Item Name
+   - SKU / Barcode
+   - Category
+   - Quantity
+   - Price
+4. Tap **Save Item**.
+
+### Edit or Delete an Item
+**Steps:**
+1. Go to the **Inventory** tab.
+2. Tap on the specific item you wish to modify.
+3. Tap the **Edit** icon (pencil) to update details or the **Delete** icon (trash can) to remove it.
+4. Confirm your changes when prompted.
+
+---
+
+## 3. Logistics & Suppliers
+
+**Description:**  
+The Logistics module helps manage the supply chain, including supplier information and operational tasks associated with logistics.
+
+**Actions Available:**
+- Manage suppliers (Add, Edit, Delete)
+- Manage logistics tasks (Create, Update, Complete)
+
+### Add a New Supplier
+**Steps:**
+1. Go to the **Logistics** tab in the navigation bar.
+2. Select the **Suppliers** section (via the top segmented control or tab).
+3. Tap the **Add Supplier** button.
+4. Fill in the supplier details:
+   - Name
+   - Contact Info (Email, Phone)
+   - Address
+5. Tap **Save**.
+
+### Create a Logistics Task
+**Steps:**
+1. Go to the **Logistics** tab.
+2. Select the **Tasks** section.
+3. Tap the **Create Task** button.
+4. Enter the task details:
+   - Task Title
+   - Assigned User/Driver
+   - Due Date
+   - Related Order/Supplier
+5. Tap **Save Task**.
+
+---
+
+## 4. Orders & Purchases
+
+**Description:**  
+This module tracks incoming purchase orders from suppliers and outgoing orders to customers.
+
+**Actions Available:**
+- View order history
+- Create a new purchase order
+- Update order status (Pending, Shipped, Delivered)
+
+### Create a Purchase Order
+**Steps:**
+1. Navigate to the **Orders** tab.
+2. Tap the floating **'+' (New Order)** button.
+3. Select a **Supplier** from the dropdown list.
+4. Add items to the order and specify quantities.
+5. Review the total cost and tap **Submit Order**.
+
+### Update Order Status
+**Steps:**
+1. Go to the **Orders** tab.
+2. Tap on an active order to view its details.
+3. Tap the **Update Status** button.
+4. Select the new status (e.g., "Delivered").
+5. Tap **Confirm** to save the new status.
+
+---
+
+## 5. Reports & Analytics
+
+**Description:**  
+The Reports module provides comprehensive data exports and analytics for monthly performance, sales, and stock movements.
+
+**Actions Available:**
+- View monthly cash flow and sales reports
+- Export data (PDF/CSV)
+
+### Generate a Monthly Report
+**Steps:**
+1. Open the sidebar menu (hamburger icon) or go to the **Reports** tab.
+2. Select **Monthly Report**.
+3. Choose the desired Month and Year from the date picker.
+4. Tap **Generate**.
+5. To save externally, tap the **Export** icon at the top right and select your preferred format (PDF or CSV).
+
+---
+
+## 6. User Management
+
+**Description:**  
+Admins can manage access levels, add new staff accounts, and revoke access for security purposes.
+
+**Actions Available:**
+- Add new users
+- Edit user roles
+- Force global session invalidation
+
+### Add a New User
+**Steps:**
+1. Navigate to the **Settings** or **Admin Panel** via the sidebar menu.
+2. Select **User Management**.
+3. Tap **Add User**.
+4. Enter the user's details:
+   - Full Name
+   - Email Address
+   - Temporary Password
+   - Role (e.g., Staff, Manager)
+5. Tap **Create User**.
+
+### Reset Password & Force Logout
+**Steps:**
+1. In the **User Management** screen, select a user.
+2. Tap **Reset Password**.
+3. Upon changing the password, the system will automatically trigger a session invalidation, forcing the user to log out across all devices.
+
+---
+
+## 7. Settings
+
+**Description:**  
+The Settings module allows admins to configure app-wide preferences, including UI themes and account settings.
+
+**Actions Available:**
+- Toggle Dark Mode
+- Edit Profile
+- Log Out
+
+### Toggle Dark Mode
+**Steps:**
+1. Go to the **Settings** tab or open the side menu.
+2. Locate the **Appearance** or **Theme** section.
+3. Toggle the **Dark Mode** switch to turn it on or off. *(Note: This preference is saved automatically and persists across app restarts).*
+
+### Secure Logout
+**Steps:**
+1. Go to the **Settings** tab.
+2. Scroll to the bottom and tap **Log Out**.
+3. Confirm the action when prompted to securely clear your local session data and return to the login screen.
