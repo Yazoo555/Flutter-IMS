@@ -309,20 +309,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     const purchaseColor = Color(0xFF10B981);
     const salesColor = Color(0xFF6366F1);
+    const profitColor = Color(0xFFF59E0B);
 
-    double totalPurchase = 0;
-    double totalSales = 0;
-    for (final r in _monthlyReports) {
-      totalPurchase += r.totalPurchaseValue;
-      totalSales += r.totalSalesValue;
-    }
+    final (totalPurchase, totalSales, totalProfit) = _ytdTotals;
     
-    if (totalPurchase == 0 && totalSales == 0) {
-      return _chartEmpty('No purchase or sales data to show');
+    if (totalPurchase == 0 && totalSales == 0 && totalProfit <= 0) {
+      return _chartEmpty('No significant data to show');
     }
-
-    final isPurchaseTouched = _touchedMonthlyIndex == 0;
-    final isSalesTouched = _touchedMonthlyIndex == 1;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 20, 16),
@@ -344,9 +337,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // Legend
           Wrap(
             spacing: 16,
+            runSpacing: 8,
             children: [
-              _legend('Purchase Value', const Color(0xFF10B981)),
-              _legend('Sales Value', const Color(0xFF6366F1)),
+              _legend('Purchase', purchaseColor),
+              _legend('Sales', salesColor),
+              if (totalProfit > 0) _legend('Profit', profitColor),
             ],
           ),
           const SizedBox(height: 24),
@@ -373,38 +368,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     borderData: FlBorderData(show: false),
                     sectionsSpace: 4,
-                    centerSpaceRadius: 65,
+                    centerSpaceRadius: 60,
                     sections: [
-                      PieChartSectionData(
-                        color: purchaseColor,
+                      _buildPieSection(
+                        index: 0,
                         value: totalPurchase,
-                        title: isPurchaseTouched ? 'Buy' : '',
-                        radius: isPurchaseTouched ? 65 : 55,
-                        titleStyle: TextStyle(
-                          fontSize: isPurchaseTouched ? 16 : 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        color: purchaseColor,
+                        title: 'Buy',
                       ),
-                      PieChartSectionData(
-                        color: salesColor,
+                      _buildPieSection(
+                        index: 1,
                         value: totalSales,
-                        title: isSalesTouched ? 'Sell' : '',
-                        radius: isSalesTouched ? 65 : 55,
-                        titleStyle: TextStyle(
-                          fontSize: isSalesTouched ? 16 : 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        color: salesColor,
+                        title: 'Sell',
                       ),
+                      if (totalProfit > 0)
+                        _buildPieSection(
+                          index: 2,
+                          value: totalProfit,
+                          color: profitColor,
+                          title: 'Profit',
+                        ),
                     ],
                   ),
                 ),
                 if (_touchedMonthlyIndex >= 0)
                   _buildPieTooltip(
-                    _touchedMonthlyIndex == 0 ? totalPurchase : totalSales,
-                    _touchedMonthlyIndex == 0 ? 'Purchase' : 'Sales',
-                    _touchedMonthlyIndex == 0 ? purchaseColor : salesColor,
+                    _getTouchedValue(totalPurchase, totalSales, totalProfit),
+                    _getTouchedLabel(),
+                    _getTouchedColor(purchaseColor, salesColor, profitColor),
+                  )
+                else
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('TOTAL',
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
+                              color: AppTheme.getTextSecondary(context))),
+                      const SizedBox(height: 2),
+                      Text('Rs ${_fmt.format(totalSales)}',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.getTextPrimary(context))),
+                    ],
                   ),
               ],
             ),
@@ -414,22 +424,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  PieChartSectionData _buildPieSection({
+    required int index,
+    required double value,
+    required Color color,
+    required String title,
+  }) {
+    final isTouched = _touchedMonthlyIndex == index;
+    final double radius = isTouched ? 75 : 60;
+    final double fontSize = isTouched ? 16 : 12;
+    final double opacity = isTouched ? 1.0 : 0.85;
+
+    return PieChartSectionData(
+      color: color.withOpacity(opacity),
+      value: value,
+      title: isTouched ? title : '',
+      radius: radius,
+      titleStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+        shadows: const [Shadow(color: Colors.black26, blurRadius: 2)],
+      ),
+      badgeWidget: isTouched 
+        ? Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 4)],
+            ),
+            child: Icon(Icons.touch_app_rounded, size: 12, color: color),
+          )
+        : null,
+      badgePositionPercentageOffset: 1.1,
+    );
+  }
+
+  double _getTouchedValue(double p, double s, double pr) {
+    if (_touchedMonthlyIndex == 0) return p;
+    if (_touchedMonthlyIndex == 1) return s;
+    return pr;
+  }
+
+  String _getTouchedLabel() {
+    if (_touchedMonthlyIndex == 0) return 'Purchase';
+    if (_touchedMonthlyIndex == 1) return 'Sales';
+    return 'Gross Profit';
+  }
+
+  Color _getTouchedColor(Color p, Color s, Color pr) {
+    if (_touchedMonthlyIndex == 0) return p;
+    if (_touchedMonthlyIndex == 1) return s;
+    return pr;
+  }
+
   Widget _buildPieTooltip(double value, String label, Color color) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.getTextSecondary(context))),
-        const SizedBox(height: 4),
-        Text('Rs ${_fmt.format(value)}',
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: color)),
-      ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.getTextSecondary(context))),
+          const SizedBox(height: 4),
+          Text('Rs ${_fmt.format(value)}',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: color)),
+        ],
+      ),
     );
   }
 
