@@ -66,18 +66,50 @@ class LogisticsService {
   static String? get userId => supabase.auth.currentUser?.id;
 
   // ── Session-wait helper ────────────────────────────────────────────────────
-  /// Waits up to ~5 s for Supabase to restore the persisted session on cold
-  /// start. Returns the Bearer token, or null if the session never arrived.
-  static Future<String?> _waitForAuthToken() async {
-    // Fast path: session already available.
-    if (_authToken != null) return _authToken;
+  /// Returns true when the current access token exists and won't expire within
+  /// the next 60 seconds.
+  static bool _isTokenValid() {
+    if (_authToken == null) return false;
+    final expiresAt = supabase.auth.currentSession?.expiresAt; // seconds since epoch
+    if (expiresAt == null) return true; // no expiry info → assume valid
+    final nowSecs = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return expiresAt > nowSecs + 60;
+  }
 
-    // Slow path: poll up to 10 × 500 ms = 5 s.
+  /// Waits up to ~5 s for Supabase to restore the persisted session on cold
+  /// start, and refreshes an expired token before returning.
+  /// Returns the Bearer token, or null if the session never arrived.
+  static Future<String?> _waitForAuthToken() async {
+    // Fast path: session already present and not expired.
+    if (_isTokenValid()) return _authToken;
+
+    // Token exists but is expired (or about to expire) — refresh it now.
+    // This is the main cause of the post-idle "Retry" state: after a long
+    // break Supabase restores the session from storage but the access token
+    // has expired.  Raw http calls don't trigger the SDK's auto-refresh, so
+    // we must do it explicitly.
+    if (_authToken != null && !_isTokenValid()) {
+      try {
+        await supabase.auth.refreshSession();
+        if (_isTokenValid()) return _authToken;
+      } catch (_) {
+        // Refresh failed — fall through to the polling loop.
+      }
+    }
+
+    // Slow path: session not yet restored on cold start — poll up to 5 s.
     for (int i = 0; i < 10; i++) {
       await Future<void>.delayed(const Duration(milliseconds: 500));
-      if (_authToken != null) return _authToken;
+      if (_isTokenValid()) return _authToken;
+      // Mid-poll refresh attempt if a session appeared but is already expired.
+      if (_authToken != null && !_isTokenValid()) {
+        try {
+          await supabase.auth.refreshSession();
+          if (_isTokenValid()) return _authToken;
+        } catch (_) {}
+      }
     }
-    return null; // Session genuinely absent — caller will get a 401 and can surface error.
+    return null;
   }
 
   // ── Shared headers ──────────────────────────────────────────────────────────
@@ -95,22 +127,35 @@ class LogisticsService {
 
   // ── Suppliers ───────────────────────────────────────────────────────────────
 
-  /// Fetch all suppliers. Returns cache when fresh; fetches network when stale.
+  /// Fetch all suppliers.
+  ///
+  /// Strategy (cache-first):
+  ///   • Fresh in-memory cache  → return immediately.
+  ///   • Stale or missing       → load disk cache if needed, then:
+  ///       – If stale cache exists and forceRefresh=false → return stale data
+  ///         NOW so the UI is never empty; the screen's background-refresh
+  ///         will update it silently.
+  ///       – If no cache at all, or forceRefresh=true    → hit network.
   static Future<List<Supplier>> getSuppliers({bool forceRefresh = false}) async {
-    // 1. Return valid in-memory cache immediately
+    // 1. Return valid in-memory cache immediately.
     if (!forceRefresh && hasSuppliersCache && !isSuppliersStale) {
       return _cachedSuppliers!;
     }
 
-    // 2. Hydrate from disk on cold start
+    // 2. Hydrate in-memory cache from disk if needed.
     if (!hasSuppliersCache) {
       await _loadSuppliersFromPrefs();
-      if (!forceRefresh && hasSuppliersCache && !isSuppliersStale) {
-        return _cachedSuppliers!;
-      }
     }
 
-    // 3. Fetch from network
+    // 3. Cache-first: return stale data immediately so the UI always has
+    //    something to show.  The screen's _refreshSuppliersInBackground()
+    //    (triggered when isSuppliersStale is true after this return) will
+    //    fetch fresh data silently — fixing the post-idle "Retry" state.
+    if (!forceRefresh && hasSuppliersCache) {
+      return _cachedSuppliers!;
+    }
+
+    // 4. No cache at all, or forceRefresh=true → fetch from network.
     final token = await _waitForAuthToken();
     final uri = Uri.parse('$_baseUrl/suppliers?order=name.asc');
     final response = await http.get(uri, headers: _buildHeaders(token));
@@ -189,24 +234,38 @@ class LogisticsService {
 
   // ── Logistics Tasks ─────────────────────────────────────────────────────────
 
-  /// Fetch all tasks. Returns cache when fresh; fetches network when stale.
-  /// NOTE: status filter bypasses cache and always hits network.
+  /// Fetch all tasks.
+  ///
+  /// Strategy (cache-first, same as getSuppliers):
+  ///   • Filtered views (non-"all") always bypass cache and hit network.
+  ///   • For the "all" view:
+  ///       – Fresh cache           → return immediately.
+  ///       – Stale cache available → return stale data NOW (cache-first) so
+  ///         the UI is never empty; background-refresh handles the update.
+  ///       – No cache              → hit network.
+  ///       – forceRefresh=true     → always hit network.
   static Future<List<LogisticsTask>> getAllTasksDetail({String? status, bool forceRefresh = false}) async {
     final isFiltered = status != null && status != 'all';
 
-    // Only use cache for the unfiltered ("all") view
+    // Cache logic only applies to the unfiltered "all" view.
     if (!isFiltered) {
+      // 1. Fresh in-memory cache.
       if (!forceRefresh && hasTasksCache && !isTasksStale) {
         return _cachedTasks!;
       }
+
+      // 2. Hydrate from disk if needed.
       if (!hasTasksCache) {
         await _loadTasksFromPrefs();
-        if (!forceRefresh && hasTasksCache && !isTasksStale) {
-          return _cachedTasks!;
-        }
+      }
+
+      // 3. Cache-first: return stale data immediately (see getSuppliers comment).
+      if (!forceRefresh && hasTasksCache) {
+        return _cachedTasks!;
       }
     }
 
+    // 4. Filtered view, no cache, or forceRefresh=true → fetch from network.
     String query = 'order=created_at.desc';
     if (isFiltered) {
       query += '&status=eq.$status';
@@ -224,7 +283,7 @@ class LogisticsService {
         .map((e) => LogisticsTask.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    // Only cache the full unfiltered list
+    // Only cache the full unfiltered list.
     if (!isFiltered) {
       _cachedTasks = tasks;
       _lastFetchTasks = DateTime.now();
