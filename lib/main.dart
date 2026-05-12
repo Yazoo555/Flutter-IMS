@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/dashboard/home_screen.dart';
 import 'services/theme_service.dart';
+import 'utils/proxy_helper.dart';
 
 const supabaseUrl = 'https://zinognrruckgcmrxgzro.supabase.co';
 const supabaseAnonKey =
@@ -12,6 +14,12 @@ const supabaseAnonKey =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Proxy for Burp Suite Interception
+  ProxyHelper.initialize();
+  if (kDebugMode) {
+    ProxyHelper.testProxy();
+  }
 
   await Supabase.initialize(
     url: supabaseUrl,
