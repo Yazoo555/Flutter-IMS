@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  network_security_config.xml
+  ────────────────────────────────────────────────────────────────────────────
+  PURPOSE (instrumentation / security testing only):
+    Android 7.0+ (API 24+) does NOT trust user-installed CA certificates in
+    release builds by default. This file overrides that restriction so that
+    tools like Burp Suite can intercept HTTPS traffic after you install their
+    CA certificate on the device.
+
+  REMOVE or REVERT before shipping to production:
+    Delete the android:networkSecurityConfig reference in AndroidManifest.xml
+    to restore the default (stricter) trust policy.
+  ────────────────────────────────────────────────────────────────────────────
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust the system (pre-installed) CA certificates -->
+            <certificates src="system" />
+            <!-- Trust user-installed CA certificates (e.g. Burp Suite CA) -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
