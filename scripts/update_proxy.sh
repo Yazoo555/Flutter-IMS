@@ -1,6 +1,6 @@
 #!/bin/bash
 # Quick script to update proxy IP when network changes
-# Generated: 20260514_080013
+# Generated: 20260514_090808
 
 cd "/media/yajju/DATA/NIMS/Flutter-IMS"
 

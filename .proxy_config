@@ -1,0 +1,4 @@
+# Proxy configuration saved on 20260514_090808
+PROXY_IP=192.168.100.11
+PROXY_PORT=8080
+PACKAGE_NAME=com.example.imsapp
