@@ -209,6 +209,11 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         }
       }
 
+      // Invalidate cache immediately so any screen showing tasks
+      // (including LogisticsScreen via IndexedStack) gets fresh data
+      // on next render — regardless of how this dialog was opened.
+      LogisticsService.invalidateTasks();
+
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
@@ -321,12 +326,9 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         controller: _titleController,
                         hint: 'e.g. Deliver materials',
                         icon: Icons.title_rounded,
-                        maxLength: 20,
+                        maxLength: 40,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Title is required';
-                          if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
-                            return 'Only letters and numbers allowed';
-                          }
                           return null;
                         },
                         textPrimary: textPrimary,
@@ -345,9 +347,6 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         maxLength: 120,
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Description is required';
-                          if (!RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
-                            return 'Only letters and numbers allowed';
-                          }
                           return null;
                         },
                         textPrimary: textPrimary,
@@ -436,9 +435,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                         maxLines: 2,
                         maxLength: 150,
                         validator: (v) {
-                          if (v != null && v.isNotEmpty && !RegExp(r'^[a-zA-Z0-9\s]+$').hasMatch(v)) {
-                            return 'Only letters and numbers allowed';
-                          }
+                          // Notes is optional — no character restriction
                           return null;
                         },
                         textPrimary: textPrimary,

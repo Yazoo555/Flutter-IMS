@@ -18,10 +18,10 @@ class LogisticsScreen extends StatefulWidget {
   const LogisticsScreen({super.key});
 
   @override
-  State<LogisticsScreen> createState() => _LogisticsScreenState();
+  State<LogisticsScreen> createState() => LogisticsScreenState();
 }
 
-class _LogisticsScreenState extends State<LogisticsScreen>
+class LogisticsScreenState extends State<LogisticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -62,6 +62,21 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     _supplierSearchController.dispose();
     _taskSearchController.dispose();
     super.dispose();
+  }
+
+  /// Called by HomeScreen when the user taps the Logistics tab.
+  /// If the tasks cache was invalidated (e.g. after a task was created/edited
+  /// from the Inventory flow), this triggers an immediate network refresh
+  /// so the user sees up-to-date data without needing to pull-to-refresh.
+  void refreshIfStale() {
+    if (LogisticsService.isTasksStale) {
+      setState(() {
+        _tasks = [];
+        _filteredTasks = [];
+        _isLoadingTasks = true;
+      });
+      _loadTasks(forceRefresh: true);
+    }
   }
 
   // ─── Suppliers Data ────────────────────────────────────────────────────────
@@ -325,15 +340,6 @@ class _LogisticsScreenState extends State<LogisticsScreen>
             selected: _supplierFilterStatus == 'active',
             onTap: () {
               setState(() => _supplierFilterStatus = 'active');
-              _applySupplierFilter();
-            },
-          ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: 'Inactive',
-            selected: _supplierFilterStatus == 'inactive',
-            onTap: () {
-              setState(() => _supplierFilterStatus = 'inactive');
               _applySupplierFilter();
             },
           ),
@@ -604,7 +610,14 @@ class _LogisticsScreenState extends State<LogisticsScreen>
     final result = await showDialog<bool>(context: context, builder: (_) => TaskFormDialog(supplierId: t.supplierId, task: t));
     if (result == true) {
       _showSnack('Task updated.');
+      // Invalidate cache and clear the in-memory list so a fresh API call
+      // is always triggered (fixes stale data after inventory actions).
       LogisticsService.invalidateTasks();
+      setState(() {
+        _tasks = [];
+        _filteredTasks = [];
+        _isLoadingTasks = true;
+      });
       _loadTasks(forceRefresh: true);
     }
   }

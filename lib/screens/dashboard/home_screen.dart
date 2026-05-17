@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   final List<int> _navHistory = [0];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<LogisticsScreenState> _logisticsKey = GlobalKey<LogisticsScreenState>();
 
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
@@ -408,11 +409,11 @@ class _HomeScreenState extends State<HomeScreen> {
       // ── Body ──────────────────────────────────────────────────────────
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          DashboardScreen(),
-          InventoryScreen(),
-          ReportsScreen(),
-          LogisticsScreen(),
+        children: [
+          const DashboardScreen(),
+          const InventoryScreen(),
+          const ReportsScreen(),
+          LogisticsScreen(key: _logisticsKey),
         ],
       ),
 
@@ -440,6 +441,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           _navHistory.remove(i);
                           _navHistory.add(i);
                         });
+                        // When switching to Logistics tab, trigger a refresh
+                        // if the tasks cache is stale (e.g. after inventory actions).
+                        if (i == 3) {
+                          _logisticsKey.currentState?.refreshIfStale();
+                        }
                       }
                     },
                     child: Column(
