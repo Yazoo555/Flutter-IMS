@@ -1,0 +1,5 @@
+The Inventory Management System (IMS) is a cross-platform Flutter application designed to streamline stock tracking, logistics coordination, and financial reporting. It utilizes a robust cloud backend powered by Supabase for authentication, real-time data persistence, and edge-computing AI capabilities.
+
+The system is architected to handle complex inventory workflows including multi-type stock movements (Purchase, Sale, Adjustment, Return, Damage), supplier management, and automated logistics task generation.
+
+
