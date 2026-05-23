@@ -135,7 +135,6 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
   }
 
   Future<bool> _showDeleteDialog(String name) async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(

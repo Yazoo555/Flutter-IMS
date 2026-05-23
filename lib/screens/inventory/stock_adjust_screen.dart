@@ -22,7 +22,6 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
   final _notesController = TextEditingController();
   final _referenceController = TextEditingController();
   String _movementType = 'purchase';
-  bool _createLogisticsTask = false;
   List<Supplier> _suppliers = [];
   bool _isSaving = false;
 

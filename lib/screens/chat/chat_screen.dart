@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart';
 

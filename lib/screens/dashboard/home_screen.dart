@@ -89,7 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final surfaceColor = AppTheme.getSurface(context);
     final textPrimary = AppTheme.getTextPrimary(context);
     final textSecondary = AppTheme.getTextSecondary(context);

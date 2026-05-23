@@ -19,7 +19,6 @@ class TaskDetailScreen extends StatefulWidget {
 
 class _TaskDetailScreenState extends State<TaskDetailScreen> {
   late LogisticsTask _task;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -29,17 +28,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   }
 
   Future<void> _refreshTask() async {
-    setState(() => _isLoading = true);
     try {
       final updatedTask = await LogisticsService.getTaskDetail(_task.id);
       if (mounted) {
         setState(() {
           _task = updatedTask;
-          _isLoading = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() {});
     }
   }
 

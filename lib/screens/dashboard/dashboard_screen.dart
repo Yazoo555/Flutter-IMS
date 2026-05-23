@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
-import '../../main.dart';
 import '../../models/inventory_models.dart';
 import '../setup/units_screen.dart';
 import '../setup/categories_screen.dart';
