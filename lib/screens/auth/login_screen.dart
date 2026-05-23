@@ -7,7 +7,6 @@ import '../../widgets/labeled_text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../utils/responsive_layout.dart'; // ← new
 import 'otp_screen.dart';
-import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -197,34 +196,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: _handleLogin,
                 showArrow: true,
                 isLoading: _isLoading,
-              ),
-              const SizedBox(height: 36),
-
-              Divider(color: AppTheme.getBorder(context), height: 1),
-              const SizedBox(height: 24),
-
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Don't have an account? ",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.getTextSecondary(context),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SignupScreen(),
-                        ),
-                      ),
-                      child: Text('Sign Up', style: AppTheme.linkText(context)),
-                    ),
-                  ],
-                ),
               ),
               SizedBox(height: context.isDesktop ? 48 : 32),
             ],

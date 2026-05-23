@@ -247,9 +247,13 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                       label: 'Item Name *',
                       controller: _nameController,
                       hint: 'e.g. Brown Rice 1kg',
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Name is required'
-                          : null,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Name is required';
+                        if (!RegExp(r'[a-zA-Z]').hasMatch(v.trim())) {
+                          return 'Name must contain at least one letter';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     FormFieldWidget(
