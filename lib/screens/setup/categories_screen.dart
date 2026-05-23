@@ -12,6 +12,7 @@ class Category {
   final String name;
   final String? description;
   final bool isDefault;
+  final bool hasExpiry;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -21,6 +22,7 @@ class Category {
     required this.name,
     this.description,
     required this.isDefault,
+    this.hasExpiry = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -31,9 +33,16 @@ class Category {
         name: json['name'] as String,
         description: json['description'] as String?,
         isDefault: json['is_default'] as bool? ?? false,
+        hasExpiry: json['has_expiry'] as bool? ?? false,
         createdAt: DateTime.parse(json['created_at'] as String),
         updatedAt: DateTime.parse(json['updated_at'] as String),
       );
+
+  Map<String, dynamic> toUpdateJson() => {
+        'name': name,
+        'description': description,
+        'has_expiry': hasExpiry,
+      };
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────

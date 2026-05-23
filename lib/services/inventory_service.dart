@@ -50,8 +50,8 @@ class InventoryService {
         .select(
             'id, user_id, category_id, unit_id, name, sku, description, '
             'current_stock, opening_stock, low_stock_alert, purchase_price, '
-            'sales_price, is_active, created_at, '
-            'categories(id, name), units(id, name, abbreviation)')
+            'sales_price, is_active, created_at, expiry_date, '
+            'categories(id, name, has_expiry), units(id, name, abbreviation)')
         .order('name', ascending: true);
 
     final items = (data as List)

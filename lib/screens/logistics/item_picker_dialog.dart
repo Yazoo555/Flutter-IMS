@@ -144,9 +144,20 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
                                       style: TextStyle(
                                           color: isExcluded ? AppTheme.getTextHint(context) : textPrimary,
                                           fontWeight: FontWeight.w600)),
-                                  subtitle: Text(
-                                      'SKU: ${item['sku'] ?? 'N/A'} • Stock: ${item['current_stock']}',
-                                      style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context))),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'SKU: ${item['sku'] ?? 'N/A'} • Stock: ${item['current_stock']}',
+                                        style: TextStyle(fontSize: 12, color: AppTheme.getTextSecondary(context)),
+                                      ),
+                                      if (item['expiry_date'] != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: _ExpirySubtitle(expiryDateStr: item['expiry_date'] as String),
+                                        ),
+                                    ],
+                                  ),
                                   activeColor: AppTheme.primary,
                                 );
                               },
@@ -182,6 +193,46 @@ class _ItemPickerDialogState extends State<ItemPickerDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Displays expiry status for an item in the picker list.
+class _ExpirySubtitle extends StatelessWidget {
+  final String expiryDateStr;
+  const _ExpirySubtitle({required this.expiryDateStr});
+
+  @override
+  Widget build(BuildContext context) {
+    final expiryDate = DateTime.tryParse(expiryDateStr);
+    if (expiryDate == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final diff = expiryDate.difference(now).inDays;
+    String label;
+    Color color;
+
+    if (diff < 0) {
+      label = 'Expired ${-diff}d ago';
+      color = const Color(0xFFEF4444);
+    } else if (diff == 0) {
+      label = 'Expires today';
+      color = const Color(0xFFF97316);
+    } else if (diff <= 30) {
+      label = 'Expires in ${diff}d';
+      color = const Color(0xFFF97316);
+    } else {
+      label = 'Exp: ${expiryDate.year}-${expiryDate.month.toString().padLeft(2, '0')}-${expiryDate.day.toString().padLeft(2, '0')}';
+      color = AppTheme.getTextHint(context);
+    }
+
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: color,
       ),
     );
   }

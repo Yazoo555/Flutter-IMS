@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 class ItemCategory {
   final String id;
   final String name;
+  final bool hasExpiry;
 
-  const ItemCategory({required this.id, required this.name});
+  const ItemCategory({required this.id, required this.name, this.hasExpiry = false});
 
   factory ItemCategory.fromJson(Map<String, dynamic> json) => ItemCategory(
         id: json['id'] as String,
         name: json['name'] as String,
+        hasExpiry: json['has_expiry'] as bool? ?? false,
       );
 }
 
@@ -44,6 +46,7 @@ class InventoryItem {
   final double salesPrice;
   final bool isActive;
   final DateTime createdAt;
+  final DateTime? expiryDate;
   final ItemCategory? category;
   final ItemUnit? unit;
 
@@ -62,6 +65,7 @@ class InventoryItem {
     required this.salesPrice,
     required this.isActive,
     required this.createdAt,
+    this.expiryDate,
     this.category,
     this.unit,
   });
@@ -84,6 +88,7 @@ class InventoryItem {
         'sales_price': salesPrice,
         'is_active': isActive,
         'created_at': createdAt.toIso8601String(),
+        'expiry_date': expiryDate?.toIso8601String(),
         'categories': category != null
             ? {'id': category!.id, 'name': category!.name}
             : null,
@@ -111,6 +116,7 @@ class InventoryItem {
         salesPrice: (json['sales_price'] as num?)?.toDouble() ?? 0,
         isActive: json['is_active'] as bool? ?? true,
         createdAt: DateTime.parse(json['created_at'] as String),
+        expiryDate: json['expiry_date'] != null ? DateTime.parse(json['expiry_date'] as String) : null,
         category: json['categories'] != null
             ? ItemCategory.fromJson(
                 json['categories'] as Map<String, dynamic>)
@@ -119,6 +125,23 @@ class InventoryItem {
             ? ItemUnit.fromJson(json['units'] as Map<String, dynamic>)
             : null,
       );
+
+  /// Returns true if this item has an expiry date and it has already passed.
+  bool get isExpired {
+    if (expiryDate == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return expiryDate!.isBefore(today);
+  }
+
+  /// Returns true if this item expires within the next [days] days (and is not yet expired).
+  bool isExpiringSoon({int days = 30}) {
+    if (expiryDate == null) return false;
+    if (isExpired) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return expiryDate!.difference(today).inDays <= days;
+  }
 }
 
 class MovementType {

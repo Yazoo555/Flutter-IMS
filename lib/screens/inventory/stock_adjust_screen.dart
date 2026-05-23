@@ -297,6 +297,21 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
                   'Current Stock: ${widget.item.currentStock.toStringAsFixed(widget.item.currentStock % 1 == 0 ? 0 : 2)} ${widget.item.unit?.abbreviation ?? ''}',
                   style: TextStyle(fontSize: 13, color: AppTheme.getTextSecondary(context)),
                 ),
+                if (widget.item.expiryDate != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Expiry: ${_formatExpiryForSummary(widget.item.expiryDate!)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: widget.item.isExpired
+                          ? const Color(0xFFEF4444)
+                          : widget.item.isExpiringSoon()
+                              ? const Color(0xFFF97316)
+                              : AppTheme.getTextSecondary(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -369,6 +384,17 @@ class _StockAdjustScreenState extends State<StockAdjustScreen> {
               ),
       ),
     );
+  }
+
+  String _formatExpiryForSummary(DateTime expiryDate) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = expiryDate.difference(today).inDays;
+    final formatted =
+        '${expiryDate.year}-${expiryDate.month.toString().padLeft(2, '0')}-${expiryDate.day.toString().padLeft(2, '0')}';
+    if (diff < 0) return '$formatted (Expired)';
+    if (diff <= 30) return '$formatted (${diff}d remaining)';
+    return formatted;
   }
 }
 

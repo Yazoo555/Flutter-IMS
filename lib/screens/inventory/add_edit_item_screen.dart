@@ -33,6 +33,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   List<ItemUnit> _units = [];
   String? _selectedCategoryId;
   String? _selectedUnitId;
+  DateTime? _expiryDate;
   bool _isSaving = false;
   bool _isLoadingMeta = true;
 
@@ -70,13 +71,14 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     _salesPriceController.text = item.salesPrice.toStringAsFixed(2);
     _selectedCategoryId = item.categoryId;
     _selectedUnitId = item.unitId;
+    _expiryDate = item.expiryDate;
   }
 
   Future<void> _loadMeta() async {
     try {
       final catData = await supabase
           .from('categories')
-          .select('id,name')
+          .select('id,name,has_expiry')
           .order('name', ascending: true);
       final unitData = await supabase
           .from('units')
@@ -112,11 +114,22 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
     setState(() => _isSaving = true);
     try {
+      // Validate expiry date if category requires it
+      final selectedCategory = _categories.where((c) => c.id == _selectedCategoryId).firstOrNull;
+      if (selectedCategory != null && selectedCategory.hasExpiry && _expiryDate == null) {
+        _showSnack('Expiry date is required for items in this category.', error: true);
+        setState(() => _isSaving = false);
+        return;
+      }
+
       final userId = supabase.auth.currentUser!.id;
       final payload = {
         'user_id': userId,
         'category_id': _selectedCategoryId,
         'unit_id': _selectedUnitId,
+        'expiry_date': _expiryDate != null
+            ? '${_expiryDate!.year.toString().padLeft(4, '0')}-${_expiryDate!.month.toString().padLeft(2, '0')}-${_expiryDate!.day.toString().padLeft(2, '0')}'
+            : null,
         'name': _nameController.text.trim(),
         'sku': _skuController.text.trim().isEmpty
             ? null
@@ -178,6 +191,110 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         children: children,
       ),
     );
+  }
+
+  ItemCategory? get _selectedCategory {
+    if (_selectedCategoryId == null) return null;
+    return _categories.where((c) => c.id == _selectedCategoryId).firstOrNull;
+  }
+
+  Widget _buildExpiryDatePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Expiry Date *',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.getTextSecondary(context))),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF97316).withOpacity(0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text('Required',
+                  style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFF97316))),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: _pickExpiryDate,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.getSurface(context),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _expiryDate == null
+                    ? const Color(0xFFF97316).withOpacity(0.5)
+                    : AppTheme.getBorder(context),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today_rounded,
+                    size: 18, color: AppTheme.getTextHint(context)),
+                const SizedBox(width: 10),
+                Text(
+                  _expiryDate != null
+                      ? '${_expiryDate!.day}/${_expiryDate!.month}/${_expiryDate!.year}'
+                      : 'Tap to select expiry date',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _expiryDate != null
+                        ? AppTheme.getTextPrimary(context)
+                        : AppTheme.getTextHint(context),
+                  ),
+                ),
+                const Spacer(),
+                if (_expiryDate != null)
+                  GestureDetector(
+                    onTap: () => setState(() => _expiryDate = null),
+                    child: Icon(Icons.clear_rounded,
+                        size: 18, color: AppTheme.getTextHint(context)),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _pickExpiryDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _expiryDate ?? DateTime.now().add(const Duration(days: 30)),
+      firstDate: _expiryDate ?? DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      helpText: 'Select expiry date',
+      builder: (ctx, child) => Theme(
+        data: Theme.of(ctx).copyWith(
+          colorScheme: Theme.of(context).brightness == Brightness.dark
+              ? const ColorScheme.dark(
+                  primary: AppTheme.primary,
+                  surface: AppTheme.darkSurface,
+                )
+              : const ColorScheme.light(
+                  primary: AppTheme.primary,
+                  surface: AppTheme.surface,
+                ),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) {
+      setState(() => _expiryDate = picked);
+    }
   }
 
   Widget _buildSaveButton() {
@@ -294,6 +411,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                       onChanged: (v) => setState(() => _selectedUnitId = v),
                       hint: 'Select unit',
                     ),
+                    if (_selectedCategory != null && _selectedCategory!.hasExpiry) ...[
+                      const SizedBox(height: 16),
+                      _buildExpiryDatePicker(),
+                    ],
                   ]),
                   const SizedBox(height: 24),
 

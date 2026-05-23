@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../models/inventory_models.dart';
 import 'add_edit_item_screen.dart';
@@ -165,6 +166,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   _InfoRow('Category', item.category?.name ?? 'Uncategorized'),
                   Divider(height: 1, color: AppTheme.getBorder(context)),
                   _InfoRow('Unit', '${item.unit?.name ?? 'N/A'} (${item.unit?.abbreviation ?? ''})'),
+                  if (item.expiryDate != null) ...[
+                    Divider(height: 1, color: AppTheme.getBorder(context)),
+                    _InfoRow('Expiry Date', _formatExpiryDate(item.expiryDate!),
+                        highlight: item.isExpired || item.isExpiringSoon()),
+                  ],
                 ],
               ),
             ),
@@ -226,6 +232,18 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ),
       ),
     );
+  }
+  String _formatExpiryDate(DateTime date) {
+    final now = DateTime.now();
+    final diff = date.difference(now).inDays;
+    if (diff < 0) {
+      return 'Expired ${DateFormat('MMM d, yyyy').format(date)}';
+    } else if (diff == 0) {
+      return 'Expires today (${DateFormat('MMM d, yyyy').format(date)})';
+    } else if (diff <= 30) {
+      return '${DateFormat('MMM d, yyyy').format(date)} (${diff} days)';
+    }
+    return DateFormat('MMM d, yyyy').format(date);
   }
 }
 

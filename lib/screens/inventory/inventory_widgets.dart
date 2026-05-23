@@ -157,6 +157,22 @@ class ItemTile extends StatelessWidget {
                 textColor: const Color(0xFFF59E0B),
               ),
             ],
+            if (item.isExpired) ...[
+              const SizedBox(width: 6),
+              _StatusBadge(
+                label: 'Expired',
+                color: const Color(0xFFEF4444).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.15),
+                textColor: const Color(0xFFEF4444),
+              ),
+            ],
+            if (item.isExpiringSoon()) ...[
+              const SizedBox(width: 6),
+              _StatusBadge(
+                label: 'Expiring Soon',
+                color: const Color(0xFFF97316).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.15),
+                textColor: const Color(0xFFF97316),
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 3),
@@ -167,14 +183,43 @@ class ItemTile extends StatelessWidget {
 
   Widget _buildSubtitle(BuildContext context) {
     final hasSku = item.sku != null && item.sku!.isNotEmpty;
+    final expiredSoon =
+        item.expiryDate != null && (item.isExpired || item.isExpiringSoon());
 
     return Row(
       children: [
         if (hasSku)
           Text('SKU: ${item.sku}',
               style: TextStyle(fontSize: 11, color: AppTheme.getTextHint(context))),
+        if (hasSku && expiredSoon) ...[
+          const SizedBox(width: 8),
+          Container(width: 1, height: 10, color: AppTheme.getBorder(context)),
+          const SizedBox(width: 8),
+        ],
+        if (expiredSoon)
+          Text(
+            _formatExpiryForSubtitle(item.expiryDate!),
+            style: TextStyle(
+              fontSize: 11,
+              color: item.isExpired
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFFF97316),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
       ],
     );
+  }
+
+  String _formatExpiryForSubtitle(DateTime expiryDate) {
+    final now = DateTime.now();
+    final diff = expiryDate.difference(now).inDays;
+    if (diff < 0) {
+      return 'Expired ${-diff}d ago';
+    } else if (diff == 0) {
+      return 'Expires today';
+    }
+    return 'Expires in ${diff}d';
   }
 
   Widget _buildPopupMenu(BuildContext context) {

@@ -20,6 +20,7 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
+  late bool _hasExpiry;
   bool _isLoading = false;
 
   bool get _isEditing => widget.category != null;
@@ -31,6 +32,7 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
         TextEditingController(text: widget.category?.name ?? '');
     _descController =
         TextEditingController(text: widget.category?.description ?? '');
+    _hasExpiry = widget.category?.hasExpiry ?? false;
   }
 
   @override
@@ -75,6 +77,7 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
             .update({
               'name': name,
               'description': description.isEmpty ? null : description,
+              'has_expiry': _hasExpiry,
             })
             .eq('id', widget.category!.id);
       } else {
@@ -84,6 +87,7 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
           'user_id': userId,
           'name': name,
           'description': description.isEmpty ? null : description,
+          'has_expiry': _hasExpiry,
         });
       }
 
@@ -235,7 +239,80 @@ class _AddEditCategoryScreenState extends State<AddEditCategoryScreen> {
                   validator: _validateDescription,
                 ),
 
-                const SizedBox(height: 36),
+                const SizedBox(height: 20),
+
+                // ── Expiry Toggle ───────────────────────────────────────────
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _hasExpiry
+                        ? const Color(0xFFF59E0B).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.12 : 0.08)
+                        : Theme.of(context).brightness == Brightness.dark 
+                            ? const Color(0xFF1C1F26)
+                            : const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _hasExpiry
+                          ? const Color(0xFFF59E0B).withOpacity(0.3)
+                          : AppTheme.getBorder(context),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _hasExpiry
+                              ? const Color(0xFFF59E0B).withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.25 : 0.15)
+                              : AppTheme.getBorder(context).withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: _hasExpiry
+                              ? const Color(0xFFF59E0B)
+                              : AppTheme.getTextHint(context),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Expiry Date Tracking',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.getTextPrimary(context),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _hasExpiry
+                                  ? 'Items in this category will require an expiry date.'
+                                  : 'Toggle on for items that expire (e.g. food, medicine).',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.getTextSecondary(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _hasExpiry,
+                        onChanged: (v) => setState(() => _hasExpiry = v),
+                        activeColor: const Color(0xFFF59E0B),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 28),
 
                 // ── Submit button ─────────────────────────────────────────
                 PrimaryButton(

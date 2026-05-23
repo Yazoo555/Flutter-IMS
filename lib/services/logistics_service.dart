@@ -398,7 +398,7 @@ class LogisticsService {
     var query = supabase
         .from('items')
         .select(
-            'id, name, sku, current_stock, purchase_price, sales_price, categories(name), units(name, abbreviation)')
+            'id, name, sku, current_stock, purchase_price, sales_price, expiry_date, categories(name), units(name, abbreviation)')
         .eq('is_active', true);
 
     if (search != null && search.isNotEmpty) {
