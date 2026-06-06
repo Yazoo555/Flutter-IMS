@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/class_session.dart';
 import '../models/app_theme.dart';
 
@@ -8,6 +9,7 @@ class ClassCard extends StatelessWidget {
   final ClassSession session;
   final bool isToday;
   final ClassStatus status;
+  final bool showActions;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -16,6 +18,7 @@ class ClassCard extends StatelessWidget {
     required this.session,
     this.isToday = false,
     this.status = ClassStatus.upcoming,
+    this.showActions = true,
     required this.onEdit,
     required this.onDelete,
   });
@@ -23,9 +26,9 @@ class ClassCard extends StatelessWidget {
   Color get _statusColor {
     switch (status) {
       case ClassStatus.ongoing:
-        return const Color(0xFF22C55E); // green
+        return AppColors.primary; // indigo active glow
       case ClassStatus.ended:
-        return const Color(0xFFEF4444); // red
+        return AppColors.error;
       case ClassStatus.upcoming:
         return AppColors.subjectColor(session.subject);
     }
@@ -40,51 +43,44 @@ class ClassCard extends StatelessWidget {
     final isOngoing = status == ClassStatus.ongoing;
 
     return Opacity(
-      opacity: isEnded ? 0.6 : 1.0,
+      opacity: isEnded ? 0.55 : 1.0,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           border: isOngoing
               ? Border.all(
-                  color: const Color(0xFF22C55E).withOpacity(0.6),
+                  color: AppColors.primary.withOpacity(0.4),
                   width: 1.5,
                 )
               : isToday && status == ClassStatus.upcoming
-              ? Border.all(color: subjectColor.withOpacity(0.4), width: 1)
+              ? Border.all(
+                  color: subjectColor.withOpacity(0.25),
+                  width: 1,
+                )
               : null,
-          boxShadow: [
-            BoxShadow(
-              color: isOngoing
-                  ? const Color(0xFF22C55E).withOpacity(0.15)
-                  : isDark
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.black.withOpacity(0.05),
-              blurRadius: isOngoing ? 20 : 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: AppTheme.cardShadows(context),
         ),
         child: IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Left status bar — green if ongoing, red if ended, subject color otherwise
+              // Left status bar
               Container(
                 width: 4,
                 decoration: BoxDecoration(
                   color: _statusColor,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
+                    topLeft: Radius.circular(DesignTokens.radiusLg - 0.5),
+                    bottomLeft: Radius.circular(DesignTokens.radiusLg - 0.5),
                   ),
                 ),
               ),
 
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 13, 10, 13),
+                  padding: const EdgeInsets.fromLTRB(14, 14, 8, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -94,100 +90,71 @@ class ClassCard extends StatelessWidget {
                           Icon(
                             Icons.schedule_rounded,
                             size: 13,
-                            color: isDark ? Colors.white54 : Colors.black38,
+                            color: AppTheme.textTertiary(context),
                           ),
                           const SizedBox(width: 5),
                           Text(
                             '${session.startTime} – ${session.endTime}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                              letterSpacing: 0.3,
+                            style: AppTypography.smallBold.copyWith(
+                              color: AppTheme.textSecondary(context),
                             ),
                           ),
                           const Spacer(),
 
-                          // Status badge (only for today)
+                          // Status badge for today
                           if (isToday) ...[
                             _StatusBadge(status: status),
                             const SizedBox(width: 6),
                           ],
 
                           // Type badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: typeColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: typeColor.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              session.type,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: typeColor,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                          _Badge(
+                            label: session.type,
+                            color: typeColor,
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
 
                       // Subject name
                       Text(
                         session.subject,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
+                        style: AppTypography.headingMedium.copyWith(
                           color: isDark
-                              ? Colors.white
-                              : const Color(0xFF1A1A2E),
-                          height: 1.2,
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimaryLight,
                         ),
                       ),
 
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
 
                       // Room & Lecturer
                       _InfoRow(
                         icon: Icons.location_on_outlined,
                         text: session.room,
-                        isDark: isDark,
                       ),
                       const SizedBox(height: 3),
                       _InfoRow(
                         icon: Icons.person_outline_rounded,
                         text: session.lecturer,
-                        isDark: isDark,
                       ),
 
-                      // Ongoing pulse indicator
+                      // Ongoing indicator
                       if (isOngoing) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _PulseDot(),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Happening now',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF22C55E),
-                              ),
-                            ),
-                          ],
-                        ),
+                        const SizedBox(height: 10),
+            Row(
+              children: [
+                _PulseDot(),
+                const SizedBox(width: 8),
+                Text(
+                  'Happening now',
+                  style: AppTypography.smallBold.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
                       ],
                     ],
                   ),
@@ -195,33 +162,75 @@ class ClassCard extends StatelessWidget {
               ),
 
               // Action buttons
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _ActionBtn(
-                    icon: Icons.edit_outlined,
-                    color: AppColors.accent,
-                    onTap: onEdit,
+              if (showActions) ...[
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _ActionBtn(
+                        icon: Icons.edit_outlined,
+                        color: AppColors.primary,
+                        onTap: onEdit,
+                      ),
+                      const SizedBox(height: 6),
+                      _ActionBtn(
+                        icon: Icons.delete_outline_rounded,
+                        color: AppColors.error,
+                        onTap: onDelete,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  _ActionBtn(
-                    icon: Icons.delete_outline_rounded,
-                    color: const Color(0xFFFF6D6D),
-                    onTap: onDelete,
-                  ),
-                ],
-              ),
-
-              const SizedBox(width: 8),
+                ),
+                const SizedBox(width: 2),
+              ],
             ],
           ),
+        ),
+      ),
+    ).animate().fadeIn(
+      duration: DesignTokens.durationNormal,
+      curve: Curves.easeOut,
+    ).slideX(
+      begin: 0.05,
+      duration: DesignTokens.durationNormal,
+      curve: Curves.easeOut,
+    );
+  }
+}
+
+// ── Badge ─────────────────────────────────────────────────────────────────────
+
+class _Badge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _Badge({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
+        border: Border.all(
+          color: color.withOpacity(0.25),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          fontWeight: FontWeight.w700,
+          color: color,
         ),
       ),
     );
   }
 }
 
-// ── Status badge ─────────────────────────────────────────────────────────────
+// ── Status badge ──────────────────────────────────────────────────────────────
 
 class _StatusBadge extends StatelessWidget {
   final ClassStatus status;
@@ -235,37 +244,53 @@ class _StatusBadge extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
-            color: const Color(0xFF22C55E).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
             border: Border.all(
-              color: const Color(0xFF22C55E).withOpacity(0.4),
+              color: AppColors.primary.withOpacity(0.35),
               width: 1,
             ),
           ),
-          child: const Text(
-            'ONGOING',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF22C55E),
-              letterSpacing: 0.8,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 5,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.5),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'LIVE',
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
           ),
         );
       case ClassStatus.ended:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
-            color: const Color(0xFFEF4444).withOpacity(0.10),
-            borderRadius: BorderRadius.circular(20),
+            color: AppColors.error.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
           ),
-          child: const Text(
-            'ENDED',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFEF4444),
-              letterSpacing: 0.8,
+          child: Text(
+            'DONE',
+            style: AppTypography.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.error,
             ),
           ),
         );
@@ -275,7 +300,7 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-// ── Animated pulse dot ────────────────────────────────────────────────────────
+// ── Pulse dot ─────────────────────────────────────────────────────────────────
 
 class _PulseDot extends StatefulWidget {
   @override
@@ -292,12 +317,11 @@ class _PulseDotState extends State<_PulseDot>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _anim = Tween<double>(
-      begin: 0.4,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+    _anim = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -308,14 +332,29 @@ class _PulseDotState extends State<_PulseDot>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _anim,
-      child: Container(
-        width: 8,
-        height: 8,
-        decoration: const BoxDecoration(
-          color: Color(0xFF22C55E),
-          shape: BoxShape.circle,
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.4),
+            blurRadius: 6,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: FadeTransition(
+        opacity: _anim,
+        child: Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
         ),
       ),
     );
@@ -327,26 +366,27 @@ class _PulseDotState extends State<_PulseDot>
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  final bool isDark;
 
   const _InfoRow({
     required this.icon,
     required this.text,
-    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 12, color: isDark ? Colors.white38 : Colors.black38),
+        Icon(
+          icon,
+          size: 12,
+          color: AppTheme.textTertiary(context),
+        ),
         const SizedBox(width: 5),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.white54 : Colors.black54,
+            style: AppTypography.small.copyWith(
+              color: AppTheme.textSecondary(context),
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -374,13 +414,13 @@ class _ActionBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 34,
-        height: 34,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
         ),
-        child: Icon(icon, color: color, size: 17),
+        child: Icon(icon, color: color, size: 16),
       ),
     );
   }

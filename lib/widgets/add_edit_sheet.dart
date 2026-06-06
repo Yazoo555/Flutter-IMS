@@ -3,7 +3,7 @@ import '../models/class_session.dart';
 import '../models/app_theme.dart';
 
 class AddEditSheet extends StatefulWidget {
-  final ClassSession? session; // null = add mode
+  final ClassSession? session;
 
   const AddEditSheet({super.key, this.session});
 
@@ -57,8 +57,7 @@ class _AddEditSheetState extends State<AddEditSheet> {
     }
 
     final session = ClassSession(
-      id:
-          widget.session?.id ??
+      id: widget.session?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
       day: _selectedDay,
       startTime: _startController.text.trim(),
@@ -76,17 +75,20 @@ class _AddEditSheetState extends State<AddEditSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isEdit = widget.session != null;
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF13131F) : const Color(0xFFF7F7FB),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(DesignTokens.radiusSheet),
+        ),
       ),
       padding: EdgeInsets.only(
         left: 24,
         right: 24,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        top: 12,
+        bottom: bottom + 24,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -95,10 +97,12 @@ class _AddEditSheetState extends State<AddEditSheet> {
             // Handle bar
             Center(
               child: Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
+                  color: isDark
+                      ? AppColors.textTertiaryDark.withOpacity(0.4)
+                      : AppColors.textTertiaryLight.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -108,16 +112,16 @@ class _AddEditSheetState extends State<AddEditSheet> {
             // Title
             Text(
               isEdit ? 'Edit Class' : 'Add Class',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+              style: AppTypography.headingLarge.copyWith(
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight,
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 24),
 
             // Day selector
-            _label('Day', isDark),
+            _sectionLabel('Day', context),
             const SizedBox(height: 8),
             SizedBox(
               height: 38,
@@ -131,27 +135,29 @@ class _AddEditSheetState extends State<AddEditSheet> {
                   return GestureDetector(
                     onTap: () => setState(() => _selectedDay = day),
                     child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
+                      duration: DesignTokens.durationFast,
+                      curve: Curves.easeOut,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
+                        horizontal: 14, vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: sel
-                            ? AppColors.accent
-                            : (isDark
-                                  ? Colors.white.withOpacity(0.07)
-                                  : Colors.black.withOpacity(0.06)),
-                        borderRadius: BorderRadius.circular(20),
+                            ? AppColors.primary
+                            : isDark
+                            ? Colors.white.withOpacity(0.06)
+                            : Colors.black.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(
+                          DesignTokens.radiusFull,
+                        ),
                       ),
                       child: Text(
                         day.substring(0, 3),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                        style: AppTypography.smallBold.copyWith(
                           color: sel
                               ? Colors.white
-                              : (isDark ? Colors.white60 : Colors.black54),
+                              : isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
                         ),
                       ),
                     ),
@@ -160,7 +166,7 @@ class _AddEditSheetState extends State<AddEditSheet> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Time row
             Row(
@@ -171,7 +177,7 @@ class _AddEditSheetState extends State<AddEditSheet> {
                     label: 'Start Time',
                     hint: '09:00 AM',
                     icon: Icons.schedule_rounded,
-                    isDark: isDark,
+                    context: context,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -181,13 +187,13 @@ class _AddEditSheetState extends State<AddEditSheet> {
                     label: 'End Time',
                     hint: '11:00 AM',
                     icon: Icons.schedule_outlined,
-                    isDark: isDark,
+                    context: context,
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Subject
             _buildField(
@@ -195,43 +201,40 @@ class _AddEditSheetState extends State<AddEditSheet> {
               label: 'Subject *',
               hint: 'e.g. Cloud Systems',
               icon: Icons.book_outlined,
-              isDark: isDark,
+              context: context,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Type chips
-            _label('Type', isDark),
+            _sectionLabel('Type', context),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: typeOptions.map((t) {
                 final sel = t == _selectedType;
                 final c = AppColors.typeColor(t);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedType = t),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedType = t),
+                  child: AnimatedContainer(
+                    duration: DesignTokens.durationFast,
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: sel ? c : c.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+                      border: Border.all(
+                        color: sel ? c : c.withOpacity(0.2),
+                        width: 1,
                       ),
-                      decoration: BoxDecoration(
-                        color: sel ? c : c.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: sel ? c : c.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        t,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: sel ? Colors.white : c,
-                        ),
+                    ),
+                    child: Text(
+                      t,
+                      style: AppTypography.smallBold.copyWith(
+                        color: sel ? Colors.white : c,
                       ),
                     ),
                   ),
@@ -239,7 +242,7 @@ class _AddEditSheetState extends State<AddEditSheet> {
               }).toList(),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Room
             _buildField(
@@ -247,10 +250,10 @@ class _AddEditSheetState extends State<AddEditSheet> {
               label: 'Room',
               hint: 'e.g. LT-02 (WLV Block)',
               icon: Icons.location_on_outlined,
-              isDark: isDark,
+              context: context,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
 
             // Lecturer
             _buildField(
@@ -258,7 +261,7 @@ class _AddEditSheetState extends State<AddEditSheet> {
               label: 'Lecturer',
               hint: 'e.g. Ms. Jenny Rajak',
               icon: Icons.person_outline_rounded,
-              isDark: isDark,
+              context: context,
             ),
 
             const SizedBox(height: 28),
@@ -270,19 +273,18 @@ class _AddEditSheetState extends State<AddEditSheet> {
               child: ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(
+                      DesignTokens.radiusMd,
+                    ),
                   ),
                 ),
                 child: Text(
                   isEdit ? 'Save Changes' : 'Add Class',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.button,
                 ),
               ),
             ),
@@ -292,13 +294,10 @@ class _AddEditSheetState extends State<AddEditSheet> {
     );
   }
 
-  Widget _label(String text, bool isDark) => Text(
+  Widget _sectionLabel(String text, BuildContext context) => Text(
     text,
-    style: TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.8,
-      color: isDark ? Colors.white54 : Colors.black45,
+    style: AppTypography.smallBold.copyWith(
+      color: AppTheme.textSecondary(context),
     ),
   );
 
@@ -307,44 +306,52 @@ class _AddEditSheetState extends State<AddEditSheet> {
     required String label,
     required String hint,
     required IconData icon,
-    required bool isDark,
+    required BuildContext context,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label(label, isDark),
+        _sectionLabel(label, context),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF1A1A2E),
-            fontSize: 14,
+          style: AppTypography.body.copyWith(
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(
-              color: isDark ? Colors.white30 : Colors.black26,
-              fontSize: 13,
+            hintStyle: AppTypography.body.copyWith(
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textTertiaryLight,
             ),
             prefixIcon: Icon(
               icon,
               size: 18,
-              color: isDark ? Colors.white38 : Colors.black38,
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textTertiaryLight,
             ),
             filled: true,
             fillColor: isDark
-                ? Colors.white.withOpacity(0.06)
-                : Colors.black.withOpacity(0.04),
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.03),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+              borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
+              horizontal: 16,
               vertical: 14,
             ),
           ),

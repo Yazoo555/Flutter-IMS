@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/class_session.dart';
-import '../models/todo_item.dart';
 
 class StorageService {
   static const _sessionsKey = 'class_sessions';
   static const _themeKey = 'is_dark_mode';
   static const _seededKey = 'is_seeded';
-  static const _todosKey = 'todo_items';
-
   // ── Class Sessions ────────────────────────────────────────────────────────
 
   Future<List<ClassSession>> loadSessions() async {
@@ -39,56 +36,140 @@ class StorageService {
   Future<void> updateSession(
     ClassSession updated,
     List<ClassSession> current,
-  ) => saveSessions(
-    current.map((s) => s.id == updated.id ? updated : s).toList(),
-  );
+  ) =>
+      saveSessions(
+        current.map((s) => s.id == updated.id ? updated : s).toList(),
+      );
 
   Future<void> deleteSession(String id, List<ClassSession> current) =>
       saveSessions(current.where((s) => s.id != id).toList());
 
-  // ── Todo Items ────────────────────────────────────────────────────────────
+  // ── Tasks ─────────────────────────────────────────────────────────────────
+  static const _tasksKey = 'tasks';
 
-  Future<List<TodoItem>> loadTodos() async {
+  Future<List<Task>> loadTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_todosKey);
+    final raw = prefs.getString(_tasksKey);
     if (raw == null) return [];
     final List<dynamic> decoded = jsonDecode(raw);
-    return decoded.map((e) => TodoItem.fromJson(e)).toList();
+    return decoded.map((e) => Task.fromJson(e)).toList();
   }
 
-  Future<void> saveTodos(List<TodoItem> todos) async {
+  Future<void> saveTasks(List<Task> tasks) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
-      _todosKey,
-      jsonEncode(todos.map((t) => t.toJson()).toList()),
+      _tasksKey,
+      jsonEncode(tasks.map((t) => t.toJson()).toList()),
     );
   }
 
-  Future<void> addTodo(TodoItem todo, List<TodoItem> current) =>
-      saveTodos([...current, todo]);
+  Future<void> addTask(Task t, List<Task> current) =>
+      saveTasks([...current, t]);
 
-  Future<void> updateTodo(TodoItem updated, List<TodoItem> current) =>
-      saveTodos(current.map((t) => t.id == updated.id ? updated : t).toList());
+  Future<void> updateTask(Task updated, List<Task> current) =>
+      saveTasks(current.map((t) => t.id == updated.id ? updated : t).toList());
 
-  Future<void> deleteTodo(String id, List<TodoItem> current) =>
-      saveTodos(current.where((t) => t.id != id).toList());
-
-  Future<void> toggleTodo(String id, List<TodoItem> current) async {
-    final todos = current
-        .map((t) => t.id == id ? t.copyWith(isCompleted: !t.isCompleted) : t)
-        .toList();
-    await saveTodos(todos);
-  }
+  Future<void> deleteTask(String id, List<Task> current) =>
+      saveTasks(current.where((t) => t.id != id).toList());
 
   // ── Theme ─────────────────────────────────────────────────────────────────
 
   Future<bool> loadDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_themeKey) ?? false;
+    return prefs.getBool(_themeKey) ?? true; // default dark
   }
 
   Future<void> saveDarkMode(bool isDark) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_themeKey, isDark);
   }
+}
+
+// ── Task Model ──────────────────────────────────────────────────────────────
+
+enum TaskPriority { low, medium, high, urgent }
+
+enum TaskStatus { todo, inProgress, done }
+
+enum TaskCategory { academic, personal, health, other }
+
+class Task {
+  final String id;
+  final String title;
+  final String description;
+  final TaskPriority priority;
+  final TaskStatus status;
+  final TaskCategory category;
+  final String? dueDate; // 'YYYY-MM-DD'
+  final String? subject;
+  final bool completed;
+
+  Task({
+    required this.id,
+    required this.title,
+    this.description = '',
+    this.priority = TaskPriority.medium,
+    this.status = TaskStatus.todo,
+    this.category = TaskCategory.academic,
+    this.dueDate,
+    this.subject,
+    this.completed = false,
+  });
+
+  Task copyWith({
+    String? id,
+    String? title,
+    String? description,
+    TaskPriority? priority,
+    TaskStatus? status,
+    TaskCategory? category,
+    String? dueDate,
+    String? subject,
+    bool? completed,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      category: category ?? this.category,
+      dueDate: dueDate ?? this.dueDate,
+      subject: subject ?? this.subject,
+      completed: completed ?? this.completed,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'priority': priority.name,
+    'status': status.name,
+    'category': category.name,
+    'dueDate': dueDate,
+    'subject': subject,
+    'completed': completed,
+  };
+
+  factory Task.fromJson(Map<String, dynamic> json) => Task(
+    id: json['id'],
+    title: json['title'],
+    description: json['description'] ?? '',
+    priority: TaskPriority.values.firstWhere(
+      (e) => e.name == json['priority'],
+      orElse: () => TaskPriority.medium,
+    ),
+    status: TaskStatus.values.firstWhere(
+      (e) => e.name == json['status'],
+      orElse: () => TaskStatus.todo,
+    ),
+    category: TaskCategory.values.firstWhere(
+      (e) => e.name == json['category'],
+      orElse: () => TaskCategory.academic,
+    ),
+    dueDate: json['dueDate'],
+    subject: json['subject'],
+    completed: json['completed'] ?? false,
+  );
 }

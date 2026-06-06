@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_theme.dart';
 
 class DaySectionHeader extends StatelessWidget {
   final String day;
@@ -17,28 +18,28 @@ class DaySectionHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      padding: const EdgeInsets.only(top: 28, bottom: 14),
       child: Row(
         children: [
           if (isToday)
             Container(
               width: 8,
               height: 8,
-              margin: const EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: 10),
               decoration: const BoxDecoration(
-                color: Color(0xFF6C63FF),
+                color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
             ),
           Text(
             day.toUpperCase(),
-            style: TextStyle(
-              fontSize: isToday ? 15 : 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
+            style: AppTypography.overline.copyWith(
+              fontSize: isToday ? 13 : 11,
               color: isToday
-                  ? const Color(0xFF6C63FF)
-                  : (isDark ? Colors.white38 : Colors.black38),
+                  ? AppColors.primary
+                  : (isDark
+                        ? AppColors.textTertiaryDark
+                        : AppColors.textTertiaryLight),
             ),
           ),
           if (isToday) ...[
@@ -46,35 +47,32 @@ class DaySectionHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(20),
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(DesignTokens.radiusXl),
               ),
-              child: const Text(
+              child: Text(
                 'TODAY',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF6C63FF),
-                  letterSpacing: 1,
+                style: AppTypography.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
                 ),
               ),
             ),
           ],
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Container(
               height: 1,
-              color: isDark
-                  ? Colors.white.withOpacity(0.06)
-                  : Colors.black.withOpacity(0.07),
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Text(
             '$classCount ${classCount == 1 ? 'class' : 'classes'}',
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? Colors.white30 : Colors.black38,
+            style: AppTypography.small.copyWith(
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textTertiaryLight,
             ),
           ),
         ],
