@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'models/app_theme.dart';
-import 'models/storage_service.dart';
+
 import 'screens/app_shell.dart';
+import 'services/storage_service.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,42 +15,49 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const StudentHubApp());
+  runApp(const FypCalendarApp());
 }
 
-class StudentHubApp extends StatefulWidget {
-  const StudentHubApp({super.key});
+/// FYP Calendar — Cohort 11 • Final Year Project Planner.
+///
+/// The theme mode (System / Light / Dark) is persisted locally; dark remains
+/// the default to match the premium academic design.
+class FypCalendarApp extends StatefulWidget {
+  const FypCalendarApp({super.key});
 
   @override
-  State<StudentHubApp> createState() => _StudentHubAppState();
+  State<FypCalendarApp> createState() => _FypCalendarAppState();
 }
 
-class _StudentHubAppState extends State<StudentHubApp> {
-  bool _isDark = true;
+class _FypCalendarAppState extends State<FypCalendarApp> {
+  ThemeMode _themeMode = ThemeMode.dark;
   final _storage = StorageService();
 
   @override
   void initState() {
     super.initState();
-    _storage.loadDarkMode().then((v) => setState(() => _isDark = v));
+    _storage.loadThemeMode().then((mode) {
+      if (!mounted) return;
+      setState(() => _themeMode = mode);
+    });
   }
 
-  void _toggleTheme() {
-    setState(() => _isDark = !_isDark);
-    _storage.saveDarkMode(_isDark);
+  void _setThemeMode(ThemeMode mode) {
+    setState(() => _themeMode = mode);
+    _storage.saveThemeMode(mode);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Student Hub',
+      title: 'FYP Calendar',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: _isDark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: _themeMode,
       home: AppShell(
-        isDarkMode: _isDark,
-        onToggleTheme: _toggleTheme,
+        themeMode: _themeMode,
+        onThemeModeChanged: _setThemeMode,
       ),
     );
   }

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-import '../models/app_theme.dart';
-import '../screens/dashboard_screen.dart';
-import '../screens/calendar_screen.dart';
-import '../screens/routines_screen.dart';
-import '../screens/tasks_screen.dart';
-import '../screens/analytics_screen.dart';
-import '../screens/settings_screen.dart';
+
+import '../theme/app_colors.dart';
+import '../theme/app_typography.dart';
+import '../theme/design_tokens.dart';
+import 'calendar_screen.dart';
+import 'home_screen.dart';
+import 'milestones_screen.dart';
+import 'settings_screen.dart';
+import 'progress_screen.dart';
+import 'tasks_screen.dart';
 
 class AppShell extends StatefulWidget {
-  final bool isDarkMode;
-  final VoidCallback onToggleTheme;
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   const AppShell({
     super.key,
-    required this.isDarkMode,
-    required this.onToggleTheme,
+    required this.themeMode,
+    required this.onThemeModeChanged,
   });
 
   @override
@@ -23,530 +26,304 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
-  bool _sidebarCollapsed = false;
+
+  static const _destinations = [
+    _Destination(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
+    _Destination(
+        icon: Icons.calendar_month_outlined,
+        activeIcon: Icons.calendar_month_rounded,
+        label: 'Calendar'),
+    _Destination(
+        icon: Icons.flag_outlined, activeIcon: Icons.flag_rounded, label: 'Milestones'),
+    _Destination(
+        icon: Icons.check_circle_outline,
+        activeIcon: Icons.check_circle_rounded,
+        label: 'Tasks'),
+    _Destination(
+        icon: Icons.insights_outlined,
+        activeIcon: Icons.insights_rounded,
+        label: 'Progress'),
+    _Destination(
+        icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Settings'),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isDesktop = width >= 900;
+    final isWide =
+        MediaQuery.of(context).size.width >= DesignTokens.desktopBreakpoint;
 
-    if (isDesktop) {
-      return _DesktopShell(
-        isDark: widget.isDarkMode,
-        onToggleTheme: widget.onToggleTheme,
-        currentIndex: _currentIndex,
-        onTabChange: (i) => setState(() => _currentIndex = i),
-        collapsed: _sidebarCollapsed,
-        onToggleCollapse: () =>
-            setState(() => _sidebarCollapsed = !_sidebarCollapsed),
-      );
-    }
+    final screens = [
+      HomeScreen(
+        onNavigate: (i) => setState(() => _currentIndex = i),
+      ),
+      const CalendarScreen(),
+      const MilestonesScreen(),
+      const TasksScreen(),
+      const ProgressScreen(),
+      SettingsScreen(
+        themeMode: widget.themeMode,
+        onThemeModeChanged: widget.onThemeModeChanged,
+      ),
+    ];
 
-    return _MobileShell(
-      isDark: widget.isDarkMode,
-      onToggleTheme: widget.onToggleTheme,
-      currentIndex: _currentIndex,
-      onTabChange: (i) => setState(() => _currentIndex = i),
+    return Scaffold(
+      body: Row(
+        children: [
+          // Wide layout: sidebar; narrow layout: bottom nav handled below.
+          if (isWide) ...[
+            _Sidebar(
+              destinations: _destinations,
+              currentIndex: _currentIndex,
+              onSelect: (i) => setState(() => _currentIndex = i),
+              themeMode: widget.themeMode,
+              onThemeModeChanged: widget.onThemeModeChanged,
+            ),
+            Container(width: 1, color: AppColors.border(context)),
+          ],
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: screens,
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: isWide
+          ? null
+          : _BottomNav(
+              destinations: _destinations,
+              currentIndex: _currentIndex,
+              onTap: (i) => setState(() => _currentIndex = i),
+            ),
     );
   }
 }
 
-// ── Navigation Items ────────────────────────────────────────────────────────
-
-class NavItem {
+class _Destination {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-
-  const NavItem({
+  const _Destination({
     required this.icon,
     required this.activeIcon,
     required this.label,
   });
 }
 
-const List<NavItem> _navItems = [
-  NavItem(
-    icon: Icons.dashboard_outlined,
-    activeIcon: Icons.dashboard_rounded,
-    label: 'Dashboard',
-  ),
-  NavItem(
-    icon: Icons.calendar_today_outlined,
-    activeIcon: Icons.calendar_today_rounded,
-    label: 'Calendar',
-  ),
-  NavItem(
-    icon: Icons.school_outlined,
-    activeIcon: Icons.school_rounded,
-    label: 'Routines',
-  ),
-  NavItem(
-    icon: Icons.check_circle_outline,
-    activeIcon: Icons.check_circle_rounded,
-    label: 'Tasks',
-  ),
-  NavItem(
-    icon: Icons.analytics_outlined,
-    activeIcon: Icons.analytics_rounded,
-    label: 'Analytics',
-  ),
-  NavItem(
-    icon: Icons.settings_outlined,
-    activeIcon: Icons.settings_rounded,
-    label: 'Settings',
-  ),
-];
-
-// ── Desktop Shell ───────────────────────────────────────────────────────────
-
-class _DesktopShell extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback onToggleTheme;
-  final int currentIndex;
-  final void Function(int) onTabChange;
-  final bool collapsed;
-  final VoidCallback onToggleCollapse;
-
-  const _DesktopShell({
-    required this.isDark,
-    required this.onToggleTheme,
-    required this.currentIndex,
-    required this.onTabChange,
-    required this.collapsed,
-    required this.onToggleCollapse,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          _Sidebar(
-            isDark: isDark,
-            onToggleTheme: onToggleTheme,
-            currentIndex: currentIndex,
-            onTabChange: onTabChange,
-            collapsed: collapsed,
-            onToggleCollapse: onToggleCollapse,
-          ),
-
-          // Divider
-          Container(
-            width: 1,
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          ),
-
-          // Content
-          Expanded(
-            child: IndexedStack(
-              index: currentIndex,
-              children: [
-                const DashboardScreen(),
-                const CalendarScreen(),
-                const RoutinesScreen(),
-                const TasksScreen(),
-                const AnalyticsScreen(),
-                SettingsScreen(onToggleTheme: onToggleTheme),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Sidebar ─────────────────────────────────────────────────────────────────
+// ── Sidebar (desktop / tablet) ───────────────────────────────────────────────
 
 class _Sidebar extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback onToggleTheme;
+  final List<_Destination> destinations;
   final int currentIndex;
-  final void Function(int) onTabChange;
-  final bool collapsed;
-  final VoidCallback onToggleCollapse;
+  final void Function(int) onSelect;
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
 
   const _Sidebar({
-    required this.isDark,
-    required this.onToggleTheme,
+    required this.destinations,
     required this.currentIndex,
-    required this.onTabChange,
-    required this.collapsed,
-    required this.onToggleCollapse,
+    required this.onSelect,
+    required this.themeMode,
+    required this.onThemeModeChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final sidebarWidth = collapsed ? 72.0 : 260.0;
-
-    return AnimatedContainer(
-      duration: DesignTokens.durationNormal,
-      curve: Curves.easeOut,
-      width: sidebarWidth,
-      color: isDark ? AppColors.surfaceDarkAlt : AppColors.surfaceLightAlt,
-      child: Column(
-        children: [
-          // Logo + collapse toggle
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              collapsed ? 18 : 24,
-              36,
-              collapsed ? 18 : 16,
-              20,
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.secondary],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+    return Container(
+      width: 240,
+      color: AppColors.isDark(context)
+          ? AppColors.surfaceDarkAlt
+          : AppColors.surfaceLightAlt,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Brand
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primary, AppColors.board],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(DesignTokens.radiusMd - 2),
                     ),
-                    borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+                    child: const Icon(Icons.school_rounded,
+                        color: Colors.white, size: 18),
                   ),
-                  child: const Icon(
-                    Icons.school_rounded,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                ),
-                if (!collapsed) ...[
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      'Student Hub',
-                      style: AppTypography.title.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: onToggleCollapse,
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.06)
-                            : Colors.black.withOpacity(0.04),
-                        borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusSm),
-                      ),
-                      child: Icon(
-                        Icons.chevron_left_rounded,
-                        size: 18,
-                        color: isDark
-                            ? AppColors.textTertiaryDark
-                            : AppColors.textTertiaryLight,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('FYP Calendar',
+                            style: AppTypography.headingMedium(context)),
+                        Text('Cohort 11',
+                            style: AppTypography.caption(context)
+                                .copyWith(fontSize: 10)),
+                      ],
                     ),
                   ),
                 ],
-                if (collapsed)
-                  GestureDetector(
-                    onTap: onToggleCollapse,
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.06)
-                            : Colors.black.withOpacity(0.04),
-                        borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusSm),
-                      ),
-                      child: Icon(
-                        Icons.chevron_right_rounded,
-                        size: 18,
-                        color: isDark
-                            ? AppColors.textTertiaryDark
-                            : AppColors.textTertiaryLight,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Nav items
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: collapsed ? 10 : 14,
               ),
-              child: Column(
-                children: [
-                  if (!collapsed)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
-                      child: Text(
-                        'NAVIGATION',
-                        style: AppTypography.overline.copyWith(
-                          color: isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textTertiaryLight,
+            ),
+            // Destinations
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  children: [
+                    ...List.generate(destinations.length, (i) {
+                      final d = destinations[i];
+                      final selected = i == currentIndex;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Material(
+                          color: selected
+                              ? AppColors.primary.withValues(alpha: 0.12)
+                              : Colors.transparent,
+                          borderRadius:
+                              BorderRadius.circular(DesignTokens.radiusMd),
+                          child: InkWell(
+                            onTap: () => onSelect(i),
+                            borderRadius:
+                                BorderRadius.circular(DesignTokens.radiusMd),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    selected ? d.activeIcon : d.icon,
+                                    size: 20,
+                                    color: selected
+                                        ? AppColors.primary
+                                        : AppColors.textTertiary(context),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      d.label,
+                                      style: AppTypography.body(context)
+                                          .copyWith(
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: selected
+                                            ? AppColors.primary
+                                            : AppColors.textSecondary(context),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ...List.generate(_navItems.length, (i) {
-                    final item = _navItems[i];
-                    final isSelected = currentIndex == i;
-                    return _SidebarTile(
-                      item: item,
-                      isSelected: isSelected,
-                      isDark: isDark,
-                      collapsed: collapsed,
-                      onTap: () => onTabChange(i),
-                    );
-                  }),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            // Theme mode: System / Light / Dark
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Text('Theme', style: AppTypography.caption(context)),
+                  const Spacer(),
+                  _ThemeOption(
+                    icon: Icons.brightness_auto_rounded,
+                    tooltip: 'System theme',
+                    selected: themeMode == ThemeMode.system,
+                    onTap: () => onThemeModeChanged(ThemeMode.system),
+                  ),
+                  _ThemeOption(
+                    icon: Icons.light_mode_rounded,
+                    tooltip: 'Light theme',
+                    selected: themeMode == ThemeMode.light,
+                    onTap: () => onThemeModeChanged(ThemeMode.light),
+                  ),
+                  _ThemeOption(
+                    icon: Icons.dark_mode_rounded,
+                    tooltip: 'Dark theme',
+                    selected: themeMode == ThemeMode.dark,
+                    onTap: () => onThemeModeChanged(ThemeMode.dark),
+                  ),
                 ],
               ),
             ),
-          ),
-
-          // Bottom actions
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              collapsed ? 10 : 14,
-              0,
-              collapsed ? 10 : 14,
-              20,
-            ),
-            child: Column(
-              children: [
-                _ThemeToggle(isDark: isDark, onToggle: onToggleTheme),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Sidebar Tile ────────────────────────────────────────────────────────────
-
-class _SidebarTile extends StatelessWidget {
-  final NavItem item;
-  final bool isSelected;
-  final bool isDark;
-  final bool collapsed;
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final bool selected;
   final VoidCallback onTap;
 
-  const _SidebarTile({
-    required this.item,
-    required this.isSelected,
-    required this.isDark,
-    required this.collapsed,
+  const _ThemeOption({
+    required this.icon,
+    required this.tooltip,
+    required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return collapsed
-        ? Tooltip(
-            message: item.label,
-            child: _buildTile(isDark),
-          )
-        : _buildTile(isDark);
-  }
-
-  Widget _buildTile(bool isDark) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: DesignTokens.durationNormal,
-        curve: Curves.easeOut,
-        margin: const EdgeInsets.symmetric(vertical: 2),
-        padding: EdgeInsets.symmetric(
-          horizontal: collapsed ? 0 : 14,
-          vertical: 11,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withOpacity(0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-          border: isSelected
-              ? Border.all(color: AppColors.primary.withOpacity(0.25))
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment:
-              collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-          children: [
-            Icon(
-              isSelected ? item.activeIcon : item.icon,
-              size: 20,
-              color: isSelected
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.only(left: 4),
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
+            border: Border.all(
+              color: selected
                   ? AppColors.primary
-                  : isDark
-                      ? AppColors.textTertiaryDark
-                      : AppColors.textTertiaryLight,
+                  : AppColors.border(context),
             ),
-            if (!collapsed) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  item.label,
-                  style: AppTypography.small.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.primary
-                        : isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-            ],
-          ],
+          ),
+          child: Icon(
+            icon,
+            size: 15,
+            color: selected
+                ? AppColors.primary
+                : AppColors.textTertiary(context),
+          ),
         ),
       ),
     );
   }
 }
 
-// ── Theme Toggle ─────────────────────────────────────────────────────────────
-
-class _ThemeToggle extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback onToggle;
-
-  const _ThemeToggle({required this.isDark, required this.onToggle});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggle,
-      child: AnimatedContainer(
-        duration: DesignTokens.durationSlow,
-        curve: Curves.easeOut,
-        width: 48,
-        height: 26,
-        decoration: BoxDecoration(
-          gradient: isDark
-              ? LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                )
-              : null,
-          color: isDark ? null : AppColors.borderLight,
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Stack(
-          children: [
-            AnimatedPositioned(
-              duration: DesignTokens.durationNormal,
-              curve: Curves.easeOutBack,
-              left: isDark ? 24 : 2,
-              top: 2,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: AnimatedSwitcher(
-                    duration: DesignTokens.durationFast,
-                    child: Icon(
-                      isDark
-                          ? Icons.dark_mode_rounded
-                          : Icons.light_mode_rounded,
-                      key: ValueKey(isDark),
-                      size: 13,
-                      color: isDark
-                          ? const Color(0xFF4F46E5)
-                          : AppColors.warning,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Mobile Shell ────────────────────────────────────────────────────────────
-
-class _MobileShell extends StatelessWidget {
-  final bool isDark;
-  final VoidCallback onToggleTheme;
-  final int currentIndex;
-  final void Function(int) onTabChange;
-
-  const _MobileShell({
-    required this.isDark,
-    required this.onToggleTheme,
-    required this.currentIndex,
-    required this.onTabChange,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: currentIndex,
-        children: [
-          const DashboardScreen(),
-          const CalendarScreen(),
-          const RoutinesScreen(),
-          const TasksScreen(),
-          const AnalyticsScreen(),
-          SettingsScreen(onToggleTheme: onToggleTheme),
-        ],
-      ),
-      bottomNavigationBar: _BottomNav(
-        currentIndex: currentIndex,
-        isDark: isDark,
-        onTap: onTabChange,
-      ),
-    );
-  }
-}
-
-// ── Bottom Navigation ───────────────────────────────────────────────────────
+// ── Bottom navigation (mobile) ───────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
+  final List<_Destination> destinations;
   final int currentIndex;
-  final bool isDark;
   final void Function(int) onTap;
 
   const _BottomNav({
+    required this.destinations,
     required this.currentIndex,
-    required this.isDark,
     required this.onTap,
   });
 
@@ -554,61 +331,55 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDarkAlt : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          ),
-        ),
+        color: AppColors.isDark(context)
+            ? AppColors.surfaceDarkAlt
+            : Colors.white,
+        border: Border(top: BorderSide(color: AppColors.border(context))),
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
           height: 64,
           child: Row(
-            children: List.generate(_navItems.length, (i) {
-              final item = _navItems[i];
-              final isSelected = currentIndex == i;
+            children: List.generate(destinations.length, (i) {
+              final d = destinations[i];
+              final selected = i == currentIndex;
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => onTap(i),
                   behavior: HitTestBehavior.opaque,
+                  onTap: () => onTap(i),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AnimatedContainer(
                         duration: DesignTokens.durationFast,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 4),
+                            horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withOpacity(0.12)
+                          color: selected
+                              ? AppColors.primary.withValues(alpha: 0.12)
                               : Colors.transparent,
                           borderRadius:
                               BorderRadius.circular(DesignTokens.radiusFull),
                         ),
                         child: Icon(
-                          isSelected ? item.activeIcon : item.icon,
+                          selected ? d.activeIcon : d.icon,
                           size: 22,
-                          color: isSelected
+                          color: selected
                               ? AppColors.primary
-                              : isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textTertiaryLight,
+                              : AppColors.textTertiary(context),
                         ),
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        item.label,
-                        style: AppTypography.caption.copyWith(
+                        d.label,
+                        style: AppTypography.caption(context).copyWith(
                           fontSize: 10,
                           fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected
+                              selected ? FontWeight.w700 : FontWeight.w500,
+                          color: selected
                               ? AppColors.primary
-                              : isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textTertiaryLight,
+                              : AppColors.textTertiary(context),
                         ),
                       ),
                     ],

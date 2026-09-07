@@ -1,0 +1,424 @@
+================================================================================
+                    FYP CALENDAR — COHORT 11 — APP DOCUMENTATION
+================================================================================
+
+Version      : 1.0.0+1
+Framework    : Flutter (Dart SDK ^3.11.1)  •  Material 3
+Package name : flutter_application_1
+App title    : FYP Calendar — Cohort 11
+Description  : Final Year Project planner built on the official Cohort 11
+               FYP calendar (3 August 2026 → 12 September 2027, ~50 weeks)
+Platforms    : Android, iOS, macOS, Windows, Linux (cross-platform Flutter)
+Font         : Inter (google_fonts)
+Storage      : 100% local (shared_preferences) — no backend, no accounts
+
+================================================================================
+1. WHAT THE APP IS ABOUT
+================================================================================
+
+FYP Calendar is a dedicated "FYP Command Center" for final-year students of
+Cohort 11. It is NOT a generic calendar or a renamed routine app — every
+feature is built around the official FYP journey:
+
+  • Understand the complete FYP timeline (Week 1 → Week 50) with official
+    week labels, including special periods (Dashain Holiday, Non Teaching
+    Weeks) transcribed verbatim from the source spreadsheet.
+  • See the next important deadline with a live countdown.
+  • Track the 9 official milestones/gates (Gate 1 → Gate 3 / Resit) with
+    status (Not Started / In Progress / Submitted), portal-opening windows
+    and preparation checklists.
+  • Manage personal FYP tasks (List + Kanban) linked to milestones.
+  • Record supervisor / reader / team meetings.
+  • Self-report project progress and compare it against the official 75%
+    Internal Defense readiness target.
+  • Review analytics: milestones done/remaining, tasks done/remaining,
+    upcoming deadlines, overdue tasks, deadline health.
+  • Configure reminders, theme (System / Light / Dark) and project info.
+
+The experience flows top-down on Home:
+  TODAY → CURRENT FYP PHASE → NEXT DEADLINE → MILESTONE PROGRESS →
+  PERSONAL TASKS → FULL FYP TIMELINE (journey strip)
+
+All official dates come from ONE centralized dataset
+(lib/data/fyp_calendar_data.dart), transcribed from
+FYP_Calendar_Cohort11_Context.md. Official definitions are immutable;
+the app stores only user state (completion flags, statuses, custom items).
+
+================================================================================
+2. PROJECT STRUCTURE
+================================================================================
+
+flutter_application_1/
+├── pubspec.yaml                       # App config & dependencies
+├── app.txt                            # This documentation
+├── FYP_Calendar_Cohort11_Context.md   # Source-of-truth timeline document
+│
+├── lib/
+│   ├── main.dart                      # FypCalendarApp, ThemeMode wiring
+│   │
+│   ├── models/                        # Plain Dart models (JSON round-trip)
+│   │   ├── fyp_event.dart             #   FypEvent, categories, priorities,
+│   │   │                              #   official week labels, timing logic
+│   │   ├── milestone.dart             #   Milestone + MilestoneStatus
+│   │   ├── fyp_task.dart              #   FypTask + TaskStatus/Priority/Category
+│   │   ├── meeting.dart               #   Meeting + MeetingType
+│   │   ├── checklist_item.dart        #   Personal per-milestone checklist
+│   │   ├── project_progress.dart      #   Self-reported % + 75% defense target
+│   │   └── project_info.dart          #   Editable project metadata
+│   │
+│   ├── data/                          # Official data & derived logic
+│   │   ├── fyp_calendar_data.dart     #   ★ ALL official events & milestones
+│   │   ├── fyp_phase_logic.dart       #   13 FYP phases + journey nodes
+│   │   ├── fyp_warnings.dart          #   Official process warnings
+│   │   └── deadline_health.dart       #   On Track / Needs Attention / Overdue
+│   │
+│   ├── services/
+│   │   ├── storage_service.dart       #   SharedPreferences persistence
+│   │   ├── fyp_repository.dart        #   Facade: official + user state merge
+│   │   └── reminder_service.dart      #   Reminder plan builder (structured)
+│   │
+│   ├── theme/                         # FYP design system
+│   │   ├── design_tokens.dart         #   Spacing, radii, motion, breakpoint
+│   │   ├── app_colors.dart            #   Semantic colors (dark + light)
+│   │   ├── app_typography.dart        #   Inter type scale
+│   │   └── app_theme.dart             #   Material 3 ThemeData (both modes)
+│   │
+│   ├── screens/
+│   │   ├── app_shell.dart             # Responsive nav + IndexedStack
+│   │   ├── home_screen.dart           # Command-center dashboard
+│   │   ├── calendar_screen.dart       # Month + timeline, filters, scopes
+│   │   ├── milestones_screen.dart     # Official milestone tracker
+│   │   ├── tasks_screen.dart          # List + Kanban task manager
+│   │   ├── progress_screen.dart       # Self-reported progress + analytics
+│   │   ├── meetings_screen.dart       # Supervisor/team meetings
+│   │   └── settings_screen.dart       # Appearance/Notifs/Project/Data/About
+│   │
+│   ├── widgets/
+│   │   ├── next_deadline_card.dart    # Shared next-deadline component
+│   │   ├── event_card.dart            # Event row (category chip, countdown)
+│   │   ├── event_detail_sheet.dart    # Full event sheet + portal→deadline
+│   │   ├── event_visuals.dart         # Icons/labels/priority/urgency
+│   │   ├── milestone_card.dart        # Numbered milestone card
+│   │   ├── milestone_detail_sheet.dart# Status, checklist, related events
+│   │   ├── task_card.dart             # Task row with due-date urgency
+│   │   ├── task_edit_sheet.dart       # Task editor (milestone linking)
+│   │   ├── meeting_edit_sheet.dart    # Meeting editor
+│   │   ├── journey_strip.dart         # Phase journey visualization
+│   │   ├── progress_card.dart         # Circular progress card
+│   │   ├── section_header.dart        # Section titles
+│   │   └── empty_state.dart           # Friendly empty states
+│   │
+│   ├── extensions/date_helpers.dart   # Date formatting without intl
+│   └── data/fyp_calendar_data.dart    # (see data/ above)
+│
+└── test/
+    └── widget_test.dart               # 32 tests (see §10)
+
+================================================================================
+3. THE OFFICIAL FYP TIMELINE (Cohort 11)
+================================================================================
+
+Calendar range : Mon 3 Aug 2026 (Week 1) → Sun 12 Sep 2027 (Week 50)
+Week numbering : "Week N" on Mondays, EXCEPT special labels:
+                 "Dashain Holiday" (5 weeks, 11 Oct – 16 Nov 2026) and
+                 "Non Teaching Week" (three December weeks: 7/14/21 Dec 2026).
+                 Special weeks are never numbered; numbered weeks stay 1–50.
+
+GATES & MILESTONES
+  Gate 1        Title Submission (Google Form)      31 Aug 2026
+  Gate 2        Proposal Deadline                  25 Sep 2026
+                (portal opens 18 Sep — 9 working days prior)
+  Milestone 2   Literature Review (Plag check)     25 Dec 2026   portal 14 Dec
+  Milestone 3   Artefact Design and Test Plan      29 Jan 2027   portal 21 Jan
+  Milestone 4   Professionalism section of report   5 Mar 2027   portal 22 Feb
+  Milestone 5   Draft report + advanced artefact    9 Apr 2027   portal 30 Mar
+  Milestone 6   Final Report Submission            18 May 2027   portal  3 May
+  Milestone 7   Poster and Code Submission         27 May 2027
+  Gate 3        Resit Submission (CONDITIONAL)      6 Jul 2027
+
+ASSESSMENT PERIODS
+  Proposal Defense                4 Oct & 7 Oct 2026
+  Internal Project Defense       18–23 Apr 2027   (project ≥ 75% complete)
+  Poster Presentation / Viva     19–26 May 2027
+  Resit Poster Presentation/Viva  7–9  Jul 2027
+
+BOARD / RESULTS
+  Approximate results             22 Jun 2027
+  Resit results                    3 Aug 2027
+
+HOLIDAYS / NON-TEACHING
+  Dashain Holiday                11 Oct – 16 Nov 2026 (~5.5 weeks)
+  Non Teaching Weeks             7, 14, 21 Dec 2026 (deadlines still apply)
+
+PORTAL PATTERN: every milestone portal opens ~9–10 days before its deadline.
+The app models this explicitly (portal event ↔ relatedMilestoneId ↔ deadline)
+and shows a Portal → Prepare → Deadline strip in event details.
+
+KEY PROCESS WARNINGS (surfaced contextually in the app):
+  1. Proposal must be supervisor-APPROVED (Proposal Feedback Sheet) before
+     the 25 Sep deadline; then fill the PRF in the portal.
+  2. Internal Defense requires ≥ 75% project completion.
+  3. Use the portal window — don't wait for deadline day.
+  4. Dashain creates a long teaching gap right after Proposal Defense;
+     plan literature review work accordingly.
+
+================================================================================
+4. ARCHITECTURE
+================================================================================
+
+main.dart (FypCalendarApp)
+  └─ loads ThemeMode from StorageService (system default)
+  └─ AppShell(themeMode, onThemeModeChanged)
+       ├─ 6 destinations: Home, Calendar, Milestones, Tasks, Progress, Settings
+       ├─ Bottom navigation bar on mobile (< 900 px)
+       ├─ Sidebar with theme switcher on desktop (≥ 900 px)
+       └─ IndexedStack preserves each screen's state
+
+Data flow (one direction, easy to follow):
+  fyp_calendar_data.dart  ── official, immutable
+        │
+  FypRepository  ── merges official data with StorageService user state:
+        │            • completed-event ids   → FypEvent.copyWith(isCompleted)
+        │            • milestone progress    → overlay status/percent/notes
+        │            • tasks / meetings / checklists / project info / progress
+        │            • queries: nextDeadline(), overdueEvents(), eventsToday(),
+        │              importantUpcoming(), milestoneStats(), taskStats()
+        ▼
+  Screens (StatefulWidget + Future loads; repository never leaks storage)
+
+Storage keys (SharedPreferences):
+  fyp_completed_events    Set<String>  official event ids marked done
+  fyp_custom_events       JSON list    user-created events
+  fyp_milestone_progress  JSON map     per-milestone status/percent/notes
+  fyp_checklist_items     JSON list    personal preparation checklist
+  fyp_tasks               JSON list    personal tasks
+  fyp_meetings            JSON list    meetings
+  fyp_project_progress    JSON         self-reported overall % + breakdown
+  fyp_project_info        JSON         title/description/supervisor/reader/team
+  fyp_theme_mode          String       system | light | dark
+  fyp_notif_enabled       bool         master reminders switch
+  fyp_notif_deadlines     bool         deadline reminders
+  fyp_notif_portals       bool         portal-opening reminders
+  fyp_notif_meetings      bool         meeting reminders
+
+Robustness: every JSON load is wrapped in try/catch — malformed local data
+is dropped and defaults are used instead of crashing. ProjectProgress clamps
+all percentages to 0–100 at the model layer.
+
+================================================================================
+5. FEATURES BY SCREEN
+================================================================================
+
+HOME — "What should I care about right now?" (~5-second overview)
+  • Time-based greeting (Good morning/afternoon/evening) + FYP Calendar /
+    Cohort 11
+  • Current Phase card — computed from official phase windows, never
+    hardcoded: Orientation & Title Selection → Supervisor Allocation &
+    Proposal Writing → Proposal Defense → Dashain Holiday Break → Literature
+    Review → Artefact Design & Test Plan → Professionalism Report → Draft
+    Report & Advanced Artefact → Internal Project Defense → Final Report →
+    Poster & Code → Poster Presentation / Viva → Results → (Resit)
+  • Quick actions: Add Task, Add Meeting, Calendar, Milestones (with tooltips)
+  • Contextual official warnings (max 2, date-gated)
+  • NEXT IMPORTANT EVENT — shared NextDeadlineCard: title, date, category,
+    milestone link, priority, urgency badge and big countdown; urgency
+    styling intensifies within 3 days (no annoying animations)
+  • TODAY'S FYP — today's events or "No scheduled FYP activities today."
+  • Progress summary — clearly separated Milestone completion vs
+    Self-reported project completion
+  • UPCOMING IMPORTANT — next 5, ranked Deadline > Assessment > Milestone >
+    Portal > other
+  • FYP Journey strip — Title → Proposal → … → Results with
+    completed/current/upcoming states
+
+CALENDAR
+  • Month view — semantic dots (deadline dot first), holiday shading for the
+    Dashain span, today ring, selection fill
+  • Timeline view — Current → Upcoming → Past
+  • Filters: All / Deadlines / Milestones / Assessments / Portal / Sessions /
+    Supervisor / Results / Holidays
+  • Scopes: Day / Week / Month lists
+  • Event detail sheet — dates, category, priority, official week label,
+    description, related milestone, Portal → Prepare → Deadline strip,
+    countdown ("12 days remaining" / "Completed" / "Passed"), mark-done
+
+MILESTONES
+  • All 9 official items as numbered cards with status chip, deadline,
+    portal-opening row, countdown (red ≤ 7 days) and progress bar
+  • Tap → detail sheet: description, dates, days remaining, Mark In
+    Progress / Submitted / Reset, milestone-specific warning, related
+    official events and the personal preparation checklist
+    (add / check / delete; persisted locally)
+  • Shows open task count linked from the task manager
+
+TASKS
+  • List and Kanban views (To Do / In Progress / Done); status changes via
+    tap — drag-and-drop never required on mobile
+  • Fields: title, description, due date, priority (Low/Medium/High/
+    Critical), status, 9 FYP categories, related milestone, created/completed
+    timestamps
+  • Sorting: Due Date / Priority / Milestone / Status
+  • Due-date urgency: Overdue → Today → Tomorrow → ≤ 7 days → Upcoming →
+    Completed
+  • Quick-add FAB + editor with milestone chips
+
+PROGRESS
+  • Factual timeline card (official calendar position)
+  • ANALYTICS stats grid: milestones done/remaining, tasks done/overdue,
+    upcoming deadlines, Deadline Health (On Track / Needs Attention /
+    Overdue — simple documented rules)
+  • Shared NextDeadlineCard (compact)
+  • Self-reported overall completion (slider, 0–100, clamped, explicitly
+    labeled "Self-reported")
+  • Internal Defense target card: current vs official 75% with marker line
+    and Below / On / Above target status
+  • Optional per-area breakdown (Research, Design, Development, Testing,
+    Documentation, Presentation) — student-entered estimates
+
+MEETINGS (from Settings → Meetings)
+  • Types: Supervisor / Reader / Team / Other — no fake data seeded
+  • Title, date, time, location, person, notes, related milestone, completed
+  • Upcoming: countdown; past: notes; mark completed / edit / delete
+
+SETTINGS
+  • Appearance: System / Light / Dark (persisted, live-updates whole app)
+  • Notifications: master + deadline / portal / meeting toggles, plus a
+    preview of the next scheduled reminders
+  • Project: title, description, supervisor, reader, team members (editable)
+  • Data: export snapshot (dialog summary), clear data (confirmation dialog)
+  • About: FYP Calendar, Cohort 11, version
+
+================================================================================
+6. NAVIGATION MAP
+================================================================================
+
+Home ─→ (quick actions) ─→ Task editor / Meeting editor / Calendar / Milestones
+Calendar ─→ Event detail sheet
+Milestones ─→ Milestone detail sheet ─→ (checklists persist)
+Tasks ─→ Task editor
+Settings ─→ Meetings screen ─→ Meeting editor
+
+Mobile: bottom navigation   |   Desktop/tablet (≥ 900 px): sidebar
+
+================================================================================
+7. DESIGN SYSTEM
+================================================================================
+
+Semantic colors (AppColors):
+  primary indigo #4F46E5   deadline red      assessment orange   portal amber
+  session green  supervisor teal    board purple      holiday neutral gray
+  milestone violet   googleForm sky    status: completed green / in-progress
+  blue / not-started gray
+  Light + dark palettes defined per role — no hardcoded colors in screens.
+
+Typography: Inter via google_fonts; contextual scale (displayLarge … caption,
+overline, bodyBold) in app_typography.dart.
+
+Tokens (design_tokens.dart): spacing (xs/sm/md/lg/xl/xxl), radii
+(sm/md/lg/full), durations (fast/normal), 900 px breakpoint, soft card
+shadows + glow shadows for urgency.
+
+Motion: subtle only — flutter_animate fades/scales on cards, fast
+AnimatedOpacity for completion states, page-level transitions. No bouncing
+or looping animations.
+
+Accessibility: tooltips on icon actions, semantic icons accompany colors
+(deadline = icon + label + red, never color alone), ≥ 22 px touch targets,
+FittedBox/ellipsis to prevent overflow, contrast checked in both themes.
+
+================================================================================
+8. DATA MODELS (summary)
+================================================================================
+
+FypEvent      id, date, endDate?, title, description, category(10),
+              priority(4), weekNumber(auto), isCompleted, isImportant,
+              portalOpenDate?, deadlineDate?, notes, relatedMilestoneId?,
+              isConditional?  + isToday/hasEnded/daysRemaining/isOn helpers
+Milestone     id, number, title, description, deadline, portalOpenDate?,
+              status(notStarted/inProgress/submitted), priority,
+              isConditional, percentageComplete, notes
+FypTask       id, title, description, dueDate?, priority(low..critical),
+              status(todo/inProgress/done), relatedMilestoneId?,
+              category(9), createdAt, completedAt, completed
+Meeting       id, title, date, timeMinutes?, location, supervisor, notes,
+              completed, type(supervisor/reader/team/other)
+ChecklistItem id, milestoneId, title, done
+ProjectProgress overallPercent(0–100 clamped), breakdown map (clamped),
+              updatedAt, defenseStatus() vs kDefenseTargetPercent = 75
+ProjectInfo   title, studentName, supervisorName, readerName, teamMembers,
+              description
+
+================================================================================
+9. REMINDERS (scope decision)
+================================================================================
+
+ReminderService builds a complete, preference-filtered reminder plan:
+  • Deadlines: 7 / 3 / 1 days before + on the day (sparse by design)
+  • Portal openings: one notification on the opening day
+  • Meetings: one the day before
+Settings previews the next scheduled reminders. Actual push delivery is
+deliberately not wired: Android 13+ needs POST_NOTIFICATIONS runtime
+permission and flutter_local_notifications + timezone setup. The service is
+structured so delivery is a small, documented follow-up (see the header of
+lib/services/reminder_service.dart).
+
+================================================================================
+10. TESTING
+================================================================================
+
+test/widget_test.dart — 32 tests:
+  • App smoke test (renders, mocked SharedPreferences)
+  • Timeline constants (start/end/week count)
+  • Official week structure: Week 1 = 3 Aug 2026, Dashain weeks carry
+    special labels, December non-teaching labels, Week 12 resumes 23 Nov,
+    Week 50 ends 6 Sep 2027
+  • Dataset integrity: 9 milestones with exact official dates, portal gaps
+    ~10 days (Gate 2 = 7 calendar days per "9 working days"), all dates
+    inside the timeline, Dashain span, portal↔milestone links
+  • Full data audit vs the source: every headline date (gates, milestones,
+    defense/viva windows, board results), resit flagged conditional
+  • Phase logic (derives from windows; null after journey)
+  • Warnings (proposal approval, Dashain gap, defense readiness, cap of 2)
+  • Persistence: checklist, milestone status, tasks + open-task counts,
+    taskStats (done/total/overdue), meetings with types, self-reported
+    progress + defense status
+  • Deadline health rules (Overdue / Needs Attention / On Track)
+
+Run:  flutter test
+Analyze:  flutter analyze   → No issues found
+Build:  flutter build apk --debug   → ✓ Built
+
+================================================================================
+11. HOW TO RUN / BUILD
+================================================================================
+
+  flutter pub get            # fetch dependencies
+  flutter run                # run on a connected device/emulator
+  flutter analyze            # static analysis
+  flutter test               # unit + widget tests
+  flutter build apk          # release APK (or --debug)
+  flutter build appbundle    # Play Store bundle
+
+Dependencies (all pre-existing, none added in the FYP rebuild):
+  shared_preferences   local persistence
+  google_fonts         Inter typography
+  flutter_animate      subtle card animations
+  fl_chart             available (charts deferred; analytics uses lean tiles)
+
+================================================================================
+12. DESIGN DECISIONS & MIGRATION NOTES
+================================================================================
+
+  • Official data is CODE, not storage: users mark things complete; they
+    can never corrupt the official definitions. Storage holds only user
+    state.
+  • Milestone completion ≠ project completion: the UI keeps them as two
+    separate, clearly-labeled numbers.
+  • Special week labels (Dashain Holiday, Non Teaching Week) are resolved
+    exactly like the source sheet — never auto-numbered.
+  • Old Student Hub data (class sessions) was not migrated — the domains
+    don't map.
+  • Notifications: plan-builder implemented; delivery documented as the
+    single remaining step (dependency + permission).
+  • Responsive: one shell, two navigation modes; calendar adapts columns;
+    no fixed-width text containers.
