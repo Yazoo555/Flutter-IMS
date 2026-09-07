@@ -89,7 +89,7 @@ class EventDetailSheet extends StatelessWidget {
               // Title
               Text(
                 event.title,
-                style: AppTypography.headingLarge(context).copyWith(
+                style: AppTypography.pageTitle(context).copyWith(
                   decoration: event.isCompleted
                       ? TextDecoration.lineThrough
                       : null,
@@ -116,7 +116,7 @@ class EventDetailSheet extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusFull),
+                          BorderRadius.circular(DesignTokens.radiusPill),
                     ),
                     child: Text(
                       event.weekLabel,
@@ -255,7 +255,7 @@ class _CountdownBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: AppTypography.bodyBold(context).copyWith(color: banner),
+            style: AppTypography.bodyEmphasized(context).copyWith(color: banner),
           ),
         ],
       ),
@@ -394,7 +394,7 @@ class _RelatedMilestone extends StatelessWidget {
                 Text('RELATED MILESTONE',
                     style: AppTypography.overline(context)
                         .copyWith(fontSize: 9)),
-                Text(milestone.title, style: AppTypography.bodyBold(context)),
+                Text(milestone.title, style: AppTypography.bodyEmphasized(context)),
               ],
             ),
           ),
@@ -423,7 +423,7 @@ class _Chip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

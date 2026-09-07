@@ -189,7 +189,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Settings', style: AppTypography.headingLarge(context)),
+                Text('Settings', style: AppTypography.pageTitle(context)),
                 Text('Make the app yours',
                     style: AppTypography.caption(context)),
               ],
@@ -206,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text('Theme',
-                    style: AppTypography.bodyBold(context)),
+                    style: AppTypography.bodyEmphasized(context)),
               ),
             ],
           ),
@@ -349,7 +349,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: Icon(Icons.ios_share_rounded,
                 size: 20, color: AppColors.primary),
             title:
-                Text('Export data', style: AppTypography.bodyBold(context)),
+                Text('Export data', style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('See a snapshot of what is stored locally',
                 style: AppTypography.caption(context)),
             onTap: _exportData,
@@ -359,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: Icon(Icons.delete_forever_outlined,
                 size: 20, color: AppColors.error),
             title: Text('Clear data',
-                style: AppTypography.bodyBold(context)
+                style: AppTypography.bodyEmphasized(context)
                     .copyWith(color: AppColors.error)),
             subtitle: Text('Reset all local progress (official dates stay)',
                 style: AppTypography.caption(context)),
@@ -374,15 +374,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: Icon(Icons.school_rounded,
                 size: 20, color: AppColors.primary),
             title: Text('FYP Calendar',
-                style: AppTypography.bodyBold(context)),
+                style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('Cohort 11 • Final Year Project Planner',
                 style: AppTypography.caption(context)),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.info_outline_rounded,
-                size: 20, color: AppColors.info),
-            title: Text('Version', style: AppTypography.bodyBold(context)),
+                size: 20, color: AppColors.textTertiary(context)),
+            title: Text('Version', style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('1.0.0', style: AppTypography.caption(context)),
           ),
         ]),

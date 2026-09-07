@@ -50,7 +50,7 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final isWide =
-        MediaQuery.of(context).size.width >= DesignTokens.desktopBreakpoint;
+        MediaQuery.of(context).size.width >= DesignTokens.navRailBreakpoint;
 
     final screens = [
       HomeScreen(
@@ -164,7 +164,7 @@ class _Sidebar extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('FYP Calendar',
-                            style: AppTypography.headingMedium(context)),
+                            style: AppTypography.cardTitle(context)),
                         Text('Cohort 11',
                             style: AppTypography.caption(context)
                                 .copyWith(fontSize: 10)),
@@ -360,7 +360,7 @@ class _BottomNav extends StatelessWidget {
                               ? AppColors.primary.withValues(alpha: 0.12)
                               : Colors.transparent,
                           borderRadius:
-                              BorderRadius.circular(DesignTokens.radiusFull),
+                              BorderRadius.circular(DesignTokens.radiusPill),
                         ),
                         child: Icon(
                           selected ? d.activeIcon : d.icon,

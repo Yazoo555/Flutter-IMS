@@ -180,7 +180,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: Text(
                   '${_monthName(_visibleMonth.month)} ${_visibleMonth.year}',
-                  style: AppTypography.headingLarge(context),
+                  style: AppTypography.pageTitle(context),
                 ),
               ),
               _NavBtn(
@@ -251,7 +251,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         _selectedDate.month == DateTime.now().month
                     ? 'Today • ${_selectedDate.shortFormatted}'
                     : _selectedDate.shortFormatted,
-                style: AppTypography.headingMedium(context),
+                style: AppTypography.cardTitle(context),
               ),
               const SizedBox(width: 8),
               Container(
@@ -260,7 +260,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusFull),
+                      BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   weekLabelOf(_selectedDate),
@@ -467,7 +467,7 @@ class _Header extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text('Calendar', style: AppTypography.headingLarge(context)),
+            child: Text('Calendar', style: AppTypography.pageTitle(context)),
           ),
           Container(
             padding: const EdgeInsets.all(3),
@@ -585,7 +585,7 @@ class _FilterBar extends StatelessWidget {
                         ? Colors.white.withValues(alpha: 0.06)
                         : Colors.black.withValues(alpha: 0.05),
                 borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusFull),
+                    BorderRadius.circular(DesignTokens.radiusPill),
               ),
               child: Text(
                 f.label,
@@ -633,7 +633,7 @@ class _ScopeBar extends StatelessWidget {
                           ? AppColors.primary.withValues(alpha: 0.15)
                           : Colors.transparent,
                       borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusFull),
+                          BorderRadius.circular(DesignTokens.radiusPill),
                       border: Border.all(
                         color: s == scope
                             ? AppColors.primary
@@ -760,7 +760,7 @@ class _MonthGrid extends StatelessWidget {
                     children: [
                       Text(
                         '$dayNumber',
-                        style: AppTypography.bodyBold(context).copyWith(
+                        style: AppTypography.bodyEmphasized(context).copyWith(
                           color: isSelected
                               ? Colors.white
                               : holiday
@@ -941,7 +941,7 @@ class _TimelineRow extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(
-                                DesignTokens.radiusFull),
+                                DesignTokens.radiusPill),
                           ),
                           child: Text(
                             event.category.label,
@@ -957,7 +957,7 @@ class _TimelineRow extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       event.title,
-                      style: AppTypography.bodyBold(context).copyWith(
+                      style: AppTypography.bodyEmphasized(context).copyWith(
                         decoration: event.isCompleted
                             ? TextDecoration.lineThrough
                             : null,

@@ -47,7 +47,7 @@ class EventCard extends StatelessWidget {
                   : AppColors.border(context),
               width: event.isImportant && !done ? 1.2 : 1,
             ),
-            boxShadow: DesignTokens.cardShadows(isDark: isDark),
+            boxShadow: DesignTokens.subtle(isDark: isDark),
           ),
           child: IntrinsicHeight(
             child: Row(
@@ -98,7 +98,7 @@ class EventCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           event.title,
-                          style: AppTypography.headingMedium(context).copyWith(
+                          style: AppTypography.cardTitle(context).copyWith(
                             decoration:
                                 done ? TextDecoration.lineThrough : null,
                           ),
@@ -153,7 +153,7 @@ class _CategoryChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -186,7 +186,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Text(
         label,

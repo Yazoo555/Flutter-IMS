@@ -101,7 +101,7 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Milestones',
-                        style: AppTypography.headingLarge(context)),
+                        style: AppTypography.pageTitle(context)),
                     Text(
                       'Official Cohort 11 checkpoints • $done of ${_milestones.length} submitted',
                       style: AppTypography.caption(context),

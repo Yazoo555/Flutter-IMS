@@ -99,7 +99,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
                   borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusFull),
+                      BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   m.status.label,
@@ -112,7 +112,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
               ),
               const SizedBox(height: DesignTokens.sm),
 
-              Text(m.title, style: AppTypography.headingLarge(context)),
+              Text(m.title, style: AppTypography.pageTitle(context)),
               if (m.description.isNotEmpty) ...[
                 const SizedBox(height: DesignTokens.xs),
                 Text(m.description, style: AppTypography.body(context)),
@@ -244,7 +244,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(warning.title,
-                                style: AppTypography.bodyBold(context)
+                                style: AppTypography.bodyEmphasized(context)
                                     .copyWith(
                                         color: AppColors.priorityHigh)),
                             const SizedBox(height: 2),
@@ -374,7 +374,7 @@ class _InfoRow extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: AppTypography.bodyBold(context).copyWith(color: color),
+            style: AppTypography.bodyEmphasized(context).copyWith(color: color),
           ),
         ],
       ),

@@ -52,7 +52,7 @@ class MilestoneCard extends StatelessWidget {
           color: AppColors.card(context),
           borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           border: Border.all(color: AppColors.border(context)),
-          boxShadow: DesignTokens.cardShadows(isDark: isDark),
+          boxShadow: DesignTokens.subtle(isDark: isDark),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,7 +103,7 @@ class MilestoneCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: c.withValues(alpha: 0.12),
                       borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusFull),
+                          BorderRadius.circular(DesignTokens.radiusPill),
                     ),
                     child: Text(
                       label,
@@ -118,7 +118,7 @@ class MilestoneCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text(milestone.title, style: AppTypography.headingMedium(context)),
+            Text(milestone.title, style: AppTypography.cardTitle(context)),
             if (milestone.description.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
@@ -191,7 +191,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Text(
         status.label,

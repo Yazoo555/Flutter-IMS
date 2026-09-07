@@ -118,7 +118,7 @@ class _MeetingsScreenState extends State<MeetingsScreen> {
                 DesignTokens.lg, DesignTokens.xl, DesignTokens.lg, 96,
               ),
               children: [
-                Text('Meetings', style: AppTypography.headingLarge(context)),
+                Text('Meetings', style: AppTypography.pageTitle(context)),
                 Text(
                   '${upcoming.length} upcoming • ${past.length} past',
                   style: AppTypography.caption(context),
@@ -199,7 +199,7 @@ class _MeetingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.supervisor.withValues(alpha: 0.12),
                   borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusFull),
+                      BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   m.type.label,
@@ -218,7 +218,7 @@ class _MeetingCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     borderRadius:
-                        BorderRadius.circular(DesignTokens.radiusFull),
+                        BorderRadius.circular(DesignTokens.radiusPill),
                   ),
                   child: Text(
                     countdown,
@@ -256,7 +256,7 @@ class _MeetingCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             m.title,
-            style: AppTypography.bodyBold(context).copyWith(
+            style: AppTypography.bodyEmphasized(context).copyWith(
               decoration: m.completed ? TextDecoration.lineThrough : null,
             ),
           ),

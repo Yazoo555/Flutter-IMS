@@ -130,7 +130,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tasks', style: AppTypography.headingLarge(context)),
+                      Text('Tasks', style: AppTypography.pageTitle(context)),
                       Text(
                         '$open open • ${_tasks.length - open} done',
                         style: AppTypography.caption(context),
@@ -197,7 +197,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                         .withValues(alpha: 0.15)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(
-                                    DesignTokens.radiusFull),
+                                    DesignTokens.radiusPill),
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.primary
@@ -293,7 +293,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(title,
-                      style: AppTypography.bodyBold(context)
+                      style: AppTypography.bodyEmphasized(context)
                           .copyWith(color: color)),
                   const SizedBox(width: 6),
                   Container(
@@ -302,7 +302,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.12),
                       borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusFull),
+                          BorderRadius.circular(DesignTokens.radiusPill),
                     ),
                     child: Text(
                       '${tasks.length}',

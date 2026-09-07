@@ -79,7 +79,7 @@ class NextDeadlineCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: urgencyColor.withValues(alpha: 0.12),
                 borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusFull),
+                    BorderRadius.circular(DesignTokens.radiusPill),
               ),
               child: Text(
                 urgencyStyle(context, urgency).$1,
@@ -96,8 +96,8 @@ class NextDeadlineCard extends StatelessWidget {
         Text(
           e.title,
           style: compact
-              ? AppTypography.headingMedium(context)
-              : AppTypography.headingLarge(context),
+              ? AppTypography.cardTitle(context)
+              : AppTypography.pageTitle(context),
         ),
         const SizedBox(height: 6),
         Wrap(
@@ -204,8 +204,8 @@ class NextDeadlineCard extends StatelessWidget {
             width: hot ? 1.6 : 1,
           ),
           boxShadow: hot
-              ? DesignTokens.glowShadows(AppColors.deadline)
-              : DesignTokens.cardShadows(isDark: AppColors.isDark(context)),
+              ? DesignTokens.raised(isDark: AppColors.isDark(context))
+              : DesignTokens.subtle(isDark: AppColors.isDark(context)),
         ),
         child: content,
       ),

@@ -132,7 +132,7 @@ class _TaskEditSheetState extends State<TaskEditSheet> {
               ),
               const SizedBox(height: DesignTokens.lg),
               Text(_isEdit ? 'Edit Task' : 'New Task',
-                  style: AppTypography.headingLarge(context)),
+                  style: AppTypography.pageTitle(context)),
               const SizedBox(height: DesignTokens.lg),
 
               // Title
@@ -190,7 +190,7 @@ class _TaskEditSheetState extends State<TaskEditSheet> {
                       decoration: BoxDecoration(
                         color: sel ? c : c.withValues(alpha: 0.08),
                         borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusFull),
+                            BorderRadius.circular(DesignTokens.radiusPill),
                         border: Border.all(
                             color: sel ? c : c.withValues(alpha: 0.2)),
                       ),
@@ -225,7 +225,7 @@ class _TaskEditSheetState extends State<TaskEditSheet> {
                       decoration: BoxDecoration(
                         color: sel ? c : c.withValues(alpha: 0.08),
                         borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusFull),
+                            BorderRadius.circular(DesignTokens.radiusPill),
                         border: Border.all(
                             color: sel ? c : c.withValues(alpha: 0.2)),
                       ),
@@ -265,7 +265,7 @@ class _TaskEditSheetState extends State<TaskEditSheet> {
                             ? AppColors.primary
                             : AppColors.primary.withValues(alpha: 0.08),
                         borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusFull),
+                            BorderRadius.circular(DesignTokens.radiusPill),
                         border: Border.all(
                           color: sel
                               ? AppColors.primary
@@ -395,7 +395,7 @@ class _MilestoneChip extends StatelessWidget {
         color: selected
             ? AppColors.milestone
             : AppColors.milestone.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
         border: Border.all(
           color: selected
               ? AppColors.milestone

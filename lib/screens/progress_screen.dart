@@ -114,7 +114,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Progress', style: AppTypography.headingLarge(context)),
+                Text('Progress', style: AppTypography.pageTitle(context)),
                 Text(
                   'Self-reported — you control these numbers',
                   style: AppTypography.caption(context),
@@ -359,9 +359,9 @@ class _StatTile extends StatelessWidget {
                 child: Text(
                   value,
                   style: smallValue
-                      ? AppTypography.headingMedium(context)
+                      ? AppTypography.cardTitle(context)
                           .copyWith(color: color)
-                      : AppTypography.headingLarge(context)
+                      : AppTypography.pageTitle(context)
                           .copyWith(color: color),
                 ),
               ),
@@ -400,7 +400,7 @@ class _OverallProgressCard extends StatelessWidget {
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.cardShadows(isDark: AppColors.isDark(context)),
+        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,7 +431,7 @@ class _OverallProgressCard extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text('%',
-                  style: AppTypography.headingLarge(context)
+                  style: AppTypography.pageTitle(context)
                       .copyWith(color: AppColors.session)),
               const Spacer(),
               Text(
@@ -482,7 +482,7 @@ class _DefenseTargetCard extends StatelessWidget {
         border: Border.all(
           color: targetColor.withValues(alpha: 0.3),
         ),
-        boxShadow: DesignTokens.cardShadows(isDark: AppColors.isDark(context)),
+        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +500,7 @@ class _DefenseTargetCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: targetColor.withValues(alpha: 0.12),
                   borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusFull),
+                      BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   status.label,
@@ -518,12 +518,12 @@ class _DefenseTargetCard extends StatelessWidget {
             children: [
               Text(
                 'Current: $current%',
-                style: AppTypography.bodyBold(context),
+                style: AppTypography.bodyEmphasized(context),
               ),
               const Spacer(),
               Text(
                 'Target: $kDefenseTargetPercent%',
-                style: AppTypography.bodyBold(context)
+                style: AppTypography.bodyEmphasized(context)
                     .copyWith(color: targetColor),
               ),
             ],
@@ -585,7 +585,7 @@ class _BreakdownCard extends StatelessWidget {
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.cardShadows(isDark: AppColors.isDark(context)),
+        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -632,7 +632,7 @@ class _BreakdownCard extends StatelessWidget {
                   child: Text(
                     '$value%',
                     textAlign: TextAlign.end,
-                    style: AppTypography.bodyBold(context)
+                    style: AppTypography.bodyEmphasized(context)
                         .copyWith(color: AppColors.primary),
                   ),
                 ),

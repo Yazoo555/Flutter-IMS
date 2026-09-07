@@ -39,7 +39,7 @@ class EmptyState extends StatelessWidget {
               child: Icon(icon, size: 32, color: AppColors.primary),
             ),
             const SizedBox(height: DesignTokens.md),
-            Text(title, style: AppTypography.headingMedium(context)),
+            Text(title, style: AppTypography.cardTitle(context)),
             if (message != null) ...[
               const SizedBox(height: DesignTokens.xs),
               Text(

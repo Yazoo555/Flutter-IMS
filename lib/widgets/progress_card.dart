@@ -35,7 +35,7 @@ class ProgressCard extends StatelessWidget {
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.cardShadows(isDark: isDark),
+        boxShadow: DesignTokens.subtle(isDark: isDark),
       ),
       child: Row(
         children: [
@@ -71,7 +71,7 @@ class ProgressCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTypography.bodyBold(context)),
+                Text(title, style: AppTypography.bodyEmphasized(context)),
                 if (detail != null) ...[
                   const SizedBox(height: 2),
                   Text(detail!, style: AppTypography.caption(context)),

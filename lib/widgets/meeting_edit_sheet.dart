@@ -141,7 +141,7 @@ class _MeetingEditSheetState extends State<MeetingEditSheet> {
               ),
               const SizedBox(height: DesignTokens.lg),
               Text(_isEdit ? 'Edit Meeting' : 'New Meeting',
-                  style: AppTypography.headingLarge(context)),
+                  style: AppTypography.pageTitle(context)),
               const SizedBox(height: DesignTokens.lg),
 
               TextField(
@@ -173,7 +173,7 @@ class _MeetingEditSheetState extends State<MeetingEditSheet> {
                             ? AppColors.supervisor
                             : AppColors.supervisor.withValues(alpha: 0.08),
                         borderRadius:
-                            BorderRadius.circular(DesignTokens.radiusFull),
+                            BorderRadius.circular(DesignTokens.radiusPill),
                         border: Border.all(
                           color: sel
                               ? AppColors.supervisor
@@ -344,7 +344,7 @@ class _Chip extends StatelessWidget {
         color: selected
             ? AppColors.milestone
             : AppColors.milestone.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(DesignTokens.radiusFull),
+        borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
         border: Border.all(
           color: selected
               ? AppColors.milestone

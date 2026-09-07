@@ -419,18 +419,14 @@ class _CurrentPhaseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDark],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
-        boxShadow: DesignTokens.glowShadows(AppColors.primary),
+        boxShadow: DesignTokens.raised(isDark: AppColors.isDark(context)),
       ),
       child: p == null
           ? Text(
               'FYP journey complete — congratulations! 🎓',
-              style: AppTypography.headingMedium(context)
+              style: AppTypography.cardTitle(context)
                   .copyWith(color: Colors.white),
             )
           : Column(
@@ -455,7 +451,7 @@ class _CurrentPhaseCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   p.title,
-                  style: AppTypography.headingLarge(context)
+                  style: AppTypography.pageTitle(context)
                       .copyWith(color: Colors.white),
                 ),
                 const SizedBox(height: 10),
@@ -509,7 +505,7 @@ class _WarningCard extends StatelessWidget {
               children: [
                 Text(
                   warning.title,
-                  style: AppTypography.bodyBold(context)
+                  style: AppTypography.bodyEmphasized(context)
                       .copyWith(color: AppColors.priorityHigh),
                 ),
                 const SizedBox(height: 2),
@@ -576,7 +572,7 @@ class _ProgressSummaryCard extends StatelessWidget {
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.cardShadows(isDark: AppColors.isDark(context)),
+        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,7 +588,7 @@ class _ProgressSummaryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Milestones',
-                        style: AppTypography.bodyBold(context)),
+                        style: AppTypography.bodyEmphasized(context)),
                     Text(
                       '$milestonesDone / $milestonesTotal submitted',
                       style: AppTypography.caption(context),
@@ -629,7 +625,7 @@ class _ProgressSummaryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Project completion (self-estimated)',
-                        style: AppTypography.bodyBold(context)),
+                        style: AppTypography.bodyEmphasized(context)),
                     Text(
                       'Average of your per-milestone progress — not the same '
                       'as milestones submitted',

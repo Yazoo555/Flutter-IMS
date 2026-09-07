@@ -75,7 +75,7 @@ class TaskCard extends StatelessWidget {
                     ? AppColors.error.withValues(alpha: 0.4)
                     : AppColors.border(context),
               ),
-              boxShadow: DesignTokens.cardShadows(isDark: isDark),
+              boxShadow: DesignTokens.subtle(isDark: isDark),
             ),
             child: Row(
               children: [
@@ -118,7 +118,7 @@ class TaskCard extends StatelessWidget {
                     children: [
                       Text(
                         task.title,
-                        style: AppTypography.bodyBold(context).copyWith(
+                        style: AppTypography.bodyEmphasized(context).copyWith(
                           decoration:
                               done ? TextDecoration.lineThrough : null,
                         ),
@@ -135,7 +135,7 @@ class TaskCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(
-                                  DesignTokens.radiusFull),
+                                  DesignTokens.radiusPill),
                             ),
                             child: Text(
                               task.category.label,
@@ -152,7 +152,7 @@ class TaskCard extends StatelessWidget {
                                 color: AppColors.milestone
                                     .withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(
-                                    DesignTokens.radiusFull),
+                                    DesignTokens.radiusPill),
                               ),
                               child: Text(
                                 milestone.title.split('—').first.trim(),
