@@ -11,17 +11,12 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0B0F19),
-      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
   runApp(const FypCalendarApp());
 }
 
 /// FYP Calendar — Cohort 11 • Final Year Project Planner.
-///
-/// The theme mode (System / Light / Dark) is persisted locally; dark remains
-/// the default to match the premium academic design.
 class FypCalendarApp extends StatefulWidget {
   const FypCalendarApp({super.key});
 

@@ -13,10 +13,6 @@ import '../widgets/progress_card.dart';
 import '../widgets/section_header.dart';
 
 /// Progress screen — the student-controlled estimation layer.
-///
-/// The overall % and breakdown are SELF-REPORTED (never derived from tasks
-/// or milestones). The 75% defense target comes from the official FYP
-/// context. The timeline card stays factual (official calendar position).
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
 
@@ -70,7 +66,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
     await _repo.saveProjectProgress(p);
   }
 
-  /// Next unfinished deadline/assessment, nearest first.
   FypEvent? get _nextDeadline {
     final candidates = _events
         .where((e) =>
@@ -84,7 +79,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return candidates.first;
   }
 
-  /// Fraction of the official timeline that has elapsed (factual).
   double get _timelineProgress {
     final now = DateTime.now();
     if (now.isBefore(fypTimelineStart)) return 0;
@@ -124,7 +118,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── Official timeline position (factual) ───────────────────────────
+        // Timeline position
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignTokens.lg),
@@ -139,7 +133,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── ANALYTICS (what is done / what remains) ─────────────────────────
+        // Analytics
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -159,7 +153,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── Next deadline (shared component) ──────────────────────────────
+        // Next deadline
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -172,7 +166,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── Self-reported overall completion ───────────────────────────────
+        // Self-reported overall
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -188,7 +182,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── Defense target (official 75%) ──────────────────────────────────
+        // Defense target
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -201,7 +195,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
         ),
 
-        // ── Breakdown (student-entered estimates) ──────────────────────────
+        // Breakdown
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -264,7 +258,7 @@ class _StatsGrid extends StatelessWidget {
               value: '$milestonesRemaining',
               label: 'Milestones left',
               tooltip: 'Official milestones not yet Submitted',
-              color: AppColors.textTertiary(context),
+              color: AppColors.textTertiary(context).withValues(alpha: 0.7),
             ),
           ],
         ),
@@ -286,7 +280,7 @@ class _StatsGrid extends StatelessWidget {
               tooltip: 'Personal tasks past their due date and not done',
               color: taskStats.overdue > 0
                   ? AppColors.deadline
-                  : AppColors.textTertiary(context),
+                  : AppColors.textTertiary(context).withValues(alpha: 0.7),
             ),
           ],
         ),
@@ -296,7 +290,7 @@ class _StatsGrid extends StatelessWidget {
             _StatTile(
               icon: Icons.event_available_rounded,
               value: '${health.upcomingCount}',
-              label: 'Upcoming deadlines',
+              label: 'Upcoming events',
               tooltip: 'Official events still ahead of you',
               color: AppColors.priorityHigh,
             ),
@@ -352,7 +346,7 @@ class _StatTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 15, color: color),
+              Icon(icon, size: 14, color: color),
               const SizedBox(height: 6),
               FittedBox(
                 fit: BoxFit.scaleDown,
@@ -361,8 +355,7 @@ class _StatTile extends StatelessWidget {
                   style: smallValue
                       ? AppTypography.cardTitle(context)
                           .copyWith(color: color)
-                      : AppTypography.pageTitle(context)
-                          .copyWith(color: color),
+                      : AppTypography.statValueColored(color, context),
                 ),
               ),
               Text(
@@ -395,12 +388,11 @@ class _OverallProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,12 +418,15 @@ class _OverallProgressCard extends StatelessWidget {
             children: [
               Text(
                 '$percent',
-                style: AppTypography.displayLarge(context)
-                    .copyWith(fontSize: 44, color: AppColors.session),
+                style: AppTypography.countdownColored(
+                    AppColors.session, context).copyWith(
+                    fontSize: 40,
+                    height: 1.1,
+                ),
               ),
               const SizedBox(width: 4),
               Text('%',
-                  style: AppTypography.pageTitle(context)
+                  style: AppTypography.sectionTitle(context)
                       .copyWith(color: AppColors.session)),
               const Spacer(),
               Text(
@@ -450,8 +445,7 @@ class _OverallProgressCard extends StatelessWidget {
             onChanged: (v) => onChanged(v.round()),
           ),
           Text(
-            'Your own estimate of how complete the whole project is — '
-            'independent of milestone submissions and task lists.',
+            'Your own estimate of how complete the whole project is.',
             style: AppTypography.caption(context),
           ),
         ],
@@ -471,42 +465,40 @@ class _DefenseTargetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetColor =
-        status.onTrack ? AppColors.session : AppColors.priorityHigh;
+        status.onTrack ? AppColors.statusCompleted : AppColors.priorityHigh;
     final targetPct = kDefenseTargetPercent / 100;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(
-          color: targetColor.withValues(alpha: 0.3),
+          color: targetColor.withValues(alpha: 0.25),
         ),
-        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.speed_rounded, size: 16, color: targetColor),
+              Icon(Icons.speed_rounded, size: 15, color: targetColor),
               const SizedBox(width: 8),
               Text('INTERNAL DEFENSE TARGET',
                   style: AppTypography.overline(context)),
               const Spacer(),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: targetColor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusPill),
+                  color: targetColor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   status.label,
                   style: AppTypography.caption(context).copyWith(
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     color: targetColor,
                   ),
                 ),
@@ -516,10 +508,8 @@ class _DefenseTargetCard extends StatelessWidget {
           const SizedBox(height: DesignTokens.md),
           Row(
             children: [
-              Text(
-                'Current: $current%',
-                style: AppTypography.bodyEmphasized(context),
-              ),
+              Text('Current: $current%',
+                  style: AppTypography.bodyEmphasized(context)),
               const Spacer(),
               Text(
                 'Target: $kDefenseTargetPercent%',
@@ -529,18 +519,17 @@ class _DefenseTargetCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // Bar with target marker at 75%.
           LayoutBuilder(builder: (context, constraints) {
             final w = constraints.maxWidth;
             return Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(3),
                   child: LinearProgressIndicator(
                     value: (current / 100).clamp(0.0, 1.0),
-                    minHeight: 10,
+                    minHeight: 8,
                     backgroundColor:
-                        AppColors.session.withValues(alpha: 0.12),
+                        AppColors.session.withValues(alpha: 0.10),
                     valueColor:
                         AlwaysStoppedAnimation<Color>(targetColor),
                   ),
@@ -550,7 +539,7 @@ class _DefenseTargetCard extends StatelessWidget {
                   top: 0,
                   child: Container(
                     width: 2,
-                    height: 10,
+                    height: 8,
                     color: AppColors.textPrimary(context),
                   ),
                 ),
@@ -559,8 +548,8 @@ class _DefenseTargetCard extends StatelessWidget {
           }),
           const SizedBox(height: 8),
           Text(
-            'The official Internal Project Defense (18–23 Apr 2027) requires '
-            'the project to be at least 75% complete.',
+            'The Internal Project Defense (18–23 Apr 2027) requires '
+            'at least 75% completion.',
             style: AppTypography.caption(context),
           ),
         ],
@@ -580,12 +569,11 @@ class _BreakdownCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,7 +584,7 @@ class _BreakdownCard extends StatelessWidget {
                   style: AppTypography.overline(context)),
               const Spacer(),
               Icon(Icons.edit_note_rounded,
-                  size: 16, color: AppColors.textTertiary(context)),
+                  size: 15, color: AppColors.textTertiary(context)),
             ],
           ),
           const SizedBox(height: DesignTokens.xs),

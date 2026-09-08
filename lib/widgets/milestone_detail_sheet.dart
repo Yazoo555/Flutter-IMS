@@ -8,8 +8,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/design_tokens.dart';
 
-/// Milestone detail bottom sheet: full info, status actions, related
-/// preparation checklist and milestone-specific warnings.
+/// Milestone detail bottom sheet.
 class MilestoneDetailSheet extends StatefulWidget {
   final Milestone milestone;
   final List<ChecklistItem> checklist;
@@ -85,7 +84,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.textTertiary(context)
-                        .withValues(alpha: 0.4),
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -95,9 +94,9 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
               // Status chip
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.12),
+                  color: statusColor.withValues(alpha: 0.10),
                   borderRadius:
                       BorderRadius.circular(DesignTokens.radiusPill),
                 ),
@@ -105,7 +104,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                   m.status.label,
                   style: AppTypography.caption(context).copyWith(
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     color: statusColor,
                   ),
                 ),
@@ -118,7 +117,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                 Text(m.description, style: AppTypography.body(context)),
               ],
 
-              // Deadline / portal info rows
+              // Info rows
               const SizedBox(height: DesignTokens.md),
               _InfoRow(
                 icon: Icons.flag_rounded,
@@ -157,7 +156,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                   Text(
                     '${(m.percentageComplete * 100).round()}%',
                     style: AppTypography.caption(context).copyWith(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       color: statusColor,
                     ),
                   ),
@@ -165,11 +164,11 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
               ),
               const SizedBox(height: 6),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(3),
                 child: LinearProgressIndicator(
                   value: m.percentageComplete,
-                  minHeight: 6,
-                  backgroundColor: statusColor.withValues(alpha: 0.12),
+                  minHeight: 4,
+                  backgroundColor: statusColor.withValues(alpha: 0.10),
                   valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                 ),
               ),
@@ -219,25 +218,25 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                 ],
               ),
 
-              // Milestone-specific official warning
+              // Warning
               if (warning != null) ...[
                 const SizedBox(height: DesignTokens.lg),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.priorityHigh.withValues(alpha: 0.08),
+                    color: AppColors.priorityHigh.withValues(alpha: 0.06),
                     borderRadius:
                         BorderRadius.circular(DesignTokens.radiusMd),
                     border: Border.all(
-                        color:
-                            AppColors.priorityHigh.withValues(alpha: 0.25)),
+                        color: AppColors.priorityHigh
+                            .withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(warning.icon,
-                          size: 16, color: AppColors.priorityHigh),
+                          size: 15, color: AppColors.priorityHigh),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Column(
@@ -258,7 +257,7 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                 ),
               ],
 
-              // Preparation checklist
+              // Checklist
               const SizedBox(height: DesignTokens.lg),
               Text('PREPARATION CHECKLIST',
                   style: AppTypography.overline(context)),
@@ -271,12 +270,12 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.only(right: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.12),
+                        color: AppColors.error.withValues(alpha: 0.10),
                         borderRadius:
                             BorderRadius.circular(DesignTokens.radiusSm),
                       ),
                       child: Icon(Icons.delete_outline_rounded,
-                          size: 18, color: AppColors.error),
+                          size: 17, color: AppColors.error),
                     ),
                     onDismissed: (_) =>
                         widget.onDeleteChecklistItem(item),
@@ -286,14 +285,14 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                           BorderRadius.circular(DesignTokens.radiusSm),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 4),
+                            vertical: 6, horizontal: 4),
                         child: Row(
                           children: [
                             Icon(
                               item.done
                                   ? Icons.check_box_rounded
                                   : Icons.check_box_outline_blank_rounded,
-                              size: 20,
+                              size: 18,
                               color: item.done
                                   ? AppColors.statusCompleted
                                   : AppColors.textTertiary(context),
@@ -328,14 +327,14 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
                       decoration: InputDecoration(
                         hintText: 'Add a preparation step…',
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
+                            horizontal: 14, vertical: 11),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton.filled(
                     onPressed: _add,
-                    icon: const Icon(Icons.add_rounded, size: 20),
+                    icon: const Icon(Icons.add_rounded, size: 18),
                   ),
                 ],
               ),
@@ -346,8 +345,6 @@ class _MilestoneDetailSheetState extends State<MilestoneDetailSheet> {
     );
   }
 }
-
-// ── Info row ─────────────────────────────────────────────────────────────────
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;
@@ -365,10 +362,10 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 13, color: color),
           const SizedBox(width: 8),
           Text(label, style: AppTypography.caption(context)),
           const Spacer(),
@@ -381,8 +378,6 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
-
-// ── Status button ────────────────────────────────────────────────────────────
 
 class _StatusButton extends StatelessWidget {
   final String label;
@@ -406,9 +401,7 @@ class _StatusButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: selected
-              ? color.withValues(alpha: 0.15)
-              : Colors.transparent,
+          color: selected ? color.withValues(alpha: 0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           border: Border.all(
             color: selected ? color : AppColors.border(context),
@@ -417,7 +410,8 @@ class _StatusButton extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 18,
+            Icon(icon,
+                size: 17,
                 color: selected ? color : AppColors.textTertiary(context)),
             const SizedBox(height: 4),
             Text(
@@ -425,8 +419,7 @@ class _StatusButton extends StatelessWidget {
               style: AppTypography.caption(context).copyWith(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color:
-                    selected ? color : AppColors.textTertiary(context),
+                color: selected ? color : AppColors.textTertiary(context),
               ),
             ),
           ],
@@ -436,7 +429,6 @@ class _StatusButton extends StatelessWidget {
   }
 }
 
-/// Convenience: open the milestone detail sheet.
 Future<void> showMilestoneDetail(
   BuildContext context, {
   required Milestone milestone,

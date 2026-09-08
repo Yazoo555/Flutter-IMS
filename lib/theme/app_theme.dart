@@ -7,9 +7,7 @@ import 'app_colors.dart';
 import 'design_tokens.dart';
 
 /// Material 3 ThemeData for the FYP Calendar, in dark (primary) and light
-/// (complementary) variants. Both share the indigo seed and Inter font, and
-/// both use the same structural decisions: calm surfaces, restrained
-/// elevation, coherent controls.
+/// (complementary) variants. Both share the teal seed and Inter font.
 class AppTheme {
   AppTheme._();
 
@@ -25,13 +23,12 @@ class AppTheme {
       fontFamily: GoogleFonts.inter().fontFamily,
       scaffoldBackgroundColor: AppColors.scaffoldOn(brightness),
 
-      // App bars are transparent so the shell owns the surface layout.
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        systemOverlayStyle: brightness == Brightness.dark
+        systemOverlayStyle: isDark
             ? const SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.light,
@@ -46,25 +43,23 @@ class AppTheme {
               ),
       ),
 
-      // Primary button: filled/elevated share one coherent treatment.
+      // Buttons — refined, calm, with clear hover/pressed states.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: _buttonStyle(
           backgroundColor: scheme.primary,
           foregroundColor: Colors.white,
-          isDark: isDark,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: _buttonStyle(
           backgroundColor: scheme.primary,
           foregroundColor: Colors.white,
-          isDark: isDark,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           ),
@@ -73,7 +68,12 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: scheme.primary,
-          side: const BorderSide(color: AppColors.borderLightStrong, width: 1.25),
+          side: BorderSide(
+            color: isDark
+                ? AppColors.borderDarkStrong
+                : AppColors.borderLightStrong,
+            width: 1.25,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
@@ -81,7 +81,6 @@ class AppTheme {
         ),
       ),
 
-      // Icon buttons: consistent hit target + tooltip-friendly defaults.
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
           foregroundColor: AppColors.textSecondaryOn(brightness),
@@ -89,7 +88,7 @@ class AppTheme {
         ),
       ),
 
-      // Cards: calm surface, very subtle elevation only where used.
+      // Cards: calm surface, no elevation by default.
       cardTheme: CardThemeData(
         color: AppColors.cardOn(brightness),
         elevation: 0,
@@ -103,7 +102,7 @@ class AppTheme {
       // Inputs: filled, calm, clear focus ring.
       inputDecorationTheme: _inputTheme(isDark: isDark, brightness: brightness),
 
-      // Dialogs and bottom sheets share the same surface and radius.
+      // Dialogs and bottom sheets
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceOn(brightness),
         surfaceTintColor: Colors.transparent,
@@ -118,11 +117,13 @@ class AppTheme {
         elevation: 0,
         modalBackgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(DesignTokens.radiusSheet)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(DesignTokens.radiusSheet),
+          ),
         ),
       ),
 
-      // Snackbars float with a calm shape, no harsh behavior.
+      // Snackbars
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -132,12 +133,12 @@ class AppTheme {
             ? AppColors.surfaceDarkAlt
             : AppColors.surfaceLight,
         contentTextStyle: GoogleFonts.inter(
-          fontSize: 14,
+          fontSize: 13,
           color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
         ),
       ),
 
-      // Popups (menus, etc.) use the same surface.
+      // Popups
       popupMenuTheme: PopupMenuThemeData(
         color: AppColors.surfaceOn(brightness),
         shape: RoundedRectangleBorder(
@@ -146,39 +147,45 @@ class AppTheme {
         elevation: 0,
       ),
 
-      // Toggles: clear, calm, consistent thumb.
+      // Toggles — crisp thumb, clear track.
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.all(Colors.white),
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white;
+          }
+          return Colors.white.withValues(alpha: 0.65);
+        }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return scheme.primary;
           }
           return isDark
-              ? Colors.white.withValues(alpha: 0.12)
-              : AppColors.borderLight.withValues(alpha: 0.5);
+              ? Colors.white.withValues(alpha: 0.10)
+              : AppColors.borderLight.withValues(alpha: 0.55);
         }),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
 
-      // Progress: calm tracks, brand color for value.
+      // Progress indicators — calm track, clear value.
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.primary,
-        linearTrackColor: scheme.primary.withValues(alpha: 0.15),
-        circularTrackColor: scheme.primary.withValues(alpha: 0.15),
-        strokeWidth: 6,
+        linearTrackColor: scheme.primary.withValues(alpha: 0.10),
+        circularTrackColor: scheme.primary.withValues(alpha: 0.10),
+        strokeWidth: 5,
+        linearMinHeight: 4,
       ),
 
-      // Divider: subtle, not a visible line everywhere.
+      // Dividers
       dividerTheme: DividerThemeData(
-        color: AppColors.borderOn(brightness),
+        color: AppColors.borderOn(brightness).withValues(alpha: 0.6),
         thickness: 1,
         space: 1,
       ),
 
-      // Chip: calm defaults (we often style chips per-context anyway).
+      // Chips — subtle surface tint, clear but not heavy.
       chipTheme: ChipThemeData(
         backgroundColor: isDark
-            ? Colors.white.withValues(alpha: 0.06)
+            ? AppColors.primaryContainer.withValues(alpha: 0.5)
             : AppColors.surfaceLightAlt,
         labelStyle: GoogleFonts.inter(
           fontSize: 12,
@@ -194,7 +201,7 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       ),
 
-      // Tab bar: calm, not a loud indicator bar.
+      // Tab bar — clear selected state, restrained unselected.
       tabBarTheme: TabBarThemeData(
         labelColor: scheme.primary,
         unselectedLabelColor: AppColors.textTertiaryOn(brightness),
@@ -203,9 +210,20 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
         indicator: BoxDecoration(
-          color: scheme.primary.withValues(alpha: 0.12),
+          color: scheme.primary.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         ),
+      ),
+
+      // Slider
+      sliderTheme: SliderThemeData(
+        activeTrackColor: scheme.primary,
+        inactiveTrackColor: scheme.primary.withValues(alpha: 0.15),
+        thumbColor: scheme.primary,
+        overlayColor: scheme.primary.withValues(alpha: 0.08),
+        trackHeight: 4,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
       ),
     );
   }
@@ -213,19 +231,18 @@ class AppTheme {
   static ButtonStyle _buttonStyle({
     required Color backgroundColor,
     required Color foregroundColor,
-    required bool isDark,
   }) {
     return ElevatedButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
       elevation: 0,
       shadowColor: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
       ),
       textStyle: GoogleFonts.inter(
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
         height: 1.2,
         letterSpacing: 0.2,
@@ -234,10 +251,13 @@ class AppTheme {
     ).copyWith(
       overlayColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.pressed)) {
-          return backgroundColor.withValues(alpha: 0.85);
+          return backgroundColor.withValues(alpha: 0.82);
         }
         if (states.contains(WidgetState.hovered)) {
-          return backgroundColor.withValues(alpha: 0.92);
+          return backgroundColor.withValues(alpha: 0.93);
+        }
+        if (states.contains(WidgetState.focused)) {
+          return backgroundColor.withValues(alpha: 0.95);
         }
         return null;
       }),
@@ -252,7 +272,7 @@ class AppTheme {
       filled: true,
       fillColor: AppColors.inputBackgroundOn(brightness),
       hintStyle: GoogleFonts.inter(
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w400,
         color: isDark
             ? AppColors.textTertiaryDark
@@ -260,15 +280,20 @@ class AppTheme {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-        borderSide: const BorderSide(color: AppColors.borderLightStrong, width: 1),
+        borderSide: BorderSide(
+          color: isDark
+              ? AppColors.borderDarkStrong
+              : AppColors.borderLightStrong,
+          width: 1.25,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         borderSide: BorderSide(
           color: isDark
-              ? AppColors.borderDark.withValues(alpha: 0.6)
-              : AppColors.borderLight.withValues(alpha: 0.8),
-          width: 1,
+              ? AppColors.borderDark.withValues(alpha: 0.7)
+              : AppColors.borderLight.withValues(alpha: 0.75),
+          width: 1.25,
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -287,12 +312,12 @@ class AppTheme {
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         borderSide: BorderSide(
           color: isDark
-              ? AppColors.borderDark.withValues(alpha: 0.4)
-              : AppColors.borderLight.withValues(alpha: 0.6),
-          width: 1,
+              ? AppColors.borderDark.withValues(alpha: 0.35)
+              : AppColors.borderLight.withValues(alpha: 0.45),
+          width: 1.25,
         ),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       isDense: false,
     );
   }

@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../theme/design_tokens.dart';
 
-/// Consistent empty state: icon in a soft circle + message (+ optional CTA).
+/// Consistent empty state: icon + message (+ optional CTA).
 class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -29,17 +29,9 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 32, color: AppColors.primary),
-            ),
+            Icon(icon, size: 28, color: AppColors.textTertiary(context)),
             const SizedBox(height: DesignTokens.md),
-            Text(title, style: AppTypography.cardTitle(context)),
+            Text(title, style: AppTypography.bodyEmphasized(context)),
             if (message != null) ...[
               const SizedBox(height: DesignTokens.xs),
               Text(
@@ -52,7 +44,7 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: DesignTokens.lg),
               FilledButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add_rounded, size: 18),
+                icon: const Icon(Icons.add_rounded, size: 16),
                 label: Text(actionLabel!),
               ),
             ],

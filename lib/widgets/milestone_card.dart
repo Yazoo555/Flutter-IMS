@@ -11,11 +11,7 @@ import '../theme/design_tokens.dart';
 class MilestoneCard extends StatelessWidget {
   final Milestone milestone;
   final VoidCallback? onTap;
-
-  /// Optional explicit portal date override (falls back to the milestone's own).
   final DateTime? portalOpenDate;
-
-  /// Optional tracker number (1–9) shown in the leading badge.
   final int? number;
 
   const MilestoneCard({
@@ -41,18 +37,16 @@ class MilestoneCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor = AppColors.milestoneStatusColor(milestone.status);
-    final isDark = AppColors.isDark(context);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: DesignTokens.sm + 4),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: DesignTokens.sm),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card(context),
           borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           border: Border.all(color: AppColors.border(context)),
-          boxShadow: DesignTokens.subtle(isDark: isDark),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,17 +55,18 @@ class MilestoneCard extends StatelessWidget {
               children: [
                 if (number != null) ...[
                   Container(
-                    width: 26,
-                    height: 26,
+                    width: 24,
+                    height: 24,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
+                      color: statusColor.withValues(alpha: 0.10),
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       '$number',
                       style: AppTypography.caption(context).copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10,
                         color: statusColor,
                       ),
                     ),
@@ -82,9 +77,8 @@ class MilestoneCard extends StatelessWidget {
                 const Spacer(),
                 if (milestone.isConditional)
                   Icon(Icons.link_rounded,
-                      size: 14, color: AppColors.textTertiary(context)),
-                const SizedBox(width: 6),
-                // Countdown chip
+                      size: 13, color: AppColors.textTertiary(context)),
+                const SizedBox(width: 4),
                 Builder(builder: (context) {
                   final days = milestone.deadline.daysFromNow;
                   final label = days < 0
@@ -99,9 +93,9 @@ class MilestoneCard extends StatelessWidget {
                           : AppColors.primary;
                   return Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                        horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: c.withValues(alpha: 0.12),
+                      color: c.withValues(alpha: 0.10),
                       borderRadius:
                           BorderRadius.circular(DesignTokens.radiusPill),
                     ),
@@ -109,7 +103,7 @@ class MilestoneCard extends StatelessWidget {
                       label,
                       style: AppTypography.caption(context).copyWith(
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: c,
                       ),
                     ),
@@ -117,10 +111,10 @@ class MilestoneCard extends StatelessWidget {
                 }),
               ],
             ),
-            const SizedBox(height: 10),
-            Text(milestone.title, style: AppTypography.cardTitle(context)),
+            const SizedBox(height: 8),
+            Text(milestone.title, style: AppTypography.bodyEmphasized(context)),
             if (milestone.description.isNotEmpty) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 milestone.description,
                 style: AppTypography.caption(context),
@@ -128,31 +122,30 @@ class MilestoneCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Icon(Icons.event_outlined,
-                    size: 13, color: AppColors.textTertiary(context)),
-                const SizedBox(width: 5),
+                    size: 12, color: AppColors.textTertiary(context)),
+                const SizedBox(width: 4),
                 Text(_deadlineLabel, style: AppTypography.caption(context)),
                 const Spacer(),
                 Text(
                   '${(milestone.percentageComplete * 100).round()}%',
-                  style: AppTypography.caption(context).copyWith(
+                  style: AppTypography.captionPrimary(context).copyWith(
                     fontWeight: FontWeight.w700,
                     color: statusColor,
                   ),
                 ),
               ],
             ),
-            // Portal opening row — the preparation window start.
             if (effectivePortalDate != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Row(
                 children: [
                   Icon(Icons.app_registration_rounded,
-                      size: 13, color: AppColors.portalOpening),
-                  const SizedBox(width: 5),
+                      size: 12, color: AppColors.portalOpening),
+                  const SizedBox(width: 4),
                   Text(
                     'Portal opens ${effectivePortalDate!.shortFormatted}',
                     style: AppTypography.caption(context).copyWith(
@@ -165,11 +158,11 @@ class MilestoneCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: milestone.percentageComplete,
-                minHeight: 6,
-                backgroundColor: statusColor.withValues(alpha: 0.12),
+                minHeight: 4,
+                backgroundColor: statusColor.withValues(alpha: 0.10),
                 valueColor: AlwaysStoppedAnimation<Color>(statusColor),
               ),
             ),
@@ -188,9 +181,9 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Text(

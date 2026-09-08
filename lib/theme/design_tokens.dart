@@ -2,24 +2,18 @@ import 'package:flutter/material.dart';
 
 /// Global design tokens for the FYP Calendar design system.
 ///
-/// Every hardcoded color, spacing, radius, elevation, or motion value should
-/// come from here (or from [AppColors] / [AppTypography]) so the whole app
-/// stays coherent.
-///
 /// Design intent:
 ///  • calm academic command center, not a glowing "premium" dashboard
 ///  • hierarchy through spacing, surface, typography, and borders first;
 ///    shadows only where layering is meaningful
-///  • one restrained brand accent (indigo) for actions/selection/links
-///  • semantic category colors stay meaningful but quieter in shared UI
+///  • one refined teal accent for actions/selection/links
+///  • semantic category colors stay meaningful but share a common saturation
+///    so they read as a system, not a rainbow
 class DesignTokens {
   DesignTokens._();
 
   // ── Spacing scale ────────────────────────────────────────────────────────
   // A small, disciplined scale. Avoid inventing values between these.
-  //
-  // Use for: page edges, section gaps, card padding, row gaps, label gaps.
-  // Establishs: grouping → hierarchy → separation.
   static const double xxs = 2;
   static const double xs = 4;
   static const double sm = 8;
@@ -29,7 +23,7 @@ class DesignTokens {
   static const double xxl = 32;
   static const double xxxl = 48;
 
-  // ── Rhythm helpers (derived, used by shells/layout) ──────────────────────
+  // ── Rhythm helpers (derived) ─────────────────────────────────────────────
   /// Standard reading line-height for body text.
   static const double bodyLineHeight = 1.5;
 
@@ -38,8 +32,6 @@ class DesignTokens {
 
   // ── Corner radii ─────────────────────────────────────────────────────────
   // Restrained. Full-radius only for chips/toggles/segmented controls.
-  //
-  // Cards and sheets use a single coherent radius tier, not one per widget.
   static const double radiusSm = 6;
   static const double radiusMd = 10;
   static const double radiusLg = 14;
@@ -54,10 +46,6 @@ class DesignTokens {
 
   // ── Layout / responsiveness ──────────────────────────────────────────────
   /// Width at which the shell switches from bottom navigation to a side rail.
-  ///
-  /// This is a layout threshold, not a "phone vs desktop" assumption. The
-  /// app should still adapt when a desktop window is narrower than this, or
-  /// a tablet is in split-screen.
   static const double navRailBreakpoint = 900;
 
   /// Standard horizontal page padding for narrow/medium content.
@@ -68,12 +56,6 @@ class DesignTokens {
   static const double contentMaxWidth = 1180;
 
   // ── Elevation ────────────────────────────────────────────────────────────
-  // Use sparingly. Most separation should come from surface + spacing.
-  //
-  // "None" is the default for most in-flow content. "Subtle" is for the few
-  // components that genuinely need to sit slightly above their background
-  // (e.g. a focused deadline module, a sheet surface, a raised action card).
-
   /// No elevation — most cards/sections in a calm dashboard.
   static List<BoxShadow> none() => const [];
 
@@ -81,15 +63,15 @@ class DesignTokens {
   static List<BoxShadow> subtle({required bool isDark}) => isDark
       ? [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.24),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
         ]
       : [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
             offset: const Offset(0, 1),
           ),
         ];
@@ -98,32 +80,21 @@ class DesignTokens {
   static List<BoxShadow> raised({required bool isDark}) => isDark
       ? [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.30),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 28,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ]
       : [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 26,
-            offset: const Offset(0, 6),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ];
 
   // ── Dividers ─────────────────────────────────────────────────────────────
-  /// Subtle full-width divider used between grouped rows/sections where a
-  /// border feels too heavy.
+  /// Subtle full-width divider used between grouped rows/sections.
   static BoxDecoration divider({required bool isDark}) => BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -133,7 +104,9 @@ class DesignTokens {
         ),
       );
 
-  // ── Internal helpers (private to the token class) ───────────────────────
-  static const Color borderLight = Color(0xFFE4E7F0);
-  static const Color borderDark = Color(0xFF2A3247);
+  // ── Internal helpers ─────────────────────────────────────────────────────
+  // These mirror AppColors borders and are kept here only because the
+  // elevation/divider helpers reference them directly.
+  static const Color borderLight = Color(0xFFD8DCE3);
+  static const Color borderDark = Color(0xFF263042);
 }

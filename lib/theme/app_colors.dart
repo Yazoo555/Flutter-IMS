@@ -7,113 +7,104 @@ import '../models/fyp_task.dart';
 /// FYP Calendar semantic color system.
 ///
 /// Design intent:
-///  • one brand accent (indigo) for actions, selection, links, selected states
-///  • semantic category colors stay meaningful but quieter in shared UI
-///  • dark is the primary mode, but dark surfaces are layered, not "pure black"
-///  • light mode is a real, intentional surface hierarchy (not a swapped palette)
+///  • deep teal primary — academic, calm, distinctive (NOT purple/blue AI gradient)
+///  • warm, restrained accents for categories
+///  • dark is the primary mode, layered surfaces not pure black
+///  • light mode is a real, intentional surface hierarchy
 ///  • color is never the only status indicator
 class AppColors {
   AppColors._();
 
   // ── Brand ────────────────────────────────────────────────────────────────
-  // The single brand accent. Used for primary actions, selected nav,
-  // links, focus rings, and a few "this is the thing to look at" moments.
-  // It is NOT used as a gradient or a glow.
-  static const primary = Color(0xFF4F46E5);
-  static const primaryHover = Color(0xFF6366F1);
-  static const primaryPressed = Color(0xFF3730A3);
-
-  // A slightly softer indigo used only for very small selected accents
-  // (e.g. a selected chip text tint) where full primary would feel heavy.
-  static const primarySoft = Color(0xFF818CF8);
+  // Refined teal — calm, academic, professional.
+  // A cooler, more saturated teal that reads as intentional rather than
+  // arbitrary. Paired with a deliberate hover/pressed scale.
+  static const primary = Color(0xFF0E7C7D);
+  static const primaryHover = Color(0xFF149698);
+  static const primaryPressed = Color(0xFF0A5C5D);
+  static const primarySoft = Color(0xFF5BA9A8);
+  static const primaryContainer = Color(0xFF1A3D3E);
 
   // ── Semantic: FYP event categories ───────────────────────────────────────
-  // Meaning is preserved. Loudness is reduced: these are now muted "text and
-  // small indicator" colors, not default card-fill colors.
-  //
-  // In shared UI, most events are read by label + icon + structure first,
-  // color second. Deadline remains the most visually urgent, but it no longer
-  // glows around every card that mentions a deadline.
-  static const deadline = Color(0xFFDC2626); // red — real urgency
-  static const assessment = Color(0xFFEA580C); // orange — defense / viva
-  static const portalOpening = Color(0xFFCA8A04); // amber — portal opens
-  static const googleForm = Color(0xFF0284C7); // sky — Google Form open/close
-  static const session = Color(0xFF16A34A); // green — session/workshop
-  static const supervisor = Color(0xFF0D9488); // teal — supervisor/reader
-  static const board = Color(0xFF7C3AED); // purple — board / results
-  static const milestone = Color(0xFF6366F1); // indigo — milestone marker
-  static const holiday = Color(0xFF94A3B8); // neutral — non-teaching
-  static const other = Color(0xFF94A3B8); // neutral — uncategorized
+  // A coherent, restrained palette. Each hue is distinct but shares a common
+  // saturation level so they read as a system, not a rainbow.
+  // Red is the only truly "urgent" color; everything else is informational.
+  static const deadline = Color(0xFFC5302C); // Warm red — real urgency
+  static const assessment = Color(0xFFC26A1E); // Burnt amber — defense/viva
+  static const portalOpening = Color(0xFF9A7B14); // Deep gold — portal opens
+  static const googleForm = Color(0xFF3578C5); // Clear blue — forms
+  static const session = Color(0xFF2E8B57); // Seafoam green — workshops/lectures
+  static const supervisor = Color(0xFF355E9B); // Deep blue — supervisor
+  static const board = Color(0xFF5C6B7A); // Muted slate — results, grounded
+  static const milestone = Color(0xFF3A7CA5); // Steel blue — milestones
+  static const holiday = Color(0xFF6E7B8B); // Cool grey — non-teaching
+  static const other = Color(0xFF6E7B8B); // Cool grey — uncategorized
 
   // ── Semantic: milestone / task statuses ──────────────────────────────────
-  // These are status text/indicator colors, not decorative fills.
-  static const statusNotStarted = Color(0xFF94A3B8);
-  static const statusInProgress = Color(0xFF2563EB);
-  static const statusSubmitted = Color(0xFF16A34A);
-  static const statusCompleted = Color(0xFF16A34A);
+  // Statuses use a clear progression: neutral → in-progress accent → done.
+  static const statusNotStarted = Color(0xFF6E7B8B);
+  static const statusInProgress = Color(0xFF0E7C7D); // Teal — matches primary
+  static const statusSubmitted = Color(0xFF2E8B57);
+  static const statusCompleted = Color(0xFF2E8B57);
 
   // ── Semantic: priorities ─────────────────────────────────────────────────
-  // Intentionally restrained: critical/red is the only "stop and pay attention"
-  // color; the rest are quiet enough to sit in a list without shouting.
-  static const priorityLow = Color(0xFF16A34A);
-  static const priorityMedium = Color(0xFF2563EB);
-  static const priorityHigh = Color(0xFFCA8A04);
-  static const priorityCritical = Color(0xFFDC2626);
+  // A clear priority ladder. Low is muted, critical is the only red.
+  static const priorityLow = Color(0xFF5C7A5E);
+  static const priorityMedium = Color(0xFF3A7CA5);
+  static const priorityHigh = Color(0xFFC26A1E);
+  static const priorityCritical = Color(0xFFC5302C);
 
   // ── Semantic: deadline health ────────────────────────────────────────────
-  static const healthOnTrack = Color(0xFF16A34A);
-  static const healthNeedsAttention = Color(0xFFCA8A04);
-  static const healthOverdue = Color(0xFFDC2626);
+  static const healthOnTrack = Color(0xFF2E8B57);
+  static const healthNeedsAttention = Color(0xFFC26A1E);
+  static const healthOverdue = Color(0xFFC5302C);
 
   // ── Semantic: neutral text roles ─────────────────────────────────────────
-  // These are the main text colors. Prefer them over arbitrary whites/grays.
-  // They are fixed so text stays readable regardless of theme gymnastics.
-  //
-  // Dark mode
-  static const textPrimaryDark = Color(0xFFF4F6FB);
-  static const textSecondaryDark = Color(0xFFC3CADC);
-  static const textTertiaryDark = Color(0xFF8B95AC);
+  // Dark mode — slightly warm, readable tones that complement the teal.
+  static const textPrimaryDark = Color(0xFFEDEFF4);
+  static const textSecondaryDark = Color(0xFFB0BACC);
+  static const textTertiaryDark = Color(0xFF768294);
   static const textInverseDark = Color(0xFF0B0F19);
 
   // Light mode
-  static const textPrimaryLight = Color(0xFF151A2C);
-  static const textSecondaryLight = Color(0xFF5B6478);
-  static const textTertiaryLight = Color(0xFF8A93A6);
+  static const textPrimaryLight = Color(0xFF141822);
+  static const textSecondaryLight = Color(0xFF4F5868);
+  static const textTertiaryLight = Color(0xFF6E7B8B);
   static const textInverseLight = Color(0xFFFFFFFF);
 
   // ── Dark surfaces (primary mode) ─────────────────────────────────────────
-  // A layered surface scale. The background is dark; surfaces sit at a few
-  // distinct levels so we can separate things with surface, not only shadow.
-  static const backgroundDark = Color(0xFF0B0F19);
-  static const surfaceDark = Color(0xFF101624);
-  static const surfaceDarkAlt = Color(0xFF161D2E);
-  static const cardDark = Color(0xFF161D2E);
-  static const cardDarkAlt = Color(0xFF1C2538);
-  static const inputDark = Color(0xFF0E1420);
+  // A refined layered surface scale. The base is not pure black — it has a
+  // subtle cool undertone that works with the teal accent.
+  static const backgroundDark = Color(0xFF0B0F18);
+  static const surfaceDark = Color(0xFF121926);
+  static const surfaceDarkAlt = Color(0xFF182131);
+  static const cardDark = Color(0xFF182131);
+  static const cardDarkAlt = Color(0xFF1E283C);
+  static const inputDark = Color(0xFF101826);
 
   // ── Light surfaces ───────────────────────────────────────────────────────
-  // Calm off-white background; surfaces are slightly cooler/warmer as needed.
-  // Cards are NOT pure white everywhere — that creates a "floating white card
-  // on everything" look. Use surfaceLight as the main content surface.
-  static const backgroundLight = Color(0xFFF4F5F8);
+  // Warmer, more refined light surfaces. The background is a soft warm grey
+  // that lets white cards sit with clear separation. Avoids the cold "system
+  // grey" feel.
+  static const backgroundLight = Color(0xFFF1F2F5);
   static const surfaceLight = Color(0xFFFFFFFF);
-  static const surfaceLightAlt = Color(0xFFF7F8FC);
+  static const surfaceLightAlt = Color(0xFFF5F6F9);
   static const cardLight = Color(0xFFFFFFFF);
-  static const inputLight = Color(0xFFF7F8FC);
+  static const inputLight = Color(0xFFF5F6F9);
 
   // ── Borders ──────────────────────────────────────────────────────────────
-  // Subtle, not harsh. Useful for grouping/separation and for input focus.
-  static const borderDark = Color(0xFF2A3247);
-  static const borderDarkStrong = Color(0xFF3A445C);
-  static const borderLight = Color(0xFFE4E7F0);
-  static const borderLightStrong = Color(0xFFD2D7E3);
+  // Borders are deliberate but quiet. In dark mode they have a cool tone;
+  // in light mode they're a soft warm grey that reads clearly without feeling
+  // heavy.
+  static const borderDark = Color(0xFF263042);
+  static const borderDarkStrong = Color(0xFF3A465C);
+  static const borderLight = Color(0xFFD8DCE3);
+  static const borderLightStrong = Color(0xFFC3C9D3);
 
   // ── Error / destructive ──────────────────────────────────────────────────
-  // Shares deadline red intentionally — error and overdue deadline are the
-  // same visual urgency in this product.
   static const error = deadline;
-  static const errorContainerDark = Color(0xFF3B161C);
-  static const errorContainerLight = Color(0xFFFCE4E4);
+  static const errorContainerDark = Color(0xFF3A171C);
+  static const errorContainerLight = Color(0xFFFBEAEA);
 
   // ── Category → color mapping ─────────────────────────────────────────────
   static Color categoryColor(FypEventCategory category) {
@@ -130,6 +121,10 @@ class AppColors {
       FypEventCategory.other => other,
     };
   }
+
+  /// A calm, neutral tint for chips/labels that should not carry semantic
+  /// weight (e.g. the 'None' chip in editors).
+  static const neutralChip = Color(0xFF6E7B8B);
 
   static Color milestoneStatusColor(MilestoneStatus status) {
     return switch (status) {
@@ -174,11 +169,13 @@ class AppColors {
     };
   }
 
+  // ── Ranked lists (calendar filter, timeline sections) ──────────────────────
+  // A single, calm "secondary" accent for unselected/timeline-upcoming roles
+  // so the UI doesn't fragment into too many independent hues.
+  static const secondary = Color(0xFF355E9B);
+  static const secondaryContainer = Color(0xFF1A2A4A);
+
   // ── Brightness-based helpers (for theme construction, no BuildContext)
-  // These are used by AppTheme internals where there is no BuildContext yet.
-  // They carry an "On" suffix because Dart has no overloading: the
-  // BuildContext helpers below keep the plain names.
-  // Widget code should prefer the BuildContext helpers below.
 
   static bool _isDark(Brightness brightness) => brightness == Brightness.dark;
 
@@ -213,50 +210,37 @@ class AppColors {
       _isDark(brightness) ? inputDark : inputLight;
 
   // ── BuildContext helpers (for widgets)
-  // Prefer these inside widget trees. They delegate to the brightness-based
-  // helpers above so the values stay consistent.
 
-  /// True when the current theme is dark.
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
-  /// Main text color for the current theme.
   static Color textPrimary(BuildContext context) =>
       textPrimaryOn(Theme.of(context).brightness);
 
-  /// Secondary/muted text color.
   static Color textSecondary(BuildContext context) =>
       textSecondaryOn(Theme.of(context).brightness);
 
-  /// Tertiary/captions/placeholder text color.
   static Color textTertiary(BuildContext context) =>
       textTertiaryOn(Theme.of(context).brightness);
 
-  /// Surface color for card/section backgrounds in the current theme.
   static Color card(BuildContext context) =>
       cardOn(Theme.of(context).brightness);
 
-  /// Slightly cooler surface alt (e.g. section backgrounds, sheet body).
   static Color surface(BuildContext context) =>
       surfaceOn(Theme.of(context).brightness);
 
-  /// A surface that's intended to be very slightly distinct from [card].
   static Color surfaceAlt(BuildContext context) =>
       surfaceAltOn(Theme.of(context).brightness);
 
-  /// Border color for the current theme.
   static Color border(BuildContext context) =>
       borderOn(Theme.of(context).brightness);
 
-  /// Stronger border for emphasis (selected state, focused input, etc.).
   static Color borderStrong(BuildContext context) =>
       borderStrongOn(Theme.of(context).brightness);
 
-  /// Scaffold background for the current theme.
   static Color scaffold(BuildContext context) =>
       scaffoldOn(Theme.of(context).brightness);
 
-  /// Input fill color for the current theme.
   static Color inputBackground(BuildContext context) =>
       inputBackgroundOn(Theme.of(context).brightness);
 }

@@ -41,14 +41,13 @@ class TaskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final done = task.isComplete;
     final priorityColor = AppColors.taskPriorityColor(task.priority);
-    final isDark = AppColors.isDark(context);
     final (dueLabel, dueColor) = _dueInfo(context);
     final milestone = task.relatedMilestoneId == null
         ? null
         : FypCalendarData.milestoneById(task.relatedMilestoneId!);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: DesignTokens.sm + 4),
+      margin: const EdgeInsets.only(bottom: DesignTokens.sm),
       child: Dismissible(
         key: Key('task-${task.id}'),
         direction: DismissDirection.endToStart,
@@ -56,17 +55,16 @@ class TaskCard extends StatelessWidget {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
           decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.12),
+            color: AppColors.error.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           ),
-          child:
-              Icon(Icons.delete_outline_rounded, color: AppColors.error),
+          child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
         ),
         onDismissed: (_) => onDelete?.call(),
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.card(context),
               borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
@@ -75,23 +73,21 @@ class TaskCard extends StatelessWidget {
                     ? AppColors.error.withValues(alpha: 0.4)
                     : AppColors.border(context),
               ),
-              boxShadow: DesignTokens.subtle(isDark: isDark),
             ),
             child: Row(
               children: [
-                // Status circle (tap to cycle)
                 GestureDetector(
                   onTap: onToggleStatus,
                   child: Container(
-                    width: 22,
-                    height: 22,
+                    width: 20,
+                    height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: done
-                          ? AppColors.statusCompleted.withValues(alpha: 0.15)
+                          ? AppColors.statusCompleted.withValues(alpha: 0.12)
                           : task.status == TaskStatus.inProgress
                               ? AppColors.statusInProgress
-                                  .withValues(alpha: 0.15)
+                                  .withValues(alpha: 0.12)
                               : Colors.transparent,
                       border: Border.all(
                         color: done
@@ -104,14 +100,14 @@ class TaskCard extends StatelessWidget {
                     ),
                     child: done
                         ? const Icon(Icons.check_rounded,
-                            size: 13, color: AppColors.statusCompleted)
+                            size: 12, color: AppColors.statusCompleted)
                         : task.status == TaskStatus.inProgress
                             ? const Icon(Icons.timelapse_rounded,
-                                size: 12, color: AppColors.statusInProgress)
+                                size: 11, color: AppColors.statusInProgress)
                             : null,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,38 +121,37 @@ class TaskCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
                       Row(
                         children: [
-                          // Category chip
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 2),
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(
-                                  DesignTokens.radiusPill),
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius:
+                                  BorderRadius.circular(DesignTokens.radiusPill),
                             ),
-                            child: Text(
-                              task.category.label,
-                              style: AppTypography.caption(context)
-                                  .copyWith(fontSize: 9),
-                            ),
+                            child:                          Text(
+                            task.category.label,
+                            style: AppTypography.captionPrimary(context)
+                                .copyWith(fontSize: 9),
+                          ),
                           ),
                           if (milestone != null) ...[
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 4),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2),
+                                  horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: AppColors.milestone
-                                    .withValues(alpha: 0.1),
+                                    .withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(
                                     DesignTokens.radiusPill),
                               ),
                               child: Text(
                                 milestone.title.split('—').first.trim(),
-                                style: AppTypography.caption(context)
+                                style: AppTypography.captionPrimary(context)
                                     .copyWith(
                                         fontSize: 9,
                                         color: AppColors.milestone),
@@ -164,10 +159,6 @@ class TaskCard extends StatelessWidget {
                             ),
                           ],
                           const Spacer(),
-                          // Due date urgency
-                          Icon(Icons.event_outlined,
-                              size: 11, color: dueColor),
-                          const SizedBox(width: 3),
                           Text(
                             dueLabel,
                             style: AppTypography.caption(context).copyWith(
@@ -176,19 +167,18 @@ class TaskCard extends StatelessWidget {
                               color: dueColor,
                             ),
                           ),
+                          const SizedBox(width: 4),
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: priorityColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ],
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Priority dot
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: priorityColor,
-                    shape: BoxShape.circle,
                   ),
                 ),
               ],

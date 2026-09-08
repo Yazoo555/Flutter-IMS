@@ -5,12 +5,11 @@ import '../theme/app_typography.dart';
 import '../theme/design_tokens.dart';
 
 /// Generic progress card: a circular ring showing [value] (0.0–1.0) with a
-/// center label, plus title/detail text and an optional trailing widget.
-/// Reused by the Progress and Home screens for different metrics.
+/// center label, plus title/detail text.
 class ProgressCard extends StatelessWidget {
   final String title;
   final String? detail;
-  final double value; // 0.0 → 1.0
+  final double value;
   final String centerLabel;
   final Color color;
   final Widget? trailing;
@@ -27,39 +26,37 @@ class ProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AppColors.isDark(context);
-
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.subtle(isDark: isDark),
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 56,
-                  height: 56,
+                  width: 48,
+                  height: 48,
                   child: CircularProgressIndicator(
                     value: value.clamp(0.0, 1.0),
-                    strokeWidth: 5,
+                    strokeWidth: 4,
                     strokeCap: StrokeCap.round,
-                    backgroundColor: color.withValues(alpha: 0.12),
+                    backgroundColor: color.withValues(alpha: 0.10),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
                 Text(
                   centerLabel,
                   style: AppTypography.caption(context).copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
                     color: color,
                   ),
                 ),

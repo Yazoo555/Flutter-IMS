@@ -9,8 +9,7 @@ import '../theme/design_tokens.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/meeting_edit_sheet.dart';
 
-/// Meetings manager — record supervisor / reader / team meetings with
-/// countdowns for upcoming and notes for past meetings.
+/// Meetings manager — record supervisor / reader / team meetings.
 class MeetingsScreen extends StatefulWidget {
   const MeetingsScreen({super.key});
 
@@ -102,16 +101,16 @@ class _MeetingsScreenState extends State<MeetingsScreen> {
         onPressed: _addOrEdit,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
+        elevation: 0,
+        icon: const Icon(Icons.add_rounded, size: 18),
         label: Text('Add Meeting',
-            style: AppTypography.button(context).copyWith(fontSize: 14)),
+            style: AppTypography.button(context)),
       ),
       body: _meetings.isEmpty
           ? const EmptyState(
               icon: Icons.meeting_room_rounded,
               title: 'No meetings yet',
-              message:
-                  'Keep track of your supervisor and project meetings.',
+              message: 'Keep track of your supervisor and project meetings.',
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(
@@ -169,22 +168,19 @@ class _MeetingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = meeting;
     final isUpcoming = !m.isPast && !m.completed;
-    final color = isUpcoming ? AppColors.supervisor : AppColors.textTertiary(context);
-
-    // Countdown for upcoming meetings.
     final countdown = m.isToday
         ? 'Today'
         : '${m.daysFromNow} day${m.daysFromNow == 1 ? '' : 's'}';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: DesignTokens.sm + 4),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: DesignTokens.sm),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         border: Border.all(
           color: isUpcoming
-              ? AppColors.supervisor.withValues(alpha: 0.3)
+              ? AppColors.supervisor.withValues(alpha: 0.25)
               : AppColors.border(context),
         ),
       ),
@@ -194,18 +190,16 @@ class _MeetingCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.supervisor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusPill),
+                  color: AppColors.supervisor.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   m.type.label,
                   style: AppTypography.caption(context).copyWith(
                     fontSize: 9,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.supervisor,
                   ),
                 ),
@@ -213,27 +207,24 @@ class _MeetingCard extends StatelessWidget {
               const Spacer(),
               if (isUpcoming)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius:
-                        BorderRadius.circular(DesignTokens.radiusPill),
+                    color: AppColors.supervisor.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                   ),
                   child: Text(
                     countdown,
                     style: AppTypography.caption(context).copyWith(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: color,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.supervisor,
                     ),
                   ),
                 )
               else
                 Icon(Icons.check_rounded,
-                    size: 14, color: AppColors.statusCompleted),
-              const SizedBox(width: 6),
-              // Overflow menu: edit / delete / mark completed
+                    size: 13, color: AppColors.statusCompleted),
+              const SizedBox(width: 4),
               PopupMenuButton<String>(
                 onSelected: (v) {
                   if (v == 'edit') onEdit();
@@ -245,10 +236,8 @@ class _MeetingCard extends StatelessWidget {
                     value: 'toggle',
                     child: Text(m.completed ? 'Mark not done' : 'Mark completed'),
                   ),
-                  const PopupMenuItem(
-                      value: 'edit', child: Text('Edit')),
-                  const PopupMenuItem(
-                      value: 'delete', child: Text('Delete')),
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
               ),
             ],
@@ -264,20 +253,20 @@ class _MeetingCard extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.event_outlined,
-                  size: 12, color: AppColors.textTertiary(context)),
+                  size: 11, color: AppColors.textTertiary(context)),
               const SizedBox(width: 4),
               Text(m.date.formatted, style: AppTypography.caption(context)),
               if (m.timeLabel != null) ...[
                 const SizedBox(width: 8),
                 Icon(Icons.schedule_outlined,
-                    size: 12, color: AppColors.textTertiary(context)),
+                    size: 11, color: AppColors.textTertiary(context)),
                 const SizedBox(width: 3),
                 Text(m.timeLabel!, style: AppTypography.caption(context)),
               ],
               if (m.supervisor.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Icon(Icons.person_outline_rounded,
-                    size: 12, color: AppColors.textTertiary(context)),
+                    size: 11, color: AppColors.textTertiary(context)),
                 const SizedBox(width: 3),
                 Expanded(
                   child: Text(
@@ -289,7 +278,6 @@ class _MeetingCard extends StatelessWidget {
               ],
             ],
           ),
-          // Notes shown for past meetings (what happened) and as agenda for upcoming.
           if (m.notes.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
@@ -299,13 +287,9 @@ class _MeetingCard extends StatelessWidget {
                 color: AppColors.isDark(context)
                     ? AppColors.cardDarkAlt
                     : AppColors.surfaceLightAlt,
-                borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusSm),
+                borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
               ),
-              child: Text(
-                m.notes,
-                style: AppTypography.caption(context),
-              ),
+              child: Text(m.notes, style: AppTypography.caption(context)),
             ),
           ],
         ],

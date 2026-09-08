@@ -63,8 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _load();
   }
 
-  // ── Derived data (computed from the real clock) ─────────────────────────
-
   String get _greeting {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning';
@@ -74,8 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   CurrentPhase? get _phase => currentPhaseFor(DateTime.now());
 
-  /// Next important event: deadline / assessment / milestone-linked,
-  /// unfinished, not ended — nearest by date.
   FypEvent? get _nextImportant {
     final candidates = _events
         .where((e) =>
@@ -92,14 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<FypEvent> get _todayEvents => _events.where((e) => e.isToday).toList();
 
-  // Milestone progress (all official tracker items).
   int get _milestonesDone =>
       _milestones.where((m) => m.isComplete).length;
   double get _milestonePct =>
       _milestones.isEmpty ? 0 : _milestonesDone / _milestones.length;
 
-  /// Project completion: the student's own progress estimates averaged
-  /// across milestones — deliberately distinct from milestone counting.
   double get _projectPct {
     if (_milestones.isEmpty) return 0;
     final sum =
@@ -119,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return CustomScrollView(
       slivers: [
-        // ── Greeting ──────────────────────────────────────────────────────
+        // ── Page header ───────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -128,17 +121,18 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_greeting, style: AppTypography.body(context)),
+                Text('Home', style: AppTypography.pageTitle(context)),
                 const SizedBox(height: 2),
-                Text('FYP Calendar',
-                    style: AppTypography.displayLarge(context)),
-                Text('Cohort 11', style: AppTypography.caption(context)),
+                Text(
+                  '$_greeting — ${weekLabelOf(DateTime.now())}',
+                  style: AppTypography.caption(context),
+                ),
               ],
             ),
           ),
         ),
 
-        // ── Current phase card ────────────────────────────────────────────
+        // ── Current phase ────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -169,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // ── Warnings (contextual, max 2) ──────────────────────────────────
+        // ── Warnings ──────────────────────────────────────────────────
         if (warnings.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
@@ -184,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-        // ── Next important event ──────────────────────────────────────────
+        // ── Next important event ──────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -194,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // ── Today's FYP ───────────────────────────────────────────────────
+        // ── Today's FYP ───────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -215,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: DesignTokens.lg),
             child: _todayEvents.isEmpty
-                ? _NoTodayCard()
+                ? const _NoTodayCard()
                 : Column(
                     children: _todayEvents
                         .map((e) => EventCard(
@@ -232,13 +226,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // ── Progress summary ──────────────────────────────────────────────
+        // ── Progress summary ──────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               DesignTokens.lg, DesignTokens.xl, DesignTokens.lg, 0,
             ),
-            child: _ProgressSummaryCard(
+            child: _ProgressSummary(
               milestonesDone: _milestonesDone,
               milestonesTotal: _milestones.length,
               milestonePct: _milestonePct,
@@ -247,22 +241,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // ── Upcoming important events ─────────────────────────────────────
+        // ── Upcoming ──────────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
               DesignTokens.lg, DesignTokens.xl, DesignTokens.lg, 0,
             ),
-            child: SectionHeader(title: 'UPCOMING IMPORTANT'),
+            child: SectionHeader(title: 'UPCOMING'),
           ),
         ),
         if (_importantUpcoming.isEmpty)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: DesignTokens.lg),
-              child: Text(''),
-            ),
-          )
+          const SliverToBoxAdapter(child: SizedBox.shrink())
         else
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: DesignTokens.lg),
@@ -285,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-        // ── FYP journey ───────────────────────────────────────────────────
+        // ── FYP journey ───────────────────────────────────────────────
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
@@ -326,32 +315,28 @@ class _QuickActionsRow extends StatelessWidget {
       children: [
         _QuickAction(
           icon: Icons.add_task_rounded,
-          label: 'Task',
-          color: AppColors.primary,
+          label: 'Add task',
           tooltip: 'Add a personal FYP task',
           onTap: () => onAddTask(),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         _QuickAction(
           icon: Icons.meeting_room_rounded,
-          label: 'Meeting',
-          color: AppColors.supervisor,
+          label: 'Add meeting',
           tooltip: 'Record a supervisor or project meeting',
           onTap: () => onAddMeeting(),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         _QuickAction(
           icon: Icons.calendar_month_rounded,
           label: 'Calendar',
-          color: AppColors.board,
           tooltip: 'View the official FYP calendar',
           onTap: onOpenCalendar,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         _QuickAction(
           icon: Icons.flag_rounded,
           label: 'Milestones',
-          color: AppColors.milestone,
           tooltip: 'Track your official milestones',
           onTap: onOpenMilestones,
         ),
@@ -363,14 +348,12 @@ class _QuickActionsRow extends StatelessWidget {
 class _QuickAction extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
   final VoidCallback onTap;
   final String tooltip;
 
   const _QuickAction({
     required this.icon,
     required this.label,
-    required this.color,
     required this.onTap,
     required this.tooltip,
   });
@@ -382,21 +365,22 @@ class _QuickAction extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: AppColors.card(context),
             borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
             border: Border.all(color: AppColors.border(context)),
           ),
-          child: Column(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: color),
-              const SizedBox(height: 4),
+              Icon(icon, size: 15, color: AppColors.primary),
+              const SizedBox(width: 6),
               Text(
                 label,
-                style: AppTypography.caption(context).copyWith(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
+                style: AppTypography.captionPrimary(context).copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary(context),
                 ),
               ),
             ],
@@ -417,15 +401,14 @@ class _CurrentPhaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = phase;
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
-        boxShadow: DesignTokens.raised(isDark: AppColors.isDark(context)),
       ),
       child: p == null
           ? Text(
-              'FYP journey complete — congratulations! 🎓',
+              'FYP journey complete',
               style: AppTypography.cardTitle(context)
                   .copyWith(color: Colors.white),
             )
@@ -435,32 +418,32 @@ class _CurrentPhaseCard extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.explore_rounded,
-                        size: 14, color: Colors.white70),
+                        size: 13, color: Colors.white.withValues(alpha: 0.7)),
                     const SizedBox(width: 6),
                     Text('CURRENT PHASE',
-                        style: AppTypography.overline(context)
-                            .copyWith(color: Colors.white70)),
+                        style: AppTypography.overlinePrimary(context)
+                            .copyWith(color: Colors.white.withValues(alpha: 0.7))),
                     const Spacer(),
                     Text(
                       weekLabelOf(DateTime.now()),
-                      style: AppTypography.caption(context)
-                          .copyWith(color: Colors.white70),
+                      style: AppTypography.captionPrimary(context)
+                          .copyWith(color: Colors.white.withValues(alpha: 0.7)),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   p.title,
-                  style: AppTypography.pageTitle(context)
-                      .copyWith(color: Colors.white),
+                  style: AppTypography.sectionTitle(context)
+                      .copyWith(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(3),
                   child: LinearProgressIndicator(
                     value: p.progressOn(DateTime.now()).clamp(0.0, 1.0),
-                    minHeight: 5,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    minHeight: 4,
+                    backgroundColor: Colors.white.withValues(alpha: 0.18),
                     valueColor:
                         const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
@@ -468,8 +451,8 @@ class _CurrentPhaseCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   '${p.start.shortFormatted} → ${p.end.shortFormatted} • ${p.daysLeft < 0 ? 'ending' : '${p.daysLeft} days left'}',
-                  style: AppTypography.caption(context)
-                      .copyWith(color: Colors.white70),
+                  style: AppTypography.captionPrimary(context)
+                      .copyWith(color: Colors.white.withValues(alpha: 0.75)),
                 ),
               ],
             ),
@@ -489,15 +472,15 @@ class _WarningCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: DesignTokens.sm),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.priorityHigh.withValues(alpha: 0.08),
+        color: AppColors.priorityHigh.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-        border:
-            Border.all(color: AppColors.priorityHigh.withValues(alpha: 0.25)),
+        border: Border.all(
+            color: AppColors.priorityHigh.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(warning.icon, size: 16, color: AppColors.priorityHigh),
+          Icon(warning.icon, size: 15, color: AppColors.priorityHigh),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -509,7 +492,7 @@ class _WarningCard extends StatelessWidget {
                       .copyWith(color: AppColors.priorityHigh),
                 ),
                 const SizedBox(height: 2),
-                Text(warning.message, style: AppTypography.caption(context)),
+                Text(warning.message, style: AppTypography.captionPrimary(context)),
               ],
             ),
           ),
@@ -522,11 +505,13 @@ class _WarningCard extends StatelessWidget {
 // ── No-today card ────────────────────────────────────────────────────────────
 
 class _NoTodayCard extends StatelessWidget {
+  const _NoTodayCard();
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
@@ -535,7 +520,7 @@ class _NoTodayCard extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.wb_sunny_outlined,
-              size: 18, color: AppColors.priorityHigh),
+              size: 16, color: AppColors.textTertiary(context)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -549,15 +534,15 @@ class _NoTodayCard extends StatelessWidget {
   }
 }
 
-// ── Progress summary card ────────────────────────────────────────────────────
+// ── Progress summary ────────────────────────────────────────────────────────
 
-class _ProgressSummaryCard extends StatelessWidget {
+class _ProgressSummary extends StatelessWidget {
   final int milestonesDone;
   final int milestonesTotal;
   final double milestonePct;
   final double projectPct;
 
-  const _ProgressSummaryCard({
+  const _ProgressSummary({
     required this.milestonesDone,
     required this.milestonesTotal,
     required this.milestonePct,
@@ -567,12 +552,11 @@ class _ProgressSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
         border: Border.all(color: AppColors.border(context)),
-        boxShadow: DesignTokens.subtle(isDark: AppColors.isDark(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,17 +582,16 @@ class _ProgressSummaryCard extends StatelessWidget {
               ),
               Text(
                 '${(milestonePct * 100).round()}%',
-                style: AppTypography.statValue(context)
-                    .copyWith(color: AppColors.milestone),
+                style: AppTypography.statValueColored(AppColors.milestone, context),
               ),
             ],
           ),
           const SizedBox(height: 6),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
               value: milestonePct.clamp(0.0, 1.0),
-              minHeight: 6,
+              minHeight: 4,
               backgroundColor: AppColors.milestone.withValues(alpha: 0.12),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.milestone),
@@ -617,7 +600,7 @@ class _ProgressSummaryCard extends StatelessWidget {
 
           const SizedBox(height: DesignTokens.md),
 
-          // Project completion (self-estimated) — clearly distinct
+          // Project completion (self-estimated)
           Row(
             children: [
               Expanded(
@@ -627,8 +610,7 @@ class _ProgressSummaryCard extends StatelessWidget {
                     Text('Project completion (self-estimated)',
                         style: AppTypography.bodyEmphasized(context)),
                     Text(
-                      'Average of your per-milestone progress — not the same '
-                      'as milestones submitted',
+                      'Average of your per-milestone progress',
                       style: AppTypography.caption(context),
                     ),
                   ],
@@ -636,17 +618,16 @@ class _ProgressSummaryCard extends StatelessWidget {
               ),
               Text(
                 '${(projectPct * 100).round()}%',
-                style: AppTypography.statValue(context)
-                    .copyWith(color: AppColors.session),
+                style: AppTypography.statValueColored(AppColors.session, context),
               ),
             ],
           ),
           const SizedBox(height: 6),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
               value: projectPct.clamp(0.0, 1.0),
-              minHeight: 6,
+              minHeight: 4,
               backgroundColor: AppColors.session.withValues(alpha: 0.12),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.session),

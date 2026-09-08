@@ -10,12 +10,9 @@ import 'event_detail_sheet.dart';
 import 'event_visuals.dart';
 
 /// Reusable "next important event" card: title, deadline, countdown,
-/// milestone link and priority. Used on Home (hero variant) and in the
-/// Progress analytics (compact variant) so the pattern stays consistent.
+/// milestone link and priority. Used on Home and Progress screens.
 class NextDeadlineCard extends StatelessWidget {
   final FypEvent? event;
-
-  /// Compact mode for secondary placements (analytics).
   final bool compact;
   final VoidCallback? onTap;
 
@@ -35,13 +32,13 @@ class NextDeadlineCard extends StatelessWidget {
         padding: const EdgeInsets.all(DesignTokens.md),
         decoration: BoxDecoration(
           color: AppColors.card(context),
-          borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
+          borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
           border: Border.all(color: AppColors.border(context)),
         ),
         child: Row(
           children: [
             Icon(Icons.verified_outlined,
-                size: 18, color: AppColors.statusCompleted),
+                size: 16, color: AppColors.statusCompleted),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -74,18 +71,16 @@ class NextDeadlineCard extends StatelessWidget {
             ),
             const Spacer(),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: urgencyColor.withValues(alpha: 0.12),
-                borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusPill),
+                color: urgencyColor.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
               ),
               child: Text(
                 urgencyStyle(context, urgency).$1,
                 style: AppTypography.caption(context).copyWith(
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: urgencyColor,
                 ),
               ),
@@ -97,7 +92,7 @@ class NextDeadlineCard extends StatelessWidget {
           e.title,
           style: compact
               ? AppTypography.cardTitle(context)
-              : AppTypography.pageTitle(context),
+              : AppTypography.sectionTitle(context),
         ),
         const SizedBox(height: 6),
         Wrap(
@@ -109,8 +104,8 @@ class NextDeadlineCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(EventVisuals.categoryIcon(e.category),
-                    size: 13, color: color),
-                const SizedBox(width: 5),
+                    size: 12, color: color),
+                const SizedBox(width: 4),
                 Text(e.category.label, style: AppTypography.caption(context)),
               ],
             ),
@@ -118,8 +113,8 @@ class NextDeadlineCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.calendar_today_rounded,
-                    size: 13, color: AppColors.textTertiary(context)),
-                const SizedBox(width: 5),
+                    size: 12, color: AppColors.textTertiary(context)),
+                const SizedBox(width: 4),
                 Text(e.date.formatted, style: AppTypography.caption(context)),
               ],
             ),
@@ -128,8 +123,8 @@ class NextDeadlineCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.flag_rounded,
-                      size: 13, color: AppColors.milestone),
-                  const SizedBox(width: 5),
+                      size: 12, color: AppColors.milestone),
+                  const SizedBox(width: 4),
                   Text(
                     milestone.title.split('—').first.trim(),
                     style: AppTypography.caption(context)
@@ -137,24 +132,6 @@ class NextDeadlineCard extends StatelessWidget {
                   ),
                 ],
               ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: AppColors.priorityColor(e.priority),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  EventVisuals.priorityLabel(e.category, e.priority),
-                  style: AppTypography.caption(context),
-                ),
-              ],
-            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -168,9 +145,9 @@ class NextDeadlineCard extends StatelessWidget {
                   : e.hasEnded
                       ? 'Passed'
                       : '${e.daysRemaining}',
-              style: AppTypography.displayLarge(context).copyWith(
+              style: AppTypography.countdownColored(
+                  urgencyColor, context).copyWith(
                 fontSize: compact ? 28 : 36,
-                color: urgencyColor,
               ),
             ),
             const SizedBox(width: 6),
@@ -193,19 +170,16 @@ class NextDeadlineCard extends StatelessWidget {
       onTap: onTap ?? () => showEventDetail(context, e),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(compact ? 14 : 18),
+        padding: EdgeInsets.all(compact ? 14 : 16),
         decoration: BoxDecoration(
           color: AppColors.card(context),
           borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
           border: Border.all(
             color: hot
-                ? AppColors.deadline.withValues(alpha: 0.6)
-                : color.withValues(alpha: 0.35),
-            width: hot ? 1.6 : 1,
+                ? AppColors.deadline.withValues(alpha: 0.5)
+                : AppColors.border(context),
+            width: hot ? 1.5 : 1,
           ),
-          boxShadow: hot
-              ? DesignTokens.raised(isDark: AppColors.isDark(context))
-              : DesignTokens.subtle(isDark: AppColors.isDark(context)),
         ),
         child: content,
       ),

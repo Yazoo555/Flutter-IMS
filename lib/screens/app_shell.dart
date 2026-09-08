@@ -69,7 +69,6 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       body: Row(
         children: [
-          // Wide layout: sidebar; narrow layout: bottom nav handled below.
           if (isWide) ...[
             _Sidebar(
               destinations: _destinations,
@@ -130,7 +129,7 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 240,
+      width: 220,
       color: AppColors.isDark(context)
           ? AppColors.surfaceDarkAlt
           : AppColors.surfaceLightAlt,
@@ -138,25 +137,21 @@ class _Sidebar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Brand
+            // Brand — restrained, no gradient
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
               child: Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.primary, AppColors.board],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: AppColors.primary,
                       borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusMd - 2),
+                          BorderRadius.circular(DesignTokens.radiusSm),
                     ),
                     child: const Icon(Icons.school_rounded,
-                        color: Colors.white, size: 18),
+                        color: Colors.white, size: 17),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -166,8 +161,7 @@ class _Sidebar extends StatelessWidget {
                         Text('FYP Calendar',
                             style: AppTypography.cardTitle(context)),
                         Text('Cohort 11',
-                            style: AppTypography.caption(context)
-                                .copyWith(fontSize: 10)),
+                            style: AppTypography.metadata(context)),
                       ],
                     ),
                   ),
@@ -184,10 +178,10 @@ class _Sidebar extends StatelessWidget {
                       final d = destinations[i];
                       final selected = i == currentIndex;
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        padding: const EdgeInsets.only(bottom: 2),
                         child: Material(
                           color: selected
-                              ? AppColors.primary.withValues(alpha: 0.12)
+                              ? AppColors.primary.withValues(alpha: 0.10)
                               : Colors.transparent,
                           borderRadius:
                               BorderRadius.circular(DesignTokens.radiusMd),
@@ -197,14 +191,14 @@ class _Sidebar extends StatelessWidget {
                                 BorderRadius.circular(DesignTokens.radiusMd),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
+                                  horizontal: 14, vertical: 11),
                               child: Row(
                                 children: [
                                   Icon(
                                     selected ? d.activeIcon : d.icon,
-                                    size: 20,
+                                    size: 19,
                                     color: selected
-                                        ? AppColors.primary
+                                        ? Colors.white
                                         : AppColors.textTertiary(context),
                                   ),
                                   const SizedBox(width: 12),
@@ -215,9 +209,9 @@ class _Sidebar extends StatelessWidget {
                                           .copyWith(
                                         fontWeight: selected
                                             ? FontWeight.w600
-                                            : FontWeight.w500,
+                                            : FontWeight.w400,
                                         color: selected
-                                            ? AppColors.primary
+                                            ? Colors.white
                                             : AppColors.textSecondary(context),
                                       ),
                                     ),
@@ -233,7 +227,7 @@ class _Sidebar extends StatelessWidget {
                 ),
               ),
             ),
-            // Theme mode: System / Light / Dark
+            // Theme mode
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -289,10 +283,9 @@ class _ThemeOption extends StatelessWidget {
         onTap: onTap,
         child: Container(
           margin: const EdgeInsets.only(left: 4),
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(6),                  decoration: BoxDecoration(
             color: selected
-                ? AppColors.primary.withValues(alpha: 0.15)
+                ? AppColors.primary.withValues(alpha: 0.12)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
             border: Border.all(
@@ -303,9 +296,9 @@ class _ThemeOption extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            size: 15,
+            size: 14,
             color: selected
-                ? AppColors.primary
+                ? Colors.white
                 : AppColors.textTertiary(context),
           ),
         ),
@@ -339,7 +332,7 @@ class _BottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 64,
+          height: 60,
           child: Row(
             children: List.generate(destinations.length, (i) {
               final d = destinations[i];
@@ -351,34 +344,22 @@ class _BottomNav extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      AnimatedContainer(
-                        duration: DesignTokens.durationFast,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? AppColors.primary.withValues(alpha: 0.12)
-                              : Colors.transparent,
-                          borderRadius:
-                              BorderRadius.circular(DesignTokens.radiusPill),
-                        ),
-                        child: Icon(
-                          selected ? d.activeIcon : d.icon,
-                          size: 22,
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textTertiary(context),
-                        ),
+                      Icon(
+                        selected ? d.activeIcon : d.icon,
+                        size: 22,
+                        color: selected
+                            ? Colors.white
+                            : AppColors.textTertiary(context),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         d.label,
-                        style: AppTypography.caption(context).copyWith(
+                        style: AppTypography.captionPrimary(context).copyWith(
                           fontSize: 10,
                           fontWeight:
                               selected ? FontWeight.w700 : FontWeight.w500,
                           color: selected
-                              ? AppColors.primary
+                              ? Colors.white
                               : AppColors.textTertiary(context),
                         ),
                       ),

@@ -8,9 +8,7 @@ import '../theme/app_typography.dart';
 import '../theme/design_tokens.dart';
 import 'event_visuals.dart';
 
-/// Detail bottom sheet for a selected event: title, date, category,
-/// priority, description, related milestone, portal/deadline relationship,
-/// countdown and completion state.
+/// Detail bottom sheet for a selected event.
 class EventDetailSheet extends StatelessWidget {
   final FypEvent event;
   final VoidCallback? onToggleComplete;
@@ -52,14 +50,14 @@ class EventDetailSheet extends StatelessWidget {
                   height: 4,
                   decoration: BoxDecoration(
                     color: AppColors.textTertiary(context)
-                        .withValues(alpha: 0.4),
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: DesignTokens.lg),
 
-              // Category + priority row
+              // Chips
               Row(
                 children: [
                   _Chip(
@@ -101,7 +99,7 @@ class EventDetailSheet extends StatelessWidget {
               Row(
                 children: [
                   Icon(Icons.calendar_today_rounded,
-                      size: 14, color: AppColors.textTertiary(context)),
+                      size: 13, color: AppColors.textTertiary(context)),
                   const SizedBox(width: 6),
                   Text(
                     event.isSingleDay
@@ -112,9 +110,9 @@ class EventDetailSheet extends StatelessWidget {
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                        horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius:
                           BorderRadius.circular(DesignTokens.radiusPill),
                     ),
@@ -129,7 +127,7 @@ class EventDetailSheet extends StatelessWidget {
                 ],
               ),
 
-              // Countdown banner
+              // Countdown
               if (!event.isSingleDay || event.category != FypEventCategory.holiday)
                 _CountdownBanner(event: event),
 
@@ -158,7 +156,7 @@ class EventDetailSheet extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.06),
+                    color: AppColors.primary.withValues(alpha: 0.05),
                     borderRadius:
                         BorderRadius.circular(DesignTokens.radiusMd),
                   ),
@@ -166,7 +164,7 @@ class EventDetailSheet extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.sticky_note_2_outlined,
-                          size: 16, color: AppColors.primary),
+                          size: 15, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(event.notes,
@@ -183,7 +181,7 @@ class EventDetailSheet extends StatelessWidget {
               if (onToggleComplete != null)
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 46,
                   child: FilledButton.icon(
                     onPressed: () {
                       onToggleComplete!();
@@ -199,7 +197,8 @@ class EventDetailSheet extends StatelessWidget {
                     ),
                     icon: Icon(event.isCompleted
                         ? Icons.undo_rounded
-                        : Icons.check_rounded),
+                        : Icons.check_rounded,
+                        size: 18),
                     label: Text(event.isCompleted
                         ? 'Mark as Not Done'
                         : 'Mark as Done'),
@@ -212,8 +211,6 @@ class EventDetailSheet extends StatelessWidget {
     );
   }
 }
-
-// ── Countdown banner ─────────────────────────────────────────────────────────
 
 class _CountdownBanner extends StatelessWidget {
   final FypEvent event;
@@ -243,15 +240,15 @@ class _CountdownBanner extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: DesignTokens.md),
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
-        color: banner.withValues(alpha: 0.12),
+        color: banner.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
-        border: Border.all(color: banner.withValues(alpha: 0.3)),
+        border: Border.all(color: banner.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          Icon(Icons.timer_outlined, size: 16, color: banner),
+          Icon(Icons.timer_outlined, size: 15, color: banner),
           const SizedBox(width: 8),
           Text(
             label,
@@ -262,8 +259,6 @@ class _CountdownBanner extends StatelessWidget {
     );
   }
 }
-
-// ── Portal → Preparation → Deadline relationship ─────────────────────────────
 
 class _RelationshipStrip extends StatelessWidget {
   final String milestoneId;
@@ -300,8 +295,7 @@ class _RelationshipStrip extends StatelessWidget {
               _Connector(),
               _Node(
                 color: AppColors.primary,
-                label:
-                    '${milestone.deadline.difference(portal).inDays}d window',
+                label: '${milestone.deadline.difference(portal).inDays}d window',
                 title: 'Prepare',
               ),
               _Connector(),
@@ -330,19 +324,18 @@ class _Node extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 10,
-            height: 10,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(height: 4),
           Text(title,
-              style:
-                  AppTypography.caption(context).copyWith(fontSize: 9)),
+              style: AppTypography.caption(context).copyWith(fontSize: 9)),
           Text(
             label,
             style: AppTypography.caption(context).copyWith(
               fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
@@ -356,15 +349,13 @@ class _Connector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 24,
-      height: 2,
+      width: 20,
+      height: 1.5,
       margin: const EdgeInsets.only(bottom: 26),
       color: AppColors.border(context),
     );
   }
 }
-
-// ── Related milestone ────────────────────────────────────────────────────────
 
 class _RelatedMilestone extends StatelessWidget {
   final FypEvent event;
@@ -379,13 +370,13 @@ class _RelatedMilestone extends StatelessWidget {
       margin: const EdgeInsets.only(top: DesignTokens.md),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.milestone.withValues(alpha: 0.08),
+        color: AppColors.milestone.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
         border: Border.all(color: AppColors.milestone.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          Icon(Icons.flag_rounded, size: 16, color: AppColors.milestone),
+          Icon(Icons.flag_rounded, size: 15, color: AppColors.milestone),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -409,8 +400,6 @@ class _RelatedMilestone extends StatelessWidget {
   }
 }
 
-// ── Generic chip ─────────────────────────────────────────────────────────────
-
 class _Chip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -420,21 +409,21 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          Icon(icon, size: 11, color: color),
           const SizedBox(width: 4),
           Text(
             label,
             style: AppTypography.caption(context).copyWith(
               fontSize: 10,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
@@ -444,7 +433,6 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/// Convenience: show the detail sheet for [event].
 Future<void> showEventDetail(BuildContext context, FypEvent event,
     {VoidCallback? onToggleComplete}) {
   return showModalBottomSheet(

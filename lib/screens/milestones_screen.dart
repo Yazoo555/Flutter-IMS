@@ -9,8 +9,7 @@ import '../theme/design_tokens.dart';
 import '../widgets/milestone_card.dart';
 import '../widgets/milestone_detail_sheet.dart';
 
-/// Milestone tracker — all official Cohort 11 gates and milestones with
-/// status cycling, countdowns, portal rows and preparation checklists.
+/// Milestone tracker — all official Cohort 11 gates and milestones.
 class MilestonesScreen extends StatefulWidget {
   const MilestonesScreen({super.key});
 
@@ -76,7 +75,6 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
         await _load();
       },
     );
-    // Refresh after the sheet closes (status may have changed).
     if (mounted) await _load();
   }
 
@@ -117,12 +115,11 @@ class _MilestonesScreenState extends State<MilestonesScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: DesignTokens.lg),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(
-              value:
-                  _milestones.isEmpty ? 0 : done / _milestones.length,
-              minHeight: 6,
-              backgroundColor: AppColors.milestone.withValues(alpha: 0.12),
+              value: _milestones.isEmpty ? 0 : done / _milestones.length,
+              minHeight: 4,
+              backgroundColor: AppColors.milestone.withValues(alpha: 0.10),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.milestone),
             ),

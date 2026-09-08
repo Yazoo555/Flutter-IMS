@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import '../extensions/date_helpers.dart';
 import '../models/project_info.dart';
@@ -38,7 +37,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   List<ReminderPlan> _reminderPreview = [];
   bool _loaded = false;
 
-  // Text controllers for the Project section.
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
   final _supervisorCtrl = TextEditingController();
@@ -123,8 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Text(
           'Local data snapshot:\n\n'
           '${summary.entries.map((e) => '${e.key}: ${e.value}').join('\n')}\n\n'
-          'All data lives on this device (SharedPreferences). Copy or '
-          'integrate a JSON export here when a backend is ever added.',
+          'All data lives on this device (SharedPreferences).',
         ),
         actions: [
           TextButton(
@@ -193,16 +190,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text('Make the app yours',
                     style: AppTypography.caption(context)),
               ],
-            ).animate().fadeIn(duration: 300.ms),
+            ),
           ),
         ),
 
-        // ── APPEARANCE ────────────────────────────────────────────────────
+        // APPEARANCE
         _Section('APPEARANCE', [
           Row(
             children: [
               Icon(Icons.palette_outlined,
-                  size: 18, color: AppColors.primary),
+                  size: 16, color: AppColors.primary),
               const SizedBox(width: 10),
               Expanded(
                 child: Text('Theme',
@@ -217,8 +214,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.brightness_auto_rounded,
                 label: 'System',
                 selected: widget.themeMode == ThemeMode.system,
-                onTap: () =>
-                    widget.onThemeModeChanged(ThemeMode.system),
+                onTap: () => widget.onThemeModeChanged(ThemeMode.system),
               ),
               const SizedBox(width: 8),
               _ThemeChoice(
@@ -238,7 +234,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ]),
 
-        // ── NOTIFICATIONS ─────────────────────────────────────────────────
+        // NOTIFICATIONS
         _Section('NOTIFICATIONS', [
           _SwitchTile(
             icon: Icons.notifications_active_outlined,
@@ -294,7 +290,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Row(
                     children: [
                       Icon(Icons.schedule_rounded,
-                          size: 13,
+                          size: 12,
                           color: AppColors.textTertiary(context)),
                       const SizedBox(width: 8),
                       Expanded(
@@ -310,13 +306,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
           const SizedBox(height: DesignTokens.xs),
           Text(
-            'Delivery requires a notification plugin on the platform; '
-            'the schedule is prepared and respects these toggles.',
+            'Schedule is prepared. Delivery requires a notification plugin.',
             style: AppTypography.caption(context).copyWith(fontSize: 10),
           ),
         ]),
 
-        // ── PROJECT ───────────────────────────────────────────────────────
+        // PROJECT
         _Section('PROJECT', [
           _Field(controller: _titleCtrl, hint: 'Project title'),
           const SizedBox(height: 8),
@@ -336,20 +331,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: _saveProject,
-              icon: const Icon(Icons.save_outlined, size: 18),
+              icon: const Icon(Icons.save_outlined, size: 16),
               label: const Text('Save project info'),
             ),
           ),
         ]),
 
-        // ── DATA ──────────────────────────────────────────────────────────
+        // DATA
         _Section('DATA', [
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.ios_share_rounded,
-                size: 20, color: AppColors.primary),
-            title:
-                Text('Export data', style: AppTypography.bodyEmphasized(context)),
+                size: 18, color: AppColors.primary),
+            title: Text('Export data',
+                style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('See a snapshot of what is stored locally',
                 style: AppTypography.caption(context)),
             onTap: _exportData,
@@ -357,7 +352,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.delete_forever_outlined,
-                size: 20, color: AppColors.error),
+                size: 18, color: AppColors.error),
             title: Text('Clear data',
                 style: AppTypography.bodyEmphasized(context)
                     .copyWith(color: AppColors.error)),
@@ -367,12 +362,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ]),
 
-        // ── ABOUT ─────────────────────────────────────────────────────────
+        // ABOUT
         _Section('ABOUT', [
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.school_rounded,
-                size: 20, color: AppColors.primary),
+                size: 18, color: AppColors.primary),
             title: Text('FYP Calendar',
                 style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('Cohort 11 • Final Year Project Planner',
@@ -381,31 +376,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.info_outline_rounded,
-                size: 20, color: AppColors.textTertiary(context)),
-            title: Text('Version', style: AppTypography.bodyEmphasized(context)),
+                size: 18, color: AppColors.textTertiary(context)),
+            title: Text('Version',
+                style: AppTypography.bodyEmphasized(context)),
             subtitle: Text('1.0.0', style: AppTypography.caption(context)),
           ),
         ]),
 
         const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              DesignTokens.lg, DesignTokens.md, DesignTokens.lg, DesignTokens.xxl,
-            ),
-            child: Center(
-              child: Text(
-                'Made with ❤️ for FYP students',
-                style: TextStyle(fontSize: 12),
-              ),
-            ),
-          ),
+          child: SizedBox(height: DesignTokens.xxl),
         ),
       ],
     );
   }
 }
-
-// ── Section container ────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
   final String title;
@@ -423,11 +407,11 @@ class _Section extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: AppTypography.overline(context)),
+            Text(title, style: AppTypography.overlinePrimary(context)),
             const SizedBox(height: DesignTokens.sm),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.card(context),
                 borderRadius: BorderRadius.circular(DesignTokens.radiusLg),
@@ -465,7 +449,7 @@ class _SwitchTile extends StatelessWidget {
     return MergeSemantics(
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.textTertiary(context)),
+          Icon(icon, size: 16, color: AppColors.textTertiary(context)),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -512,10 +496,9 @@ class _ThemeChoice extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
               color: selected
-                  ? AppColors.primary.withValues(alpha: 0.12)
+                  ? AppColors.primary.withValues(alpha: 0.10)
                   : Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(DesignTokens.radiusMd),
+              borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
               border: Border.all(
                 color: selected
                     ? AppColors.primary
@@ -525,17 +508,17 @@ class _ThemeChoice extends StatelessWidget {
             child: Column(
               children: [
                 Icon(icon,
-                    size: 18,
+                    size: 17,
                     color: selected
-                        ? AppColors.primary
+                        ? Colors.white
                         : AppColors.textTertiary(context)),
                 const SizedBox(height: 4),
                 Text(
                   label,
-                  style: AppTypography.caption(context).copyWith(
+                  style: AppTypography.captionPrimary(context).copyWith(
                     fontWeight: FontWeight.w700,
                     color: selected
-                        ? AppColors.primary
+                        ? Colors.white
                         : AppColors.textTertiary(context),
                   ),
                 ),

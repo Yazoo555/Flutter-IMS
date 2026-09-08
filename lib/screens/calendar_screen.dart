@@ -10,8 +10,8 @@ import '../widgets/empty_state.dart';
 import '../widgets/event_card.dart';
 import '../widgets/event_detail_sheet.dart';
 
-/// Premium calendar experience: month view, timeline view, category filters
-/// and Day/Week/Month scopes, backed by the official Cohort 11 dataset.
+/// Calendar: month view, timeline view, category filters
+/// and Day/Week/Month scopes.
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
@@ -20,11 +20,8 @@ class CalendarScreen extends StatefulWidget {
 }
 
 enum _CalView { month, timeline }
-
 enum _Scope { day, week, month }
 
-/// Category filters. `milestones` matches events linked to an official
-/// milestone; `portal` covers portal openings and Google Form events.
 enum _Filter {
   all('All'),
   deadlines('Deadlines'),
@@ -87,8 +84,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     await _load();
   }
 
-  // ── Data selectors ────────────────────────────────────────────────────────
-
   List<FypEvent> get _filteredEvents =>
       _events.where(_filter.matches).toList();
 
@@ -120,8 +115,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<FypEvent> get _holidaySpans => _events
-      .where((e) =>
-          e.category == FypEventCategory.holiday && !e.isSingleDay)
+      .where((e) => e.category == FypEventCategory.holiday && !e.isSingleDay)
       .toList();
 
   bool _inHoliday(DateTime day) =>
@@ -161,8 +155,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ],
     );
   }
-
-  // ── Month view ────────────────────────────────────────────────────────────
 
   Widget _buildMonthView() {
     final selectedEvents = _eventsOn(_selectedDate);
@@ -251,22 +243,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         _selectedDate.month == DateTime.now().month
                     ? 'Today • ${_selectedDate.shortFormatted}'
                     : _selectedDate.shortFormatted,
-                style: AppTypography.cardTitle(context),
+                style: AppTypography.bodyEmphasized(context),
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius:
-                      BorderRadius.circular(DesignTokens.radiusPill),
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                 ),
                 child: Text(
                   weekLabelOf(_selectedDate),
                   style: AppTypography.caption(context).copyWith(
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.primary,
                   ),
                 ),
@@ -280,7 +270,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
 
-        // Scope selector + day events
+        // Scope selector
         _ScopeBar(
           scope: _scope,
           onScopeChanged: (s) => setState(() => _scope = s),
@@ -293,16 +283,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  // ── Timeline view ─────────────────────────────────────────────────────────
-
   Widget _buildTimeline() {
     final filtered = _filteredEvents;
-    final past =
-        filtered.where((e) => e.hasEnded && !e.isToday).toList();
-    final current =
-        filtered.where((e) => e.isToday && !e.hasEnded).toList();
-    final upcoming =
-        filtered.where((e) => !e.hasEnded && !e.isToday).toList();
+    final past = filtered.where((e) => e.hasEnded && !e.isToday).toList();
+    final current = filtered.where((e) => e.isToday && !e.hasEnded).toList();
+    final upcoming = filtered.where((e) => !e.hasEnded && !e.isToday).toList();
 
     if (filtered.isEmpty) {
       return const EmptyState(
@@ -341,19 +326,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  /// List for the detail area, honoring the Day / Week / Month scope.
   Widget _scopedList(List<FypEvent> dayEvents, FypEvent? holiday) {
     if (_scope == _Scope.day) {
       return _eventList(dayEvents, holiday: holiday);
     }
 
-    final scoped = _scopedEvents
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final scoped = _scopedEvents..sort((a, b) => a.date.compareTo(b.date));
     if (scoped.isEmpty) {
       return _eventList(const [], holiday: holiday);
     }
 
-    // Group by calendar day, then render with small date headers.
     final byDay = <DateTime, List<FypEvent>>{};
     for (final e in scoped) {
       byDay.putIfAbsent(e.startDay, () => []).add(e);
@@ -380,7 +362,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   Text(
                     '${day.dayShort} ${day.day} ${day.monthShort}',
                     style: AppTypography.caption(context)
-                        .copyWith(fontWeight: FontWeight.w800),
+                        .copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -473,8 +455,8 @@ class _Header extends StatelessWidget {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: AppColors.isDark(context)
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04),
+                  ? AppColors.surfaceDarkAlt.withValues(alpha: 0.6)
+                  : AppColors.surfaceLightAlt,
               borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
             ),
             child: Row(
@@ -519,24 +501,21 @@ class _Toggle extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: DesignTokens.durationFast,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(DesignTokens.radiusMd - 4),
+          color: selected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon,
-                size: 14,
+                size: 13,
                 color: selected ? Colors.white : AppColors.textTertiary(context)),
             const SizedBox(width: 4),
             Text(
               label,
-              style: AppTypography.caption(context).copyWith(
+              style: AppTypography.captionPrimary(context).copyWith(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: selected ? Colors.white : AppColors.textTertiary(context),
@@ -561,7 +540,7 @@ class _FilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final filters = _Filter.values;
     return SizedBox(
-      height: 44,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(
@@ -576,25 +555,21 @@ class _FilterBar extends StatelessWidget {
             onTap: () => onFilterChanged(f),
             child: AnimatedContainer(
               duration: DesignTokens.durationFast,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: selected
                     ? AppColors.primary
                     : AppColors.isDark(context)
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.black.withValues(alpha: 0.05),
-                borderRadius:
-                    BorderRadius.circular(DesignTokens.radiusPill),
+                        ? AppColors.surfaceDarkAlt.withValues(alpha: 0.5)
+                        : AppColors.surfaceLightAlt,
+                borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
               ),
               child: Text(
                 f.label,
-                style: AppTypography.caption(context).copyWith(
+                style: AppTypography.captionPrimary(context).copyWith(
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: selected
-                      ? Colors.white
-                      : AppColors.textSecondary(context),
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppColors.textSecondary(context),
                 ),
               ),
             ),
@@ -605,7 +580,7 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-// ── Scope bar (Day / Week / Month) ───────────────────────────────────────────
+// ── Scope bar ────────────────────────────────────────────────────────────────
 
 class _ScopeBar extends StatelessWidget {
   final _Scope scope;
@@ -619,7 +594,7 @@ class _ScopeBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: DesignTokens.lg),
       child: Row(
         children: [
-          Text('SHOWING', style: AppTypography.overline(context)),
+          Text('SHOWING', style: AppTypography.overlinePrimary(context)),
           const SizedBox(width: 10),
           ..._Scope.values.map((s) => Padding(
                 padding: const EdgeInsets.only(right: 6),
@@ -630,10 +605,9 @@ class _ScopeBar extends StatelessWidget {
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: s == scope
-                          ? AppColors.primary.withValues(alpha: 0.15)
+                          ? AppColors.primary.withValues(alpha: 0.10)
                           : Colors.transparent,
-                      borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusPill),
+                      borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                       border: Border.all(
                         color: s == scope
                             ? AppColors.primary
@@ -646,9 +620,9 @@ class _ScopeBar extends StatelessWidget {
                         _Scope.week => 'Week',
                         _Scope.month => 'Month',
                       },
-                      style: AppTypography.caption(context).copyWith(
+                      style: AppTypography.captionPrimary(context).copyWith(
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: s == scope
                             ? AppColors.primary
                             : AppColors.textTertiary(context),
@@ -663,7 +637,7 @@ class _ScopeBar extends StatelessWidget {
   }
 }
 
-// ── Month grid with holiday shading ──────────────────────────────────────────
+// ── Month grid ───────────────────────────────────────────────────────────────
 
 class _MonthGrid extends StatelessWidget {
   final DateTime month;
@@ -680,11 +654,9 @@ class _MonthGrid extends StatelessWidget {
     required this.onSelect,
   });
 
-  /// Up to 2 indicator dots for a day, deadline first.
   List<Color> _dotsFor(DateTime day) {
     final dayEvents = events.where((e) => e.isOn(day)).toList();
     final colors = <Color>[];
-    // Deadlines first — impossible to miss.
     for (final e in dayEvents) {
       if (e.category == FypEventCategory.deadline) {
         colors.add(AppColors.deadline);
@@ -715,7 +687,7 @@ class _MonthGrid extends StatelessWidget {
             final cellIndex = r * 7 + c;
             final dayNumber = cellIndex - leadingBlanks + 1;
             if (dayNumber < 1 || dayNumber > daysInMonth) {
-              return const Expanded(child: SizedBox(height: 44));
+              return const Expanded(child: SizedBox(height: 40));
             }
             final date = DateTime(month.year, month.month, dayNumber);
             final isSelected = date.year == selectedDate.year &&
@@ -731,53 +703,50 @@ class _MonthGrid extends StatelessWidget {
               child: GestureDetector(
                 onTap: () => onSelect(date),
                 child: Container(
-                  height: 44,
+                  height: 40,
                   margin: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary
                         : holiday
-                            ? AppColors.holiday.withValues(alpha: 0.10)
+                            ? AppColors.holiday.withValues(alpha: 0.08)
                             : isToday
-                                ? AppColors.primary.withValues(alpha: 0.10)
+                                ? AppColors.primary.withValues(alpha: 0.08)
                                 : Colors.transparent,
                     borderRadius:
-                        BorderRadius.circular(DesignTokens.radiusSm + 2),
+                        BorderRadius.circular(DesignTokens.radiusSm),
                     border: isSelected
                         ? null
                         : isToday
                             ? Border.all(
                                 color:
-                                    AppColors.primary.withValues(alpha: 0.4))
-                            : holiday
-                                ? Border.all(
-                                    color: AppColors.holiday
-                                        .withValues(alpha: 0.25))
-                                : null,
+                                    AppColors.primary.withValues(alpha: 0.3))
+                            : null,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '$dayNumber',
-                        style: AppTypography.bodyEmphasized(context).copyWith(
+                        style: AppTypography.body(context).copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                           color: isSelected
                               ? Colors.white
                               : holiday
                                   ? AppColors.textTertiary(context)
                                   : AppColors.textPrimary(context),
-                          fontSize: 13,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       SizedBox(
-                        height: 5,
+                        height: 4,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: dots
                               .map((c) => Container(
-                                    width: 4,
-                                    height: 4,
+                                    width: 3,
+                                    height: 3,
                                     margin: const EdgeInsets.symmetric(
                                         horizontal: 1),
                                     decoration: BoxDecoration(
@@ -830,10 +799,9 @@ class _TimelineSection extends StatelessWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
-            Text(title, style: AppTypography.overline(context)),
+            Text(title, style: AppTypography.overlinePrimary(context)),
             const SizedBox(width: 8),
-            Text('${events.length}',
-                style: AppTypography.caption(context)),
+            Text('${events.length}', style: AppTypography.captionPrimary(context)),
           ],
         ),
         const SizedBox(height: DesignTokens.md),
@@ -887,8 +855,8 @@ class _TimelineRow extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    width: 10,
-                    height: 10,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: event.isCompleted
                           ? AppColors.statusCompleted
@@ -899,7 +867,7 @@ class _TimelineRow extends StatelessWidget {
                   if (!isLast)
                     Expanded(
                       child: Container(
-                        width: 2,
+                        width: 1.5,
                         color: AppColors.border(context),
                       ),
                     ),
@@ -910,7 +878,7 @@ class _TimelineRow extends StatelessWidget {
             Expanded(
               child: Container(
                 margin: const EdgeInsets.only(
-                    bottom: DesignTokens.sm + 4, left: 4),
+                    bottom: DesignTokens.sm, left: 4),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.card(context),
@@ -918,7 +886,7 @@ class _TimelineRow extends StatelessWidget {
                       BorderRadius.circular(DesignTokens.radiusMd),
                   border: Border.all(
                     color: event.category == FypEventCategory.deadline
-                        ? AppColors.deadline.withValues(alpha: 0.4)
+                        ? AppColors.deadline.withValues(alpha: 0.3)
                         : AppColors.border(context),
                   ),
                 ),
@@ -937,9 +905,9 @@ class _TimelineRow extends StatelessWidget {
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 7, vertical: 2),
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
+                            color: color.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(
                                 DesignTokens.radiusPill),
                           ),
@@ -947,7 +915,7 @@ class _TimelineRow extends StatelessWidget {
                             event.category.label,
                             style: AppTypography.caption(context).copyWith(
                               fontSize: 9,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               color: color,
                             ),
                           ),
@@ -986,16 +954,16 @@ class _NavBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36,
-        height: 36,
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
           color: AppColors.isDark(context)
-              ? Colors.white.withValues(alpha: 0.06)
-              : Colors.black.withValues(alpha: 0.04),
+              ? AppColors.surfaceDarkAlt.withValues(alpha: 0.6)
+              : AppColors.surfaceLightAlt,
           borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
         ),
         child:
-            Icon(icon, size: 20, color: AppColors.textSecondary(context)),
+            Icon(icon, size: 18, color: AppColors.textSecondary(context)),
       ),
     );
   }

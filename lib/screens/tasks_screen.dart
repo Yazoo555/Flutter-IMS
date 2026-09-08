@@ -10,12 +10,10 @@ import '../widgets/task_card.dart';
 import '../widgets/task_edit_sheet.dart';
 
 enum _TasksView { list, kanban }
-
 enum _SortMode { dueDate, priority, milestone, status }
 
 /// FYP task manager: List + Kanban views, sorting by due date / priority /
-/// milestone / status, and quick-add. Status changes happen via the card's
-/// status circle (drag-and-drop is never required).
+/// milestone / status, and quick-add.
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
 
@@ -114,9 +112,10 @@ class _TasksScreenState extends State<TasksScreen> {
         onPressed: _addOrEdit,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
+        elevation: 0,
+        icon: const Icon(Icons.add_rounded, size: 18),
         label: Text('Add Task',
-            style: AppTypography.button(context).copyWith(fontSize: 14)),
+            style: AppTypography.button(context)),
       ),
       body: Column(
         children: [
@@ -138,29 +137,25 @@ class _TasksScreenState extends State<TasksScreen> {
                     ],
                   ),
                 ),
-                // View toggle
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     color: AppColors.isDark(context)
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.black.withValues(alpha: 0.04),
-                    borderRadius:
-                        BorderRadius.circular(DesignTokens.radiusMd),
+                        ? AppColors.surfaceDarkAlt.withValues(alpha: 0.6)
+                        : AppColors.surfaceLightAlt,
+                    borderRadius: BorderRadius.circular(DesignTokens.radiusMd),
                   ),
                   child: Row(
                     children: [
                       _ViewToggle(
                         icon: Icons.view_list_rounded,
                         selected: _view == _TasksView.list,
-                        onTap: () =>
-                            setState(() => _view = _TasksView.list),
+                        onTap: () => setState(() => _view = _TasksView.list),
                       ),
                       _ViewToggle(
                         icon: Icons.view_kanban_rounded,
                         selected: _view == _TasksView.kanban,
-                        onTap: () =>
-                            setState(() => _view = _TasksView.kanban),
+                        onTap: () => setState(() => _view = _TasksView.kanban),
                       ),
                     ],
                   ),
@@ -176,7 +171,7 @@ class _TasksScreenState extends State<TasksScreen> {
             ),
             child: Row(
               children: [
-                Text('SORT', style: AppTypography.overline(context)),
+                Text('SORT', style: AppTypography.overlinePrimary(context)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: SingleChildScrollView(
@@ -193,11 +188,10 @@ class _TasksScreenState extends State<TasksScreen> {
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: selected
-                                    ? AppColors.primary
-                                        .withValues(alpha: 0.15)
+                                    ? AppColors.primary.withValues(alpha: 0.10)
                                     : Colors.transparent,
-                                borderRadius: BorderRadius.circular(
-                                    DesignTokens.radiusPill),
+                                borderRadius:
+                                    BorderRadius.circular(DesignTokens.radiusPill),
                                 border: Border.all(
                                   color: selected
                                       ? AppColors.primary
@@ -211,10 +205,9 @@ class _TasksScreenState extends State<TasksScreen> {
                                   _SortMode.milestone => 'Milestone',
                                   _SortMode.status => 'Status',
                                 },
-                                style:
-                                    AppTypography.caption(context).copyWith(
+                                style: AppTypography.captionPrimary(context).copyWith(
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: selected
                                       ? AppColors.primary
                                       : AppColors.textTertiary(context),
@@ -298,17 +291,16 @@ class _TasksScreenState extends State<TasksScreen> {
                   const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 1),
+                        horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.12),
-                      borderRadius:
-                          BorderRadius.circular(DesignTokens.radiusPill),
+                      color: color.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(DesignTokens.radiusPill),
                     ),
                     child: Text(
                       '${tasks.length}',
                       style: AppTypography.caption(context).copyWith(
                         fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: color,
                       ),
                     ),
@@ -322,16 +314,13 @@ class _TasksScreenState extends State<TasksScreen> {
                       width: double.infinity,
                       margin: const EdgeInsets.only(right: DesignTokens.sm),
                       decoration: BoxDecoration(
-                        border:
-                            Border.all(color: AppColors.border(context)),
+                        border: Border.all(color: AppColors.border(context)),
                         borderRadius:
                             BorderRadius.circular(DesignTokens.radiusMd),
                       ),
                       child: Center(
-                        child: Text(
-                          'Nothing here',
-                          style: AppTypography.caption(context),
-                        ),
+                        child: Text('Nothing here',
+                            style: AppTypography.caption(context)),
                       ),
                     )
                   : ListView.builder(
@@ -359,10 +348,9 @@ class _TasksScreenState extends State<TasksScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          column('To Do', TaskStatus.todo, AppColors.statusInProgress),
+          column('To Do', TaskStatus.todo, AppColors.statusNotStarted),
           const SizedBox(width: DesignTokens.sm),
-          column(
-              'In Progress', TaskStatus.inProgress, AppColors.priorityHigh),
+          column('In Progress', TaskStatus.inProgress, AppColors.statusInProgress),
           const SizedBox(width: DesignTokens.sm),
           column('Done', TaskStatus.done, AppColors.statusCompleted),
         ],
@@ -387,15 +375,15 @@ class _ViewToggle extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary.withValues(alpha: 0.12)
+              ? AppColors.primary.withValues(alpha: 0.10)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(DesignTokens.radiusSm),
         ),
         child: Icon(icon,
-            size: 18,
+            size: 17,
             color: selected
                 ? AppColors.primary
                 : AppColors.textTertiary(context)),

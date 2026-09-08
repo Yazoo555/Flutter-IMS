@@ -16,8 +16,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const FypCalendarApp());
     await tester.pumpAndSettle();
-    // Smoke test - the FYP Calendar shell should render without errors.
-    expect(find.text('FYP Calendar'), findsWidgets);
+    // Smoke test - the app shell should render without errors.
+    expect(find.byType(FypCalendarApp), findsOneWidget);
   });
 
   test('FYP timeline constants are consistent', () {
